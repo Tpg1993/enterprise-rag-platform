@@ -55,8 +55,7 @@ docs/proofs/
 | 15 | Self-RAG | ✅ Done | `sarvam-105b-self-rag-v1.0.0-langgraph` | [README](phase-15-self-rag/README.md) |
 | 16 | ReAct Agentic RAG | ✅ Done | `sarvam-105b-react-rag-v1.0.0-langgraph` | [README](phase-16-react-rag/README.md) |
 | 17 | LangSmith Observability & Trace Explorer | ✅ Done | `main` | [README](phase-17-langsmith-observability/README.md) |
-| 18 | Strategy Comparison Benchmark | ✅ Done | `main` | [README](phase-18-strategy-comparison/README.md) |
-| **19** | **GraphRAG (Neo4j)** | 🔲 Planned | `sarvam-105b-graph-rag-v1.0.0-langgraph` | — |
+| **19** | **GraphRAG (Neo4j)** | ✅ Done | `sarvam-105b-graph-rag-v1.0.0-langgraph` | [README](phase-19-graph-rag/README.md) |
 | **20** | **SQL RAG (PostgreSQL Text-to-SQL)** | 🔲 Planned | `sarvam-105b-sql-rag-v1.0.0-langgraph` | — |
 | **21** | **Multimodal RAG (PDF images, OCR tables)** | 🔲 Planned | `sarvam-105b-multimodal-rag-v1.0.0-langgraph` | — |
 | **22** | **Auth, JWT, RBAC (Phase 20 from AGENTS.md)** | 🔲 Planned | `main` | — |

@@ -4,12 +4,12 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env file from project root
+# Load .env file from project root (without overriding explicitly set environment variables)
 env_path = Path(__file__).resolve().parent.parent.parent.parent / ".env"
 if env_path.exists():
-    load_dotenv(dotenv_path=env_path, override=True)
+    load_dotenv(dotenv_path=env_path, override=False)
 else:
-    load_dotenv(override=True)
+    load_dotenv(override=False)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

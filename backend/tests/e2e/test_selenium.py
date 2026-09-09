@@ -93,6 +93,21 @@ def test_selenium_ui_navigation_and_elements():
         assert "Corrective" in option_values
         assert "Self-RAG" in option_values
         assert "ReAct" in option_values
+        assert "GraphRAG" in option_values
+
+        # 5. Test GraphRAG query execution and DOM response
+        strategy_dropdown.send_keys("GraphRAG")
+        query_input = driver.find_element(By.ID, "query-input")
+        send_btn = driver.find_element(By.ID, "send-btn")
+
+        query_input.clear()
+        query_input.send_keys("What entities does Sarvam AI connect to?")
+        send_btn.click()
+
+        # Wait for assistant response bubble
+        time.sleep(2.0)
+        messages = driver.find_elements(By.CLASS_NAME, "message")
+        assert len(messages) >= 2
 
     finally:
         if driver:

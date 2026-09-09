@@ -412,14 +412,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const strategies = [
         "Basic", "Hybrid", "MMR", "Reranked", "Parent-Child", 
-        "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG", "ReAct"
+        "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG", "ReAct", "GraphRAG"
       ];
 
       runBenchmarkBtn.disabled = true;
-      runBenchmarkBtn.innerText = 'Benchmarking 11 Strategies...';
-      if (statusElem) statusElem.innerHTML = '<span style="color:#38bdf8">⚡ Running benchmark queries across all 11 strategies concurrently...</span>';
+      runBenchmarkBtn.innerText = `Benchmarking ${strategies.length} Strategies...`;
+      if (statusElem) statusElem.innerHTML = `<span style="color:#38bdf8">⚡ Running benchmark queries across all ${strategies.length} strategies concurrently...</span>`;
 
-      tbody.innerHTML = '<tr><td colspan="8" style="padding:1rem; text-align:center; color:#38bdf8">Running live benchmark across 11 RAG strategies...</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="8" style="padding:1rem; text-align:center; color:#38bdf8">Running live benchmark across ${strategies.length} RAG strategies...</td></tr>`;
 
       const results = [];
       for (const strat of strategies) {

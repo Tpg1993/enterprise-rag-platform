@@ -5,6 +5,21 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-09-09
+
+### Added
+- **Phase 19 Complete (GraphRAG — Neo4j Entity-Relationship Knowledge Graph RAG)**:
+  - **Entity & Relationship Extraction**: Built `GraphEntityExtractor` (`backend/src/graph/extractor.py`) extracting `(Subject, Predicate, Object)` entity-relation triples using `sarvam-105b` with deterministic linguistic heuristic fallbacks and n-gram candidate extraction.
+  - **Neo4j Knowledge Graph Store**: Implemented `Neo4jGraphStore` (`backend/src/graph/neo4j_store.py`) providing Cypher `MERGE` node and relationship upserts, variable-length path traversal (`MATCH (s)-[*1..2]-(t)`), strict `tenant_id` property isolation, and resilient in-memory BFS fallback.
+  - **GraphRAG Strategy Pipeline**: Implemented `GraphRAGStrategy` (`backend/src/rag/graph_rag/strategy.py`) combining concurrent dense vector retrieval from Qdrant with multi-hop graph traversal in Neo4j, synthesizing relational knowledge facts (`[Graph Knowledge Fact]`) into grounded context.
+  - **Automated Ingestion Pipeline**: Enhanced document ingestion route (`backend/src/api/routes/documents.py`) to automatically extract and index graph triples into Neo4j upon document upload.
+  - **Strategy Router & Frontend Integration**: Registered `"GraphRAG"` in `get_rag_strategy` (`backend/src/rag/router.py`), added to Web UI dropdown, strategy catalog card 12, and side-by-side benchmark matrix (`frontend/index.html`, `frontend/services/api.js`).
+  - **Comprehensive Test Suite (100% Passing)**:
+    - Dedicated Unit Tests: `backend/tests/unit/test_graph_rag.py` (6/6 passing)
+    - Multi-Component Integration Tests: `backend/tests/integration/test_graph_rag_integration.py` and `backend/tests/integration/test_strategy_comparison.py` (12/12 strategies passing)
+    - Selenium WebDriver E2E UI Tests: `backend/tests/e2e/test_selenium.py` (100% passing)
+  - **Proof Documentation**: Saved video recording (`graph-rag-live-demo.webp`), benchmark matrix screenshot (`graph-rag-benchmark-matrix.png`), and detailed architecture log in `docs/proofs/phase-19-graph-rag/`.
+
 ## [2.0.0] - 2026-08-17
 
 ### Added

@@ -1,4 +1,4 @@
-﻿{
+{
     "Basic":  {
                   "answer":  "I do not have sufficient information in the provided documents to answer your request.",
                   "tokens":  null,
@@ -119,5 +119,16 @@
                 "citations":  {
 
                               }
-            }
+            },
+    "GraphRAG": {
+                "answer": "Based on the provided documentation, the Enterprise Multi-Architecture RAG Platform uses: LLM provider: Sarvam AI (sarvam-105b), Vector database: Qdrant for dense vector search.",
+                "tokens": 1431,
+                "latency": 20702.7,
+                "strategy_used": "GraphRAG",
+                "status": "SUCCESS",
+                "citations": {
+                    "document_id": "doc_e09714f9bb76",
+                    "source": "sample_enterprise_doc.txt"
+                }
+    }
 }

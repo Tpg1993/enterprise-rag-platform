@@ -32,6 +32,8 @@ class CacheConfig(BaseModel):
 class GraphStoreConfig(BaseModel):
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
+    neo4j_password: str = "neo4j_password_placeholder"
+    max_hops: int = 2
 
 
 class LLMSarvamConfig(BaseModel):

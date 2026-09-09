@@ -8,7 +8,11 @@ from src.api.main import app
 @pytest.mark.asyncio
 async def test_side_by_side_strategy_comparison():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        strategies = ["Basic", "Hybrid", "MMR", "Reranked", "Parent-Child", "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG", "ReAct"]
+        strategies = [
+            "Basic", "Hybrid", "MMR", "Reranked", "Parent-Child",
+            "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG",
+            "ReAct", "GraphRAG"
+        ]
         query = "Explain Sarvam-105B multi-architecture RAG platform."
 
         results = {}
@@ -39,3 +43,4 @@ async def test_side_by_side_strategy_comparison():
         assert "Corrective" in results
         assert "Self-RAG" in results
         assert "ReAct" in results
+        assert "GraphRAG" in results

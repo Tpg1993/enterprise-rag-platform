@@ -61,6 +61,10 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.react.strategy import ReActRAGStrategy
 
             _strategies[s_clean] = ReActRAGStrategy()
+        elif s_upper in ("GRAPHRAG", "GRAPH-RAG", "GRAPH_RAG", "GRAPH"):
+            from src.rag.graph_rag.strategy import GraphRAGStrategy
+
+            _strategies[s_clean] = GraphRAGStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

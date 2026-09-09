@@ -50,6 +50,13 @@ def load_settings(config_dir: Path | None = None) -> PlatformSettings:
             merged["app"] = {}
         merged["app"]["mock_llm"] = mock_llm_env.lower() in ("true", "1", "yes")
 
+    if os.getenv("NEO4J_URI"):
+        merged.setdefault("graph_store", {})["neo4j_uri"] = os.getenv("NEO4J_URI")
+    if os.getenv("NEO4J_USER"):
+        merged.setdefault("graph_store", {})["neo4j_user"] = os.getenv("NEO4J_USER")
+    if os.getenv("NEO4J_PASSWORD"):
+        merged.setdefault("graph_store", {})["neo4j_password"] = os.getenv("NEO4J_PASSWORD")
+
     return PlatformSettings.model_validate(merged)
 
 

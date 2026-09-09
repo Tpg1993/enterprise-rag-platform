@@ -133,6 +133,25 @@ async def upload_document(
     vector_store.upsert_chunks(chunks, vectors)
     bm25_retriever.index_chunks(chunks, tenant_id=tenant_id)
 
+    # 6b. Extract & Index Knowledge Graph Triples in Neo4j Graph Store
+    try:
+        from src.graph.extractor import GraphEntityExtractor
+        from src.graph.neo4j_store import get_graph_store
+
+        graph_store = get_graph_store()
+        extractor = GraphEntityExtractor()
+        for c in chunks:
+            res = extractor.extract_sync(c.content)
+            if res.triples:
+                graph_store.upsert_triples(
+                    res.triples,
+                    tenant_id=tenant_id,
+                    doc_id=doc_id,
+                    chunk_id=c.chunk_id,
+                )
+    except Exception as e:
+        logger.warning(f"Graph extraction warning during ingestion: {e}")
+
     # 7. Record CDC version (Increments version v1 -> v2 -> v3 on re-upload)
     version = cdc_engine.record_ingestion(doc_id, checksum, tenant_id=tenant_id)
 
