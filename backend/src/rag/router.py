@@ -65,6 +65,10 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.graph_rag.strategy import GraphRAGStrategy
 
             _strategies[s_clean] = GraphRAGStrategy()
+        elif s_upper in ("SQL-RAG", "SQL_RAG", "SQLRAG", "SQL"):
+            from src.rag.sql_rag.strategy import SQLRAGStrategy
+
+            _strategies[s_clean] = SQLRAGStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

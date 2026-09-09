@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.0] - 2026-09-09
 
 ### Added
+- **Phase 20 Complete (SQL RAG — PostgreSQL & SQLite Text-to-SQL Query Engine)**:
+  - **AST Security Validation (`SQLValidator`)**: Built AST-level validator (`backend/src/sql/validator.py`) using `sqlglot` enforcing strict read-only execution (`Select`, `Union`, `With`), blocking destructive commands (`DROP`, `DELETE`, `INSERT`, `UPDATE`, `ALTER`, `TRUNCATE`, `EXEC`), enforcing table allowlists, and rewriting queries with automatic maximum row limits (1000).
+  - **Schema-Grounded SQL Generator (`SQLGenerator`)**: Implemented generator (`backend/src/sql/generator.py`) grounded in database catalog schemas with `sarvam-105b` and deterministic heuristic fallbacks.
+  - **Secure SQL Executor (`SQLExecutor`)**: Built executor (`backend/src/sql/executor.py`) supporting live PostgreSQL and resilient embedded SQLite databases with automated execution time capping (5.0s max) and audit logging.
+  - **SQL-RAG Strategy & Markdown Formatting**: Implemented `SQLRAGStrategy` (`backend/src/rag/sql_rag/strategy.py`) executing validated queries, converting tabular records into clean Markdown tables, and synthesizing natural-language answers with database table citations.
+  - **Router & Frontend Integration**: Registered `"SQL-RAG"` in `get_rag_strategy` (`backend/src/rag/router.py`), added to Web UI dropdown, strategy catalog card 13, and side-by-side benchmark matrix.
+  - **Comprehensive Test Suite (100% Passing)**:
+    - Unit Tests: `backend/tests/unit/test_sql_rag.py` (10/10 passing)
+    - Integration Tests: `backend/tests/integration/test_sql_rag_integration.py` & `backend/tests/integration/test_strategy_comparison.py` (13/13 strategies passing)
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing)
+  - **Proof Documentation**: Saved query synthesis screenshot (`sql-rag-live-query.png`), strategy card (`sql-rag-architecture-card.png`), benchmark matrix (`sql-rag-benchmark-matrix.png`), and architecture summary in `docs/proofs/phase-20-sql-rag/`.
+
 - **Phase 19 Complete (GraphRAG — Neo4j Entity-Relationship Knowledge Graph RAG)**:
   - **Entity & Relationship Extraction**: Built `GraphEntityExtractor` (`backend/src/graph/extractor.py`) extracting `(Subject, Predicate, Object)` entity-relation triples using `sarvam-105b` with deterministic linguistic heuristic fallbacks and n-gram candidate extraction.
   - **Neo4j Knowledge Graph Store**: Implemented `Neo4jGraphStore` (`backend/src/graph/neo4j_store.py`) providing Cypher `MERGE` node and relationship upserts, variable-length path traversal (`MATCH (s)-[*1..2]-(t)`), strict `tenant_id` property isolation, and resilient in-memory BFS fallback.

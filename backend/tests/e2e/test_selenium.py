@@ -94,6 +94,7 @@ def test_selenium_ui_navigation_and_elements():
         assert "Self-RAG" in option_values
         assert "ReAct" in option_values
         assert "GraphRAG" in option_values
+        assert "SQL-RAG" in option_values
 
         # 5. Test GraphRAG query execution and DOM response
         strategy_dropdown.send_keys("GraphRAG")

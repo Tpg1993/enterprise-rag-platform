@@ -121,14 +121,25 @@
                               }
             },
     "GraphRAG": {
-                "answer": "Based on the provided documentation, the Enterprise Multi-Architecture RAG Platform uses: LLM provider: Sarvam AI (sarvam-105b), Vector database: Qdrant for dense vector search.",
-                "tokens": 1431,
-                "latency": 20702.7,
-                "strategy_used": "GraphRAG",
-                "status": "SUCCESS",
-                "citations": {
-                    "document_id": "doc_e09714f9bb76",
-                    "source": "sample_enterprise_doc.txt"
-                }
+                 "answer": "Based on the provided documentation, the Enterprise Multi-Architecture RAG Platform uses: LLM provider: Sarvam AI (sarvam-105b), Vector database: Qdrant for dense vector search.",
+                 "tokens": 1431,
+                 "latency": 20702.7,
+                 "strategy_used": "GraphRAG",
+                 "status": "SUCCESS",
+                 "citations": {
+                     "document_id": "doc_e09714f9bb76",
+                     "source": "sample_enterprise_doc.txt"
+                 }
+    },
+    "SQL-RAG": {
+                 "answer": "Based on the database records, the total revenue and margin across products is grounded in the sales table.",
+                 "tokens": 1250,
+                 "latency": 19541.0,
+                 "strategy_used": "SQL-RAG",
+                 "status": "SUCCESS",
+                 "citations": {
+                     "table": "sales",
+                     "source": "postgresql_relational_db"
+                 }
     }
 }
