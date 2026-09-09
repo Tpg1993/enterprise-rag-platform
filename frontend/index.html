@@ -16,9 +16,18 @@
         <span class="logo-badge">Sarvam AI</span>
         <h1>Enterprise RAG & Agentic AI Platform</h1>
       </div>
-      <div class="status-bar">
+      <div class="status-bar" style="display:flex; align-items:center; gap:0.8rem">
+        <div style="display:flex; align-items:center; gap:0.4rem">
+          <label style="font-size:0.75rem; color:#94a3b8">Active User:</label>
+          <select id="user-session-select" class="strategy-dropdown" style="padding:0.25rem 0.5rem; font-size:0.75rem; background:#1e293b; border:1px solid #475569; color:#f8fafc; border-radius:4px">
+            <option value="admin@enterprise.ai" selected>admin@enterprise.ai (ADMIN)</option>
+            <option value="analyst@enterprise.ai">analyst@enterprise.ai (ANALYST)</option>
+            <option value="user@enterprise.ai">user@enterprise.ai (USER)</option>
+            <option value="viewer@enterprise.ai">viewer@enterprise.ai (VIEWER)</option>
+          </select>
+        </div>
         <span class="status-indicator online"></span>
-        <span id="env-tag">Development (Mock Mode)</span>
+        <span id="env-tag">Development (Live Sarvam API)</span>
       </div>
     </header>
 
@@ -400,6 +409,43 @@
                 <p style="font-size:0.85rem; color:#cbd5e1; margin-top:0.4rem">Supported Roles: ADMIN, ANALYST, USER, VIEWER with strict tenant_id query-level data isolation.</p>
                 <div style="margin-top:0.8rem; font-size:0.8rem; color:#38bdf8">Default Session: <strong>default_tenant</strong></div>
               </div>
+            </div>
+
+            <div style="margin-top:2rem">
+              <h3>👥 Enterprise User Directory (JWT Authenticated)</h3>
+              <table class="doc-table" style="width:100%; border-collapse:collapse; margin-top:1rem">
+                <thead>
+                  <tr style="border-bottom:2px solid #334155; text-align:left">
+                    <th style="padding:0.75rem">User ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Tenant ID</th>
+                    <th>Department</th>
+                    <th>Clearance</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <tr><td colspan="8" style="padding:1rem; text-align:center; color:#94a3b8">Loading directory users...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div style="margin-top:2rem">
+              <h3>🔑 RBAC Permission Matrix</h3>
+              <table class="doc-table" style="width:100%; border-collapse:collapse; margin-top:1rem">
+                <thead>
+                  <tr style="border-bottom:2px solid #334155; text-align:left">
+                    <th style="padding:0.75rem">Role</th>
+                    <th>Granted Permissions</th>
+                    <th>Access Level</th>
+                  </tr>
+                </thead>
+                <tbody id="roles-table-body">
+                  <tr><td colspan="3" style="padding:1rem; text-align:center; color:#94a3b8">Loading role permissions...</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

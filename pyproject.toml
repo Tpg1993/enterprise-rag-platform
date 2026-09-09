@@ -42,6 +42,7 @@ dependencies = [
     "types-pyyaml>=6.0.12",
     "selenium>=4.18.0",
     "sqlglot>=30.18.0",
+    "pyjwt>=2.13.0",
 ]
 
 [project.optional-dependencies]

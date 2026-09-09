@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.0] - 2026-09-09
 
 ### Added
+- **Phase 22 Complete (User Authentication, JWT Tokens & RBAC/ABAC Policies)**:
+  - **Cryptographic Authentication & Password Hashing**: Implemented PBKDF2-HMAC-SHA256 salted hashing with 100,000 iterations and HS256 JSON Web Token issuance in `AuthService` (`backend/src/auth/service.py`).
+  - **RBAC & ABAC Policy Enforcement**: Enforced role permissions (`ADMIN`, `ANALYST`, `USER`, `VIEWER`) and tenant session isolation bounds via `PolicyEngine` (`backend/src/auth/policy.py`) and FastAPI dependencies (`get_current_user`, `require_permission`, `require_roles`).
+  - **REST API Endpoints**: Created `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, `GET /api/v1/auth/users`, and `GET /api/v1/auth/roles` (`backend/src/api/routes/auth.py`).
+  - **Governance Web UI Integration**: Added active user session switcher in navigation header, interactive user directory table, and live RBAC permission matrix in Governance tab (`frontend/index.html`, `frontend/services/api.js`).
+  - **Comprehensive Test Suite (100% Passing)**:
+    - Unit Tests: `backend/tests/unit/test_auth_rbac.py` (6/6 passing)
+    - Integration Tests: `backend/tests/integration/test_auth_integration.py` (2/2 passing)
+  - **Proof Documentation**: Saved dashboard screenshot (`auth-governance-dashboard.png`) and architectural log in `docs/proofs/phase-22-auth-rbac/`.
+
 - **Phase 21 Complete (Multimodal RAG — PDF Tables, Visual Figures & Images)**:
   - **Multimodal Document Parser (`MultimodalParser`)**: Built `MultimodalParser` (`backend/src/documents/multimodal_parser.py`) utilizing PyMuPDF vector table detection (`find_tables()`), cell-to-markdown table formatting (`table_to_markdown`), embedded image figure extraction (`get_images()`), and direct image file parsing (`.png`, `.jpg`, `.jpeg`, `.webp`).
   - **Modality-Aware Intent Detection & Reranking**: Built query token analyzers (`TABLE_KEYWORDS`, `VISUAL_KEYWORDS`) in `MultimodalRAGStrategy` (`backend/src/rag/multimodal/strategy.py`) boosting matching tabular and visual candidate scores by $+0.25$.

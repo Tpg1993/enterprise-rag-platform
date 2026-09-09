@@ -58,7 +58,7 @@ docs/proofs/
 | **19** | **GraphRAG (Neo4j)** | ✅ Done | `sarvam-105b-graph-rag-v1.0.0-langgraph` | [README](phase-19-graph-rag/README.md) |
 | **20** | **SQL RAG (PostgreSQL Text-to-SQL)** | ✅ Done | `sarvam-105b-sql-rag-v1.0.0-langgraph` | [README](phase-20-sql-rag/README.md) |
 | **21** | **Multimodal RAG (PDF images, OCR tables)** | ✅ Done | `sarvam-105b-multimodal-rag-v1.0.0-langgraph` | [README](phase-21-multimodal-rag/README.md) |
-| **22** | **Auth, JWT, RBAC (Phase 20 from AGENTS.md)** | 🔲 Planned | `main` | — |
+| **22** | **Auth, JWT, RBAC (Phase 20 from AGENTS.md)** | ✅ Done | `sarvam-105b-auth-rbac-v1.0.0-none` | [README](phase-22-auth-rbac/README.md) |
 | **23** | **Persistent Chat + Eval History (PostgreSQL)** | 🔲 Planned | `main` | — |
 | **24** | **Redis Multi-Tier Caching** | 🔲 Planned | `main` | — |
 | **25** | **OpenTelemetry + Prometheus + Grafana** | 🔲 Planned | `main` | — |

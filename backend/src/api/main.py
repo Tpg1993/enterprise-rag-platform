@@ -51,10 +51,12 @@ app.add_middleware(
 import os
 from fastapi.staticfiles import StaticFiles
 
+from src.api.routes.auth import router as auth_router
 from src.api.routes.evaluations import router as evaluations_router
 
 # API v1 Routers
 app.include_router(health_router, prefix="/api/v1")
+app.include_router(auth_router)
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(evaluations_router, prefix="/api/v1")

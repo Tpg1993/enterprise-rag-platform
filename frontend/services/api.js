@@ -467,9 +467,105 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
-      if (statusElem) statusElem.innerHTML = `<span style="color:#10b981">✓ Benchmark complete across all 11 strategies!</span>`;
+      if (statusElem) statusElem.innerHTML = `<span style="color:#10b981">✓ Benchmark complete across all ${strategies.length} strategies!</span>`;
       runBenchmarkBtn.disabled = false;
       runBenchmarkBtn.innerText = 'Run Side-by-Side Benchmark';
     });
   }
+
+  // --- Phase 22: JWT Authentication & RBAC Directory Handler ---
+  let currentAuthToken = '';
+
+  async function loginAsUser(email) {
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: 'Password123!' }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentAuthToken = data.access_token;
+        console.log(`Authenticated as ${email} (${data.user.role})`);
+      }
+    } catch (e) {
+      console.warn('Authentication error:', e);
+    }
+  }
+
+  const userSelect = document.getElementById('user-session-select');
+  if (userSelect) {
+    loginAsUser(userSelect.value);
+    userSelect.addEventListener('change', async (e) => {
+      await loginAsUser(e.target.value);
+      loadUsersTable();
+    });
+  }
+
+  async function loadUsersTable() {
+    const tbody = document.getElementById('users-table-body');
+    if (!tbody) return;
+    try {
+      const res = await fetch('/api/v1/auth/users');
+      if (!res.ok) return;
+      const data = await res.json();
+      tbody.innerHTML = data.users.map(u => `
+        <tr style="border-bottom:1px solid #334155">
+          <td style="padding:0.6rem; font-family:monospace; color:#94a3b8">${u.user_id}</td>
+          <td style="font-weight:600; color:#f8fafc">${u.full_name}</td>
+          <td style="color:#38bdf8">${u.email}</td>
+          <td><span style="background:#1e293b; border:1px solid #3b82f6; color:#93c5fd; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.75rem">${u.role}</span></td>
+          <td style="color:#cbd5e1">${u.tenant_id}</td>
+          <td style="color:#cbd5e1">${u.department}</td>
+          <td><span style="background:#0f172a; border:1px solid #10b981; color:#a7f3d0; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.75rem">${u.security_clearance}</span></td>
+          <td><span style="color:#10b981">● Active</span></td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="8" style="color:#f87171; text-align:center">Error loading users: ${err.message}</td></tr>`;
+    }
+  }
+
+  async function loadRolesTable() {
+    const tbody = document.getElementById('roles-table-body');
+    if (!tbody) return;
+    try {
+      const res = await fetch('/api/v1/auth/roles');
+      if (!res.ok) return;
+      const matrix = await res.json();
+      tbody.innerHTML = Object.entries(matrix).map(([role, perms]) => {
+        const color = role === 'ADMIN' ? '#ef4444' : (role === 'ANALYST' ? '#3b82f6' : (role === 'USER' ? '#10b981' : '#f59e0b'));
+        const level = role === 'ADMIN' ? 'Full System & Cost Access' : (role === 'ANALYST' ? 'Ingest, Traces & Benchmark' : (role === 'USER' ? 'Chat Execution Only' : 'Read-Only Dashboards'));
+        return `
+          <tr style="border-bottom:1px solid #334155">
+            <td style="padding:0.6rem; font-weight:bold; color:${color}">${role}</td>
+            <td>
+              <div style="display:flex; flex-wrap:wrap; gap:0.3rem">
+                ${perms.map(p => `<span style="background:#1e293b; border:1px solid #475569; padding:0.15rem 0.4rem; border-radius:3px; font-size:0.75rem; color:#cbd5e1">${p}</span>`).join('')}
+              </div>
+            </td>
+            <td style="color:#94a3b8; font-size:0.85rem">${level}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="3" style="color:#f87171; text-align:center">Error loading roles: ${err.message}</td></tr>`;
+    }
+  }
+
+  // Load governance tables when admin tab is navigated
+  const navButtons = document.querySelectorAll('.nav-item');
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.tab === 'admin') {
+        loadUsersTable();
+        loadRolesTable();
+      }
+    });
+  });
+
+  // Initial load of users and roles
+  loadUsersTable();
+  loadRolesTable();
 });
+
