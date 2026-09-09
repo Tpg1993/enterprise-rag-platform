@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const strategies = [
         "Basic", "Hybrid", "MMR", "Reranked", "Parent-Child", 
-        "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG", "ReAct", "GraphRAG", "SQL-RAG"
+        "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG", "ReAct", "GraphRAG", "SQL-RAG", "Multimodal"
       ];
 
       runBenchmarkBtn.disabled = true;

@@ -62,6 +62,7 @@
                 <option value="ReAct">ReAct Agentic RAG</option>
                 <option value="GraphRAG">GraphRAG (Neo4j)</option>
                 <option value="SQL-RAG">SQL RAG (PostgreSQL)</option>
+                <option value="Multimodal">Multimodal RAG (PDF Tables & Images)</option>
               </select>
               <select id="token-budget-select" class="strategy-dropdown" title="Context Token Budget">
                 <option value="512">512 Tokens</option>
@@ -294,6 +295,12 @@
                 <h3 style="color:#10b981">13. SQL RAG (PostgreSQL)</h3>
                 <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Natural language to validated PostgreSQL queries with AST security guardrails, row limits, and read-only execution.</p>
                 <span style="background:#0f172a; border:1px solid #059669; color:#a7f3d0; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">AST Validated Text-to-SQL</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#f59e0b">14. Multimodal RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Joint retrieval over textual chunks, structured tables (Markdown), and visual image figures with modality-aware reranking.</p>
+                <span style="background:#0f172a; border:1px solid #d97706; color:#fef3c7; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Tables + Vision Figures</span>
               </div>
             </div>
           </div>

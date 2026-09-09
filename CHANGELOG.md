@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.0] - 2026-09-09
 
 ### Added
+- **Phase 21 Complete (Multimodal RAG — PDF Tables, Visual Figures & Images)**:
+  - **Multimodal Document Parser (`MultimodalParser`)**: Built `MultimodalParser` (`backend/src/documents/multimodal_parser.py`) utilizing PyMuPDF vector table detection (`find_tables()`), cell-to-markdown table formatting (`table_to_markdown`), embedded image figure extraction (`get_images()`), and direct image file parsing (`.png`, `.jpg`, `.jpeg`, `.webp`).
+  - **Modality-Aware Intent Detection & Reranking**: Built query token analyzers (`TABLE_KEYWORDS`, `VISUAL_KEYWORDS`) in `MultimodalRAGStrategy` (`backend/src/rag/multimodal/strategy.py`) boosting matching tabular and visual candidate scores by $+0.25$.
+  - **Multimodal Grounded Generation & Citations**: Formatted table and figure citations (`Table X (Tabular Data)`, `Figure Y (Visual Diagram)`) and grounded answers via `sarvam-105b`.
+  - **Router & Frontend Integration**: Registered `"Multimodal"` in `get_rag_strategy` (`backend/src/rag/router.py`), added to Web UI dropdown, strategy catalog card 14, and side-by-side benchmark matrix.
+  - **Comprehensive Test Suite (100% Passing)**:
+    - Unit Tests: `backend/tests/unit/test_multimodal_rag.py` (6/6 passing)
+    - Integration Tests: `backend/tests/integration/test_multimodal_rag_integration.py` & `backend/tests/integration/test_strategy_comparison.py` (14/14 strategies passing)
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing)
+  - **Proof Documentation**: Saved query screenshot (`multimodal-live-query.png`), strategy card (`multimodal-architecture-card.png`), benchmark matrix (`multimodal-benchmark-matrix.png`), and architecture guide in `docs/proofs/phase-21-multimodal-rag/`.
+
 - **Phase 20 Complete (SQL RAG — PostgreSQL & SQLite Text-to-SQL Query Engine)**:
   - **AST Security Validation (`SQLValidator`)**: Built AST-level validator (`backend/src/sql/validator.py`) using `sqlglot` enforcing strict read-only execution (`Select`, `Union`, `With`), blocking destructive commands (`DROP`, `DELETE`, `INSERT`, `UPDATE`, `ALTER`, `TRUNCATE`, `EXEC`), enforcing table allowlists, and rewriting queries with automatic maximum row limits (1000).
   - **Schema-Grounded SQL Generator (`SQLGenerator`)**: Implemented generator (`backend/src/sql/generator.py`) grounded in database catalog schemas with `sarvam-105b` and deterministic heuristic fallbacks.

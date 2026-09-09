@@ -69,6 +69,17 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.sql_rag.strategy import SQLRAGStrategy
 
             _strategies[s_clean] = SQLRAGStrategy()
+        elif s_upper in ("MULTIMODAL", "MULTIMODAL-RAG", "MULTIMODAL_RAG", "VISION"):
+            from src.embeddings.factory import get_embedding_provider
+            from src.llm import get_llm_provider
+            from src.rag.multimodal.strategy import MultimodalRAGStrategy
+            from src.retrieval.vector_store import get_vector_store
+
+            _strategies[s_clean] = MultimodalRAGStrategy(
+                llm_provider=get_llm_provider(),
+                vector_store=get_vector_store(),
+                embedding_provider=get_embedding_provider(),
+            )
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

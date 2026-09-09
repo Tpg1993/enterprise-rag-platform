@@ -57,7 +57,7 @@ docs/proofs/
 | 17 | LangSmith Observability & Trace Explorer | ✅ Done | `main` | [README](phase-17-langsmith-observability/README.md) |
 | **19** | **GraphRAG (Neo4j)** | ✅ Done | `sarvam-105b-graph-rag-v1.0.0-langgraph` | [README](phase-19-graph-rag/README.md) |
 | **20** | **SQL RAG (PostgreSQL Text-to-SQL)** | ✅ Done | `sarvam-105b-sql-rag-v1.0.0-langgraph` | [README](phase-20-sql-rag/README.md) |
-| **21** | **Multimodal RAG (PDF images, OCR tables)** | 🔲 Planned | `sarvam-105b-multimodal-rag-v1.0.0-langgraph` | — |
+| **21** | **Multimodal RAG (PDF images, OCR tables)** | ✅ Done | `sarvam-105b-multimodal-rag-v1.0.0-langgraph` | [README](phase-21-multimodal-rag/README.md) |
 | **22** | **Auth, JWT, RBAC (Phase 20 from AGENTS.md)** | 🔲 Planned | `main` | — |
 | **23** | **Persistent Chat + Eval History (PostgreSQL)** | 🔲 Planned | `main` | — |
 | **24** | **Redis Multi-Tier Caching** | 🔲 Planned | `main` | — |
