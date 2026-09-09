@@ -87,6 +87,32 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         )
         for c in rag_res.citations
     ]
+    from src.storage.history import get_history_store
+
+    store = get_history_store()
+    session_id = payload.session_id or f"sess_{payload.tenant_id}"
+    store.save_chat_message(
+        session_id=session_id,
+        user_id=payload.user_id,
+        tenant_id=payload.tenant_id,
+        role="user",
+        content=payload.query,
+        rag_strategy=rag_res.rag_strategy,
+    )
+    store.save_chat_message(
+        session_id=session_id,
+        user_id="assistant",
+        tenant_id=payload.tenant_id,
+        role="assistant",
+        content=rag_res.answer,
+        rag_strategy=rag_res.rag_strategy,
+        latency_ms=elapsed_ms,
+        cost_usd=rag_res.estimated_cost_usd,
+        prompt_tokens=rag_res.prompt_tokens,
+        completion_tokens=rag_res.completion_tokens,
+        citations=[c.model_dump() for c in citations],
+    )
+
     sources = [c.content_snippet for c in rag_res.citations]
 
     return ChatResponse(
@@ -110,3 +136,63 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         cache_hit=False,
         trace_id=rag_res.trace_id or correlation_id,
     )
+
+
+@router.get("/chat/history")
+async def get_chat_history(
+    session_id: str,
+    tenant_id: str = "default_tenant",
+):
+    """Returns conversation history for a given session."""
+    from src.storage.history import get_history_store
+
+    messages = get_history_store().get_chat_history(session_id=session_id, tenant_id=tenant_id)
+    return {
+        "session_id": session_id,
+        "tenant_id": tenant_id,
+        "total_messages": len(messages),
+        "messages": messages,
+    }
+
+
+@router.get("/chat/sessions")
+async def list_chat_sessions(
+    tenant_id: str = "default_tenant",
+    user_id: str | None = None,
+    limit: int = 50,
+):
+    """Lists saved chat sessions."""
+    from src.storage.history import get_history_store
+
+    sessions = get_history_store().list_sessions(tenant_id=tenant_id, user_id=user_id, limit=limit)
+    return {
+        "tenant_id": tenant_id,
+        "total_sessions": len(sessions),
+        "sessions": sessions,
+    }
+
+
+from pydantic import BaseModel
+
+
+class SessionCreateRequest(BaseModel):
+    user_id: str = "usr_default"
+    tenant_id: str = "default_tenant"
+    title: str = "New Conversation"
+
+
+@router.post("/chat/sessions", status_code=201)
+async def create_chat_session(payload: SessionCreateRequest):
+    """Creates a new persistent conversation session."""
+    from src.storage.history import get_history_store
+
+    session = get_history_store().create_session(
+        user_id=payload.user_id,
+        tenant_id=payload.tenant_id,
+        title=payload.title,
+    )
+    return {
+        "status": "SUCCESS",
+        "session": session,
+    }
+

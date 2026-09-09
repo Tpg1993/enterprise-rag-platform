@@ -219,6 +219,28 @@
                 <div id="eval-answer" style="background:#0f172a; padding:1rem; border-radius:6px; color:#e2e8f0; font-size:0.9rem; margin-top:0.4rem"></div>
               </div>
             </div>
+
+            <div style="margin-top:2rem">
+              <h3>📜 Historical Evaluation Runs (PostgreSQL Tracking)</h3>
+              <table class="doc-table" style="width:100%; border-collapse:collapse; margin-top:1rem">
+                <thead>
+                  <tr style="border-bottom:2px solid #334155; text-align:left">
+                    <th style="padding:0.75rem">Run ID</th>
+                    <th>Strategy</th>
+                    <th>Query</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>Faithfulness</th>
+                    <th>Relevancy</th>
+                    <th>Overall</th>
+                    <th>Latency / Cost</th>
+                  </tr>
+                </thead>
+                <tbody id="eval-history-table-body">
+                  <tr><td colspan="9" style="padding:1rem; text-align:center; color:#94a3b8">Loading evaluation history...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

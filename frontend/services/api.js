@@ -560,12 +560,82 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btn.dataset.tab === 'admin') {
         loadUsersTable();
         loadRolesTable();
+      } else if (btn.dataset.tab === 'evaluations') {
+        loadEvaluationHistory();
       }
     });
   });
 
-  // Initial load of users and roles
+  // --- Phase 23: Persistent Evaluation History Handler ---
+  async function loadEvaluationHistory() {
+    const tbody = document.getElementById('eval-history-table-body');
+    if (!tbody) return;
+    try {
+      const res = await fetch('/api/v1/evaluations/history');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.history || data.history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="padding:1rem; text-align:center; color:#94a3b8">No historical evaluation runs recorded yet. Click 'Run Evaluation' above.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.history.map(r => `
+        <tr style="border-bottom:1px solid #334155">
+          <td style="padding:0.6rem; font-family:monospace; color:#94a3b8">${r.eval_id}</td>
+          <td style="font-weight:600; color:#38bdf8">${r.strategy}</td>
+          <td style="color:#cbd5e1; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${r.query}</td>
+          <td style="color:#10b981">${r.context_precision.toFixed(2)}</td>
+          <td style="color:#10b981">${r.context_recall.toFixed(2)}</td>
+          <td style="color:#10b981">${r.faithfulness.toFixed(2)}</td>
+          <td style="color:#10b981">${r.answer_relevancy.toFixed(2)}</td>
+          <td style="font-weight:bold; color:#f59e0b">${r.overall_score.toFixed(2)}</td>
+          <td style="color:#94a3b8; font-size:0.85rem">${r.latency_ms.toFixed(1)}ms | $${r.total_cost_usd.toFixed(4)}</td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="9" style="color:#f87171; text-align:center">Error loading evaluation history: ${err.message}</td></tr>`;
+    }
+  }
+
+  const runEvalBtn = document.getElementById('run-eval-btn');
+  if (runEvalBtn) {
+    runEvalBtn.addEventListener('click', async () => {
+      const q = document.getElementById('eval-query-input').value.trim();
+      const strat = document.getElementById('eval-strategy-select').value;
+      if (!q) return;
+
+      runEvalBtn.disabled = true;
+      runEvalBtn.innerText = 'Evaluating...';
+
+      try {
+        const res = await fetch('/api/v1/evaluations/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, rag_strategy: strat, tenant_id: 'default_tenant' }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('eval-results-card').style.display = 'block';
+          document.getElementById('eval-precision').innerText = data.context_precision.toFixed(2);
+          document.getElementById('eval-recall').innerText = data.context_recall.toFixed(2);
+          document.getElementById('eval-faithfulness').innerText = data.faithfulness.toFixed(2);
+          document.getElementById('eval-relevancy').innerText = data.answer_relevancy.toFixed(2);
+          document.getElementById('eval-overall').innerText = data.overall_score.toFixed(2);
+          document.getElementById('eval-latency-cost').innerText = `${data.latency_ms.toFixed(1)}ms | $${data.total_cost_usd.toFixed(4)}`;
+          document.getElementById('eval-answer').innerText = data.answer;
+          loadEvaluationHistory();
+        }
+      } catch (err) {
+        alert('Evaluation failed: ' + err.message);
+      } finally {
+        runEvalBtn.disabled = false;
+        runEvalBtn.innerText = 'Run Evaluation';
+      }
+    });
+  }
+
+  // Initial loads
   loadUsersTable();
   loadRolesTable();
+  loadEvaluationHistory();
 });
 

@@ -20,6 +20,7 @@ class ChatRequest(BaseModel):
         default="default_tenant", description="Tenant identifier for multi-tenancy filtering"
     )
     user_id: str = Field(default="user_default", description="User identifier")
+    session_id: str | None = Field(default=None, description="Optional session identifier")
     stream: bool = Field(default=False, description="Enable streaming completion")
     top_k: int = Field(default=5, description="Number of context chunks to retrieve")
     max_context_tokens: int = Field(default=2048, description="Target token budget for retrieved context")

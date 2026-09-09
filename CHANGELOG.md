@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.0] - 2026-09-09
 
 ### Added
+- **Phase 23 Complete (Persistent Chat & Evaluation History Tracking)**:
+  - **Persistent Relational Store (`PersistentHistoryStore`)**: Implemented thread-safe persistent SQLite/PostgreSQL storage in `backend/src/storage/history.py` managing `chat_sessions`, `chat_messages`, and `evaluation_history` tables with ABAC tenant-level query isolation.
+  - **Session & Message Lifecycle APIs**: Created `POST /api/v1/chat/sessions`, `GET /api/v1/chat/sessions`, `GET /api/v1/chat/history`, and enhanced `POST /api/v1/chat` to automatically capture user inputs, assistant responses, model names, latency, and token consumption metrics into persistent storage.
+  - **Evaluation History Auditing**: Enhanced `POST /api/v1/evaluations/run` to persist RAGAS quality metrics (faithfulness, answer relevancy, context precision, recall) and exposed `GET /api/v1/evaluations/history` for trend analysis.
+  - **Frontend UI Integration**: Built live "Historical Evaluation Runs" data table in Evaluation tab (`frontend/index.html`, `frontend/services/api.js`) displaying timestamps, strategies, metrics, and latency records.
+  - **Comprehensive Test Suite (100% Passing)**:
+    - Unit Tests: `backend/tests/unit/test_persistent_history.py` (3/3 passing)
+    - Integration Tests: `backend/tests/integration/test_history_integration.py` (2/2 passing)
+  - **Proof Documentation**: Saved UI screenshots (`eval-history-tracking.png`, `chat-history-session.png`) and architecture documentation in `docs/proofs/phase-23-persistent-history/`.
+
 - **Phase 22 Complete (User Authentication, JWT Tokens & RBAC/ABAC Policies)**:
   - **Cryptographic Authentication & Password Hashing**: Implemented PBKDF2-HMAC-SHA256 salted hashing with 100,000 iterations and HS256 JSON Web Token issuance in `AuthService` (`backend/src/auth/service.py`).
   - **RBAC & ABAC Policy Enforcement**: Enforced role permissions (`ADMIN`, `ANALYST`, `USER`, `VIEWER`) and tenant session isolation bounds via `PolicyEngine` (`backend/src/auth/policy.py`) and FastAPI dependencies (`get_current_user`, `require_permission`, `require_roles`).

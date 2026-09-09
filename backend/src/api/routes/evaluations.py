@@ -54,6 +54,24 @@ async def run_evaluation(payload: EvaluationRequest) -> EvaluationResponse:
         total_cost_usd=rag_res.estimated_cost_usd,
     )
 
+    from src.storage.history import get_history_store
+
+    get_history_store().save_evaluation(
+        user_id="usr_default",
+        tenant_id=payload.tenant_id,
+        strategy=eval_res.strategy,
+        query=eval_res.query,
+        answer=rag_res.answer,
+        context_precision=eval_res.context_precision,
+        context_recall=eval_res.context_recall,
+        faithfulness=eval_res.faithfulness,
+        answer_relevancy=eval_res.answer_relevancy,
+        overall_score=eval_res.overall_score,
+        latency_ms=eval_res.latency_ms,
+        total_cost_usd=eval_res.total_cost_usd,
+        contexts_count=len(contexts),
+    )
+
     return EvaluationResponse(
         strategy=eval_res.strategy,
         query=eval_res.query,
@@ -67,3 +85,23 @@ async def run_evaluation(payload: EvaluationRequest) -> EvaluationResponse:
         answer=rag_res.answer,
         contexts_count=len(contexts),
     )
+
+
+@router.get("/evaluations/history")
+async def get_evaluation_history(
+    tenant_id: str = "default_tenant",
+    strategy: str | None = None,
+    limit: int = 50,
+):
+    """Returns persistent historical RAG evaluation runs."""
+    from src.storage.history import get_history_store
+
+    runs = get_history_store().list_evaluation_history(
+        tenant_id=tenant_id, strategy=strategy, limit=limit
+    )
+    return {
+        "tenant_id": tenant_id,
+        "total_runs": len(runs),
+        "history": runs,
+    }
+
