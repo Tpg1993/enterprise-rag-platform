@@ -1,0 +1,22 @@
+llm:
+  sarvam:
+    default_model: "sarvam-105b"
+    api_endpoint: "https://api.sarvam.ai/v1/chat/completions"
+    timeout_seconds: 30
+    max_retries: 3
+    temperature: 0.1
+    max_tokens: 2048
+
+embeddings:
+  bge_m3:
+    model_name: "BAAI/bge-m3"
+    dimension: 1024
+    max_length: 8192
+    batch_size: 32
+    normalize: true
+
+reranker:
+  bge_reranker:
+    model_name: "BAAI/bge-reranker-large"
+    max_length: 512
+    top_n_default: 5

@@ -1,0 +1,45 @@
+application:
+  name: "enterprise-rag-platform"
+  version: "1.0.0"
+  environment: "development"
+
+models:
+  llm:
+    provider: "sarvam"
+    model: "sarvam-105b"
+    version: "1.0.0"
+  embedding:
+    model: "bge-m3"
+    provider: "local"
+    version: "1.0.0"
+  reranker:
+    model: "bge-reranker-large"
+    provider: "local"
+    version: "1.0.0"
+
+rag:
+  basic:
+    version: "1.0.0"
+    framework: "none"
+  hybrid:
+    version: "1.0.0"
+    framework: "none"
+  mmr:
+    version: "1.0.0"
+    framework: "none"
+  reranked:
+    version: "1.0.0"
+    framework: "none"
+  adaptive:
+    version: "1.0.0"
+    framework: "langgraph"
+  react:
+    version: "1.0.0"
+    framework: "langgraph"
+
+prompts:
+  grounding_version: "v1.0"
+  system_version: "v1.0"
+
+evaluation_dataset:
+  version: "v1.0"

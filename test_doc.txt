@@ -1,0 +1,48 @@
+================================================================================
+ENTERPRISE MULTI-ARCHITECTURE RAG & AGENTIC AI PLATFORM DOCUMENTATION
+================================================================================
+
+SECTION 1: OVERVIEW & SYSTEM ARCHITECTURE
+--------------------------------------------------------------------------------
+The Enterprise Multi-Architecture RAG Platform is built to compare, evaluate, 
+and observe 10+ retrieval-augmented generation architectures side-by-side. 
+It uses Sarvam AI (sarvam-105b) as the primary LLM provider, Qdrant for dense 
+vector search, BM25 for sparse lexical retrieval, and Cross-Encoders for reranking.
+
+Key Performance Benchmarks:
+- Target Context Precision: 0.95+
+- Target Context Recall: 0.92+
+- P95 Search Latency: 450ms
+- Target Faithfulness (Anti-Hallucination): 0.98+
+
+SECTION 2: SECURITY, GOVERNANCE & PII REDACTION
+--------------------------------------------------------------------------------
+All ingested documents are processed through Presidio PII redaction filters before 
+indexing into vector storage. Sensitive identifiers such as Social Security Numbers, 
+Email Addresses, and Phone Numbers are automatically masked.
+
+System Administrator Contact:
+- Admin Name: John Doe
+- Support Email: john.doe@enterprise.com
+- Emergency Phone: +1-555-019-2834
+- Account SSN Record: 987-65-4321
+
+SECTION 3: FINANCIAL & OPERATIONAL METRICS (Q3 2025)
+--------------------------------------------------------------------------------
+Financial Performance:
+- Q3 2025 Net Platform Revenue: $14.2 Million USD
+- Gross Margin: 78.4%
+- Total Ingested Document Volume: 4.8 Million Pages
+- Average LLM Completion Cost per Request: $0.0025 USD
+
+SECTION 4: KUBERNETES & DEPLOYMENT INSTRUCTIONS
+--------------------------------------------------------------------------------
+Production clusters are deployed using Infrastructure-as-Code via Terraform 
+on AWS Kubernetes (EKS).
+
+Deployment Steps:
+1. Initialize Terraform configuration: `terraform init`
+2. Apply infrastructure changes: `terraform apply -auto-approve`
+3. Update kubeconfig cluster context: `aws eks update-kubeconfig --name rag-prod-cluster`
+4. Deploy Core microservices: `helm upgrade --install rag-core ./helm/rag-core`
+================================================================================

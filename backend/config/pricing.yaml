@@ -1,0 +1,9 @@
+models:
+  sarvam-105b:
+    input_cost_per_1k_tokens: 0.0015
+    output_cost_per_1k_tokens: 0.0030
+    cached_input_cost_per_1k_tokens: 0.0005
+
+infrastructure:
+  qdrant_operation_cost_per_1k: 0.0001
+  redis_operation_cost_per_1k: 0.00001

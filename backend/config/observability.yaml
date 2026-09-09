@@ -1,0 +1,12 @@
+langsmith:
+  enabled: true
+  project_name: "enterprise-rag-platform"
+
+opentelemetry:
+  enabled: true
+  service_name: "rag-backend"
+  exporter_endpoint: "http://localhost:4317"
+
+prometheus:
+  enabled: true
+  metrics_path: "/metrics"

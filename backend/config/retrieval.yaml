@@ -1,0 +1,32 @@
+hnsw:
+  m: 16
+  ef_construction: 128
+  ef_search: 64
+
+bm25:
+  k1: 1.5
+  b: 0.75
+
+hybrid_fusion:
+  algorithm: "rrf"  # Options: rrf, weighted
+  rrf_k: 60
+  dense_weight: 0.7
+  lexical_weight: 0.3
+
+mmr:
+  default_lambda: 0.7
+  candidate_k: 50
+  final_k: 20
+
+reranking:
+  candidate_k: 20
+  final_k: 5
+
+chunking:
+  default_strategy: "recursive"
+  chunk_size: 512
+  chunk_overlap: 50
+
+context_builder:
+  max_context_tokens: 2048
+  overlap_threshold: 0.85

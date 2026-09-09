@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Multi-Architecture RAG & Agentic AI Platform</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="logo-badge">Sarvam AI</span>
+        <h1>Enterprise RAG & Agentic AI Platform</h1>
+      </div>
+      <div class="status-bar">
+        <span class="status-indicator online"></span>
+        <span id="env-tag">Development (Mock Mode)</span>
+      </div>
+    </header>
+
+    <main class="app-layout">
+      <aside class="sidebar">
+        <nav class="nav-menu">
+          <button class="nav-item active" data-tab="chat">💬 Chat & Query</button>
+          <button class="nav-item" data-tab="documents">📂 Documents & Ingestion</button>
+          <button class="nav-item" data-tab="strategies">⚡ RAG Strategies</button>
+          <button class="nav-item" data-tab="comparison">📊 Strategy Comparison</button>
+          <button class="nav-item" data-tab="traces">🔍 LangSmith Traces</button>
+          <button class="nav-item" data-tab="evaluations">📈 RAGAS / DeepEval</button>
+          <button class="nav-item" data-tab="admin">🛡️ Governance & RBAC</button>
+        </nav>
+      </aside>
+
+      <section class="content-area">
+        <div id="chat-tab" class="tab-content active">
+          <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+              <div class="message assistant">
+                <div class="avatar">AI</div>
+                <div class="bubble">
+                  Welcome! Select a RAG Strategy and type your query below. All executions are observed via LangSmith and evaluated across quality, latency, and cost.
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              <select id="strategy-select" class="strategy-dropdown">
+                <option value="AUTO">🤖 AUTO (Adaptive Router)</option>
+                <option value="Basic">Basic RAG</option>
+                <option value="Hybrid">Hybrid (Dense + BM25)</option>
+                <option value="MMR">MMR RAG</option>
+                <option value="Reranked">Cross-Encoder Reranked</option>
+                <option value="Parent-Child">Parent-Child RAG</option>
+                <option value="Multi-Query">Multi-Query RAG</option>
+                <option value="HyDE">HyDE RAG</option>
+                <option value="Adaptive">Adaptive RAG (LangGraph)</option>
+                <option value="Corrective">Corrective RAG (CRAG)</option>
+                <option value="Self-RAG">Self-RAG</option>
+                <option value="ReAct">ReAct Agentic RAG</option>
+                <option value="GraphRAG">GraphRAG (Neo4j)</option>
+                <option value="SQL-RAG">SQL RAG (PostgreSQL)</option>
+              </select>
+              <select id="token-budget-select" class="strategy-dropdown" title="Context Token Budget">
+                <option value="512">512 Tokens</option>
+                <option value="1024">1,024 Tokens</option>
+                <option value="2048" selected>2,048 Tokens (Default)</option>
+                <option value="4096">4,096 Tokens</option>
+              </select>
+              <input type="text" id="query-input" placeholder="Ask a complex enterprise question..." />
+              <button id="send-btn" class="primary-btn">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="documents-tab" class="tab-content" style="display: none;">
+          <div class="doc-management-container">
+            <h2>Enterprise Document Ingestion Pipeline</h2>
+            <p class="subtitle">Upload documents (PDF, DOCX, TXT, MD, HTML, CSV, JSON) to parse, clean, redact PII, chunk, embed (BGE-M3), and index into Qdrant Vector DB.</p>
+            
+              <div class="upload-card">
+                <div class="form-row" style="flex-wrap:wrap; gap:1rem">
+                  <div>
+                    <label>Embedding Provider:</label>
+                    <select id="embedding-provider-select" class="strategy-dropdown">
+                      <option value="bge-m3" selected>BAAI/bge-m3 (Local Dense - Default)</option>
+                      <option value="tei-local">HF TEI Microservice (Local Rust)</option>
+                      <option value="ollama-local">Ollama Container (Local)</option>
+                      <option value="sarvam-api">Sarvam AI Cloud Embeddings API</option>
+                      <option value="mock-fast">Offline Fast Generator</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label>Chunking Strategy:</label>
+                    <select id="chunk-strategy-select" class="strategy-dropdown">
+                      <option value="recursive" selected>Recursive Character Chunker</option>
+                      <option value="fixed">Fixed-Size Chunker</option>
+                      <option value="parent_child">Parent-Child Hierarchical Chunker</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label>Chunk Size:</label>
+                    <input type="number" id="chunk-size-input" value="512" style="width:70px; padding:0.4rem; background:#334155; border:1px solid #475569; color:#fff; border-radius:4px" />
+                  </div>
+
+                  <div>
+                    <label>Overlap:</label>
+                    <input type="number" id="chunk-overlap-input" value="50" style="width:60px; padding:0.4rem; background:#334155; border:1px solid #475569; color:#fff; border-radius:4px" />
+                  </div>
+                </div>
+
+              <div class="file-dropzone" id="dropzone">
+                <input type="file" id="file-input" hidden accept=".pdf,.docx,.txt,.md,.html,.htm,.csv,.json" />
+                <p>📁 Drag and drop files here, or <span id="browse-btn" class="browse-link">browse</span></p>
+                <span class="file-info" id="file-info">No file selected</span>
+              </div>
+
+              <button id="upload-btn" class="primary-btn" style="margin-top:1rem; width:100%">Upload & Index Document</button>
+              <div id="upload-status" style="margin-top:0.75rem; font-size:0.9rem"></div>
+            </div>
+
+            <div class="doc-list-section" style="margin-top:2rem">
+              <h3>Ingested Knowledge Base Documents</h3>
+              <table class="doc-table" style="width:100%; border-collapse:collapse; margin-top:1rem">
+                <thead>
+                  <tr style="border-bottom:2px solid #334155; text-align:left">
+                    <th style="padding:0.75rem">Document ID</th>
+                    <th>Filename</th>
+                    <th>Format</th>
+                    <th>Size & Words</th>
+                    <th>Strategy</th>
+                    <th>Embedding Provider</th>
+                    <th>Security & PII</th>
+                    <th>Chunks</th>
+                    <th>Version</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="doc-table-body">
+                  <tr><td colspan="10" style="padding:1rem; text-align:center; color:#94a3b8">No documents uploaded yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="evaluations-tab" class="tab-content" style="display: none;">
+          <div class="doc-management-container">
+            <h2>📈 RAGAS & DeepEval Evaluation Dashboard</h2>
+            <p class="subtitle">Evaluate RAG strategies across Context Precision, Context Recall, Faithfulness, Answer Relevancy, Latency, and Dynamic Cost ($).</p>
+            
+            <div class="upload-card" style="margin-bottom:1.5rem">
+              <div class="form-row" style="flex-wrap:wrap; gap:1rem">
+                <div style="flex:1; min-width:250px">
+                  <label>Evaluation Query:</label>
+                  <input type="text" id="eval-query-input" value="What are the supported RAG strategies?" style="width:100%; padding:0.5rem; background:#334155; border:1px solid #475569; color:#fff; border-radius:4px" />
+                </div>
+                <div>
+                  <label>Target Strategy:</label>
+                  <select id="eval-strategy-select" class="strategy-dropdown">
+                    <option value="Basic">Basic RAG</option>
+                    <option value="Hybrid">Hybrid RAG</option>
+                    <option value="MMR" selected>MMR RAG</option>
+                    <option value="Reranked">Cross-Encoder Reranked</option>
+                  </select>
+                </div>
+                <div style="display:flex; align-items:flex-end">
+                  <button id="run-eval-btn" class="primary-btn" style="background:#10b981">Run Evaluation</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="eval-results-card" style="display:none; background:#1e293b; border:1px solid #334155; padding:1.5rem; border-radius:8px">
+              <h3>Evaluation Results</h3>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:1rem; margin:1rem 0">
+                <div style="background:#0f172a; padding:1rem; border-radius:6px; text-align:center">
+                  <div style="font-size:0.8rem; color:#94a3b8">Context Precision</div>
+                  <div id="eval-precision" style="font-size:1.4rem; font-weight:bold; color:#38bdf8">0.00</div>
+                </div>
+                <div style="background:#0f172a; padding:1rem; border-radius:6px; text-align:center">
+                  <div style="font-size:0.8rem; color:#94a3b8">Context Recall</div>
+                  <div id="eval-recall" style="font-size:1.4rem; font-weight:bold; color:#38bdf8">0.00</div>
+                </div>
+                <div style="background:#0f172a; padding:1rem; border-radius:6px; text-align:center">
+                  <div style="font-size:0.8rem; color:#94a3b8">Faithfulness</div>
+                  <div id="eval-faithfulness" style="font-size:1.4rem; font-weight:bold; color:#10b981">0.00</div>
+                </div>
+                <div style="background:#0f172a; padding:1rem; border-radius:6px; text-align:center">
+                  <div style="font-size:0.8rem; color:#94a3b8">Answer Relevancy</div>
+                  <div id="eval-relevancy" style="font-size:1.4rem; font-weight:bold; color:#10b981">0.00</div>
+                </div>
+                <div style="background:#0f172a; padding:1rem; border-radius:6px; text-align:center">
+                  <div style="font-size:0.8rem; color:#94a3b8">Overall Score</div>
+                  <div id="eval-overall" style="font-size:1.4rem; font-weight:bold; color:#f59e0b">0.00</div>
+                </div>
+                <div style="background:#0f172a; padding:1rem; border-radius:6px; text-align:center">
+                  <div style="font-size:0.8rem; color:#94a3b8">Latency & Cost</div>
+                  <div id="eval-latency-cost" style="font-size:1rem; font-weight:bold; color:#cbd5e1">0ms | $0.00</div>
+                </div>
+              </div>
+              <div style="margin-top:1rem">
+                <label style="font-weight:bold">Generated Answer:</label>
+                <div id="eval-answer" style="background:#0f172a; padding:1rem; border-radius:6px; color:#e2e8f0; font-size:0.9rem; margin-top:0.4rem"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RAG Strategies Architecture Tab -->
+        <div id="strategies-tab" class="tab-content" style="display: none;">
+          <div class="doc-management-container">
+            <h2>⚡ RAG Strategies & Multi-Architecture Catalog</h2>
+            <p class="subtitle">Interchangeable production-grade RAG strategies inherited from BaseRAGStrategy abstraction.</p>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; margin-top:1.5rem">
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#38bdf8">1. Basic RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Dense vector search using BAAI/bge-m3 embeddings in Qdrant Vector DB, followed by Sarvam-105B LLM generation.</p>
+                <span style="background:#0f172a; border:1px solid #3b82f6; color:#93c5fd; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Baseline Dense</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#818cf8">2. Hybrid RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Concurrent Qdrant dense vector search + BM25 sparse lexical search fused via Reciprocal Rank Fusion (RRF_Score = &sum; 1 / (60 + r_i)).</p>
+                <span style="background:#0f172a; border:1px solid #6366f1; color:#c7d2fe; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Dense + Lexical (RRF)</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#34d399">3. MMR RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Maximal Marginal Relevance balances query relevance with pairwise candidate diversity (&lambda;=0.7) to eliminate redundant context.</p>
+                <span style="background:#0f172a; border:1px solid #10b981; color:#a7f3d0; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Redundancy Elimination</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#f472b6">4. Cross-Encoder Reranked</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Fetches Top-50 candidates and applies deep cross-attention re-scoring via local BGE Cross-Encoder to output Top-5 context chunks.</p>
+                <span style="background:#0f172a; border:1px solid #ec4899; color:#fbcfe8; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Deep Cross-Attention</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#fbbf24">5. Parent-Child RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Searches small child vector chunks and resolves to full parent paragraph background context for rich grounding.</p>
+                <span style="background:#0f172a; border:1px solid #f59e0b; color:#fde68a; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Context Expansion</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#a78bfa">6. Multi-Query RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Prompts Sarvam-105B to rephrase user prompt into 3 technical query variations, executing parallel vector searches and RRF fusion.</p>
+                <span style="background:#0f172a; border:1px solid #8b5cf6; color:#ddd6fe; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Query Expansion</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#38bdf8">7. HyDE RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Generates hypothetical answer document using Sarvam-105B, embedding hypothetical passage to retrieve dense vector matches.</p>
+                <span style="background:#0f172a; border:1px solid #0284c7; color:#bae6fd; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Hypothetical Embeddings</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#f87171">8. Adaptive RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Dynamic query intent classifier classifying complexity (BASIC, HYBRID, MULTI_QUERY, RERANKED) to route to optimal RAG pipelines.</p>
+                <span style="background:#0f172a; border:1px solid #ef4444; color:#fca5a5; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Intent Classification</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#fb923c">9. Corrective RAG (CRAG)</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Evaluates retrieval confidence score (&lt; 0.5 threshold) and automatically triggers web search fallback when internal knowledge is low.</p>
+                <span style="background:#0f172a; border:1px solid #f97316; color:#fed7aa; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Web Search Fallback</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#4ade80">10. Self-RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Self-grading candidate document relevance and computing answer faithfulness scores to execute prompt self-reflection loops.</p>
+                <span style="background:#0f172a; border:1px solid #22c55e; color:#bbf7d0; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Self-Reflection Loops</span>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#e879f9">11. ReAct Agentic RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Reasoning + Acting Tool Execution Loop in LangGraph iterating through Thought, Tool Action, and Observation cycles.</p>
+                <span style="background:#0f172a; border:1px solid #d946ef; color:#f5d0fe; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">LangGraph Agent</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strategy Comparison Matrix Tab -->
+        <div id="comparison-tab" class="tab-content" style="display: none;">
+          <div class="doc-management-container">
+            <h2>📊 Side-by-Side Strategy Comparison Matrix</h2>
+            <p class="subtitle">Benchmark performance, latency, token consumption, and context precision across all 11 RAG strategies.</p>
+            
+            <div class="upload-card" style="margin-bottom:1.5rem">
+              <div class="form-row" style="flex-wrap:wrap; gap:1rem">
+                <div style="flex:1; min-width:300px">
+                  <label>Benchmark Query:</label>
+                  <input type="text" id="benchmark-query-input" value="Explain Sarvam-105B architecture, benchmarks, and deployment steps." style="width:100%; padding:0.5rem; background:#334155; border:1px solid #475569; color:#fff; border-radius:4px" />
+                </div>
+                <div style="display:flex; align-items:flex-end">
+                  <button id="run-benchmark-btn" class="primary-btn" style="background:#8b5cf6">Run Side-by-Side Benchmark</button>
+                </div>
+              </div>
+              <div id="benchmark-status" style="margin-top:0.5rem; font-size:0.85rem"></div>
+            </div>
+
+            <table class="doc-table" style="width:100%; border-collapse:collapse; margin-top:1rem">
+              <thead>
+                <tr style="border-bottom:2px solid #334155; text-align:left">
+                  <th style="padding:0.75rem">Strategy Name</th>
+                  <th>Status</th>
+                  <th>Latency (ms)</th>
+                  <th>Token Usage</th>
+                  <th>Estimated Cost ($)</th>
+                  <th>Top Relevance Score</th>
+                  <th>Citations</th>
+                  <th>Answer Summary</th>
+                </tr>
+              </thead>
+              <tbody id="comparison-table-body">
+                <tr><td colspan="8" style="padding:1rem; text-align:center; color:#94a3b8">Click 'Run Side-by-Side Benchmark' to compare all strategies live.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- LangSmith Traces Observability Tab -->
+        <div id="traces-tab" class="tab-content" style="display: none;">
+          <div class="doc-management-container">
+            <h2>🔍 LangSmith Traces & Observability Log</h2>
+            <p class="subtitle">Real-time execution trace timeline showing span latency, strategy metadata, token usage, and LangSmith trace IDs.</p>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+              <span style="font-size:0.9rem; color:#94a3b8">Showing recent execution traces:</span>
+              <button id="refresh-traces-btn" class="primary-btn" style="padding:0.4rem 0.8rem; font-size:0.85rem">🔄 Refresh Traces</button>
+            </div>
+
+            <table class="doc-table" style="width:100%; border-collapse:collapse">
+              <thead>
+                <tr style="border-bottom:2px solid #334155; text-align:left">
+                  <th style="padding:0.75rem">Trace ID</th>
+                  <th>Strategy</th>
+                  <th>Operation</th>
+                  <th>Latency (ms)</th>
+                  <th>Tokens</th>
+                  <th>Tenant ID</th>
+                  <th>Timestamp</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="traces-table-body">
+                <tr><td colspan="8" style="padding:1rem; text-align:center; color:#94a3b8">Loading execution traces...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Governance & RBAC Tab -->
+        <div id="admin-tab" class="tab-content" style="display: none;">
+          <div class="doc-management-container">
+            <h2>🛡️ Security, Governance & RBAC Policies</h2>
+            <p class="subtitle">Zero Trust access control, Presidio PII redaction, and OWASP LLM Top 10 guardrails.</p>
+            
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; margin-top:1rem">
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#10b981">🔒 Presidio PII Redaction Engine</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin-top:0.4rem">Active. Intercepts SSNs, Credit Cards, Email Addresses, and Phone Numbers before embedding or logging.</p>
+                <div style="margin-top:0.8rem; font-size:0.8rem; color:#38bdf8">Status: <strong>ENABLED (Strict)</strong></div>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#f59e0b">🛡️ OWASP Prompt Injection Defense</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin-top:0.4rem">Wraps context in &lt;retrieved_context_untrusted_data&gt; tags to isolate untrusted data from system instructions.</p>
+                <div style="margin-top:0.8rem; font-size:0.8rem; color:#38bdf8">Status: <strong>ACTIVE (Isolated)</strong></div>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#8b5cf6">👤 Role-Based Access Control (RBAC)</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin-top:0.4rem">Supported Roles: ADMIN, ANALYST, USER, VIEWER with strict tenant_id query-level data isolation.</p>
+                <div style="margin-top:0.8rem; font-size:0.8rem; color:#38bdf8">Default Session: <strong>default_tenant</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="services/api.js"></script>
+</body>
+</html>

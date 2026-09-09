@@ -1,0 +1,23 @@
+app:
+  host: "0.0.0.0"
+  port: 8000
+  debug: true
+  mock_llm: false
+
+database:
+  postgres_url: "postgresql+asyncpg://postgres:postgres_password_placeholder@localhost:5432/rag_platform"
+  pool_size: 10
+  max_overflow: 20
+
+vector_store:
+  qdrant_url: "http://localhost:6333"
+  collection_prefix: "enterprise_rag"
+  distance_metric: "Cosine"
+
+cache:
+  redis_url: "redis://localhost:6379/0"
+  ttl_seconds: 3600
+
+graph_store:
+  neo4j_uri: "bolt://localhost:7687"
+  neo4j_user: "neo4j"

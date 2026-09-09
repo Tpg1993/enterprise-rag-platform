@@ -1,0 +1,123 @@
+﻿{
+    "Basic":  {
+                  "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                  "tokens":  null,
+                  "latency":  null,
+                  "strategy_used":  null,
+                  "cached":  null,
+                  "status":  "SUCCESS",
+                  "citations":  {
+
+                                }
+              },
+    "Reranked":  {
+                     "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                     "tokens":  null,
+                     "latency":  null,
+                     "strategy_used":  null,
+                     "cached":  null,
+                     "status":  "SUCCESS",
+                     "citations":  {
+
+                                   }
+                 },
+    "Adaptive":  {
+                     "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                     "tokens":  null,
+                     "latency":  null,
+                     "strategy_used":  null,
+                     "cached":  null,
+                     "status":  "SUCCESS",
+                     "citations":  {
+
+                                   }
+                 },
+    "Corrective":  {
+                       "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                       "tokens":  null,
+                       "latency":  null,
+                       "strategy_used":  null,
+                       "cached":  null,
+                       "status":  "SUCCESS",
+                       "citations":  {
+
+                                     }
+                   },
+    "HyDE":  {
+                 "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                 "tokens":  null,
+                 "latency":  null,
+                 "strategy_used":  null,
+                 "cached":  null,
+                 "status":  "SUCCESS",
+                 "citations":  {
+
+                               }
+             },
+    "ReAct":  {
+                  "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                  "tokens":  null,
+                  "latency":  null,
+                  "strategy_used":  null,
+                  "cached":  null,
+                  "status":  "SUCCESS",
+                  "citations":  {
+
+                                }
+              },
+    "Multi-Query":  {
+                        "answer":  "I do not have sufficient information in the provided documents to answer your request. The retrieved context indicates that no relevant context was found in the knowledge base, and therefore it provides no facts about Retrieval Augmented Generation or its main components.",
+                        "tokens":  null,
+                        "latency":  null,
+                        "strategy_used":  null,
+                        "cached":  null,
+                        "status":  "SUCCESS",
+                        "citations":  {
+
+                                      }
+                    },
+    "Self-RAG":  {
+                     "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                     "tokens":  null,
+                     "latency":  null,
+                     "strategy_used":  null,
+                     "cached":  null,
+                     "status":  "SUCCESS",
+                     "citations":  {
+
+                                   }
+                 },
+    "Hybrid":  {
+                   "answer":  "",
+                   "tokens":  null,
+                   "latency":  null,
+                   "strategy_used":  null,
+                   "cached":  null,
+                   "status":  "SUCCESS",
+                   "citations":  {
+
+                                 }
+               },
+    "Parent-Child":  {
+                         "answer":  "I do not have sufficient information in the provided documents to answer your request. The retrieved context indicates \"No relevant context found in knowledge base,\" meaning there are no documents available that contain information about Retrieval Augmented Generation or its main components.",
+                         "tokens":  null,
+                         "latency":  null,
+                         "strategy_used":  null,
+                         "cached":  null,
+                         "status":  "SUCCESS",
+                         "citations":  {
+
+                                       }
+                     },
+    "MMR":  {
+                "answer":  "I do not have sufficient information in the provided documents to answer your request.",
+                "tokens":  null,
+                "latency":  null,
+                "strategy_used":  null,
+                "cached":  null,
+                "status":  "SUCCESS",
+                "citations":  {
+
+                              }
+            }
+}

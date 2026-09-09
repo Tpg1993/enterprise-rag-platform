@@ -1,0 +1,475 @@
+/** Frontend API integration service connecting to FastAPI backend */
+
+const API_BASE_URL = typeof window !== 'undefined' && window.location.origin && window.location.origin.startsWith('http')
+  ? `${window.location.origin}/api/v1`
+  : 'http://127.0.0.1:8000/api/v1';
+
+async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: query,
+        rag_strategy: strategy,
+        max_context_tokens: parseInt(maxContextTokens) || 2048,
+        tenant_id: 'default_tenant',
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Chat API Error:', error);
+    throw error;
+  }
+}
+
+async function uploadDocumentFile(file, strategy, chunkSize, chunkOverlap, embeddingProvider = 'bge-m3') {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('chunk_strategy', strategy);
+  formData.append('chunk_size', chunkSize);
+  formData.append('chunk_overlap', chunkOverlap);
+  formData.append('embedding_provider', embeddingProvider || 'bge-m3');
+  formData.append('tenant_id', 'default_tenant');
+
+  const response = await fetch(`${API_BASE_URL}/documents`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error(`Upload failed: ${response.statusText}`);
+  }
+  return await response.json();
+}
+
+async function fetchDocumentsList() {
+  const response = await fetch(`${API_BASE_URL}/documents?tenant_id=default_tenant`);
+  if (!response.ok) return [];
+  return await response.json();
+}
+
+async function deleteDocumentById(docId) {
+  const response = await fetch(`${API_BASE_URL}/documents/${docId}?tenant_id=default_tenant`, {
+    method: 'DELETE',
+  });
+  return await response.json();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Check health and update status indicator
+  fetch(`${API_BASE_URL}/health`)
+    .then(r => r.json())
+    .then(h => {
+      const tag = document.getElementById('env-tag');
+      if (tag) {
+        if (h.services && h.services.sarvam_api === 'ready') {
+          tag.textContent = 'Development (Live Sarvam API)';
+          tag.style.color = '#10b981';
+        } else {
+          tag.textContent = 'Development (Mock Mode)';
+        }
+      }
+    })
+    .catch(console.error);
+
+  // Navigation Tab Switching
+  const navItems = document.querySelectorAll('.nav-item');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetTab = item.getAttribute('data-tab');
+
+      navItems.forEach(n => n.classList.remove('active'));
+      tabContents.forEach(tc => tc.classList.remove('active'));
+
+      item.classList.add('active');
+      const activeContent = document.getElementById(`${targetTab}-tab`);
+      if (activeContent) {
+        activeContent.classList.add('active');
+        activeContent.style.display = 'block';
+      }
+
+      tabContents.forEach(tc => {
+        if (tc.id !== `${targetTab}-tab`) {
+          tc.style.display = 'none';
+        }
+      });
+
+      if (targetTab === 'documents') {
+        loadDocumentTable();
+      } else if (targetTab === 'traces') {
+        loadTracesTable();
+      }
+    });
+  });
+
+  // Chat Execution
+  const sendBtn = document.getElementById('send-btn');
+  const queryInput = document.getElementById('query-input');
+  const strategySelect = document.getElementById('strategy-select');
+  const chatMessages = document.getElementById('chat-messages');
+
+  if (sendBtn && queryInput) {
+    sendBtn.addEventListener('click', async () => {
+      const text = queryInput.value.trim();
+      if (!text) return;
+
+      const userDiv = document.createElement('div');
+      userDiv.className = 'message user';
+      userDiv.innerHTML = `<div class="bubble" style="background:#3b82f6">${text}</div>`;
+      chatMessages.appendChild(userDiv);
+      queryInput.value = '';
+
+      // Append loading indicator bubble
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'message assistant';
+      loadingDiv.innerHTML = `<div class="avatar">AI</div><div class="bubble" style="color:#94a3b8"><em>Generating multi-query variations & synthesizing response via ${strategySelect.value}...</em></div>`;
+      chatMessages.appendChild(loadingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      sendBtn.disabled = true;
+      sendBtn.innerText = 'Thinking...';
+
+      try {
+        const tokenBudgetElem = document.getElementById('token-budget-select');
+        const tokenBudget = tokenBudgetElem ? tokenBudgetElem.value : 2048;
+        const res = await sendChatMessage(text, strategySelect.value, tokenBudget);
+
+        loadingDiv.remove();
+
+        const citationsHtml = (res.citations && res.citations.length > 0)
+          ? `<div style="margin-top:0.5rem; display:flex; gap:0.4rem; flex-wrap:wrap">` +
+            res.citations.map(c => `<span style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1">📌 ${c.source || 'Doc'} (Score: <strong style="color:#10b981">${(c.relevance_score || 0).toFixed(4)}</strong>)</span>`).join('') +
+            `</div>`
+          : '';
+
+        const topScore = (res.citations && res.citations.length > 0 && res.citations[0].relevance_score)
+          ? ` | Top Score: <strong style="color:#10b981">${res.citations[0].relevance_score.toFixed(4)}</strong>`
+          : '';
+
+        const aiDiv = document.createElement('div');
+        aiDiv.className = 'message assistant';
+        aiDiv.innerHTML = `
+          <div class="avatar">AI</div>
+          <div class="bubble">
+            <p>${res.answer}</p>
+            ${citationsHtml}
+            <div style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem">
+              Strategy: <strong>${res.rag_strategy}</strong>${topScore} | Latency: ${res.latency_ms.toFixed(1)}ms | Cost: $${res.estimated_cost_usd.toFixed(4)}
+            </div>
+          </div>
+        `;
+        chatMessages.appendChild(aiDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      } catch (err) {
+        loadingDiv.remove();
+        const errDiv = document.createElement('div');
+        errDiv.className = 'message assistant';
+        errDiv.innerHTML = `<div class="bubble" style="border-color:#ef4444">Error: ${err.message}</div>`;
+        chatMessages.appendChild(errDiv);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerText = 'Send';
+      }
+    });
+  }
+
+  // Document Drag & Drop / File Input
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const browseBtn = document.getElementById('browse-btn');
+  const fileInfo = document.getElementById('file-info');
+  const uploadBtn = document.getElementById('upload-btn');
+  const uploadStatus = document.getElementById('upload-status');
+  let selectedFile = null;
+
+  if (dropzone && fileInput) {
+    browseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        selectedFile = fileInput.files[0];
+        fileInfo.textContent = `Selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+      }
+    });
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#8b5cf6';
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.style.borderColor = '#3b82f6';
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#3b82f6';
+      if (e.dataTransfer.files.length > 0) {
+        selectedFile = e.dataTransfer.files[0];
+        fileInfo.textContent = `Selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+      }
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+      if (!selectedFile) {
+        uploadStatus.innerHTML = '<span style="color:#ef4444">Please select a document file first.</span>';
+        return;
+      }
+
+      const strategy = document.getElementById('chunk-strategy-select').value;
+      const chunkSize = document.getElementById('chunk-size-input').value;
+      const chunkOverlap = document.getElementById('chunk-overlap-input').value;
+      const embedProviderElem = document.getElementById('embedding-provider-select');
+      const embedProvider = embedProviderElem ? embedProviderElem.value : 'bge-m3';
+
+      uploadStatus.innerHTML = `<span style="color:#3b82f6">Parsing, cleaning, redacting PII, embedding (${embedProvider}) & indexing document...</span>`;
+
+      try {
+        const res = await uploadDocumentFile(selectedFile, strategy, chunkSize, chunkOverlap, embedProvider);
+        uploadStatus.innerHTML = `<span style="color:#10b981">✓ Document '${res.filename}' successfully ${res.status}! (${res.total_chunks} chunks indexed via ${res.embedding_provider} in ${res.latency_ms.toFixed(1)}ms)</span>`;
+        selectedFile = null;
+        fileInfo.textContent = 'No file selected';
+        loadDocumentTable();
+      } catch (err) {
+        uploadStatus.innerHTML = `<span style="color:#ef4444">Failed: ${err.message}</span>`;
+      }
+    });
+  }
+
+  async function loadDocumentTable() {
+    const tbody = document.getElementById('doc-table-body');
+    if (!tbody) return;
+
+    try {
+      const docs = await fetchDocumentsList();
+      if (!docs || docs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="padding:1rem; text-align:center; color:#94a3b8">No documents uploaded yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = docs.map(d => {
+        const secBg = d.security_classification === 'Confidential' ? '#dc2626' : (d.security_classification === 'Public' ? '#16a34a' : '#2563eb');
+        const piiBadge = d.has_pii ? `<span style="background:#ea580c; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-size:0.7rem">🔒 ${d.redacted_count} PII Redacted</span>` : `<span style="color:#94a3b8; font-size:0.75rem">Clean</span>`;
+
+        return `
+          <tr>
+            <td style="font-family:monospace">${d.document_id}</td>
+            <td><strong>${d.filename}</strong><div style="font-size:0.75rem; color:#94a3b8">Author: ${d.author || 'System'}</div></td>
+            <td><span style="background:#334155; padding:0.2rem 0.4rem; border-radius:3px; font-size:0.75rem">${d.file_type}</span></td>
+            <td><span style="font-size:0.8rem">${d.file_size_human || '0 KB'}</span><div style="font-size:0.75rem; color:#94a3b8">${d.word_count || 0} words</div></td>
+            <td><span style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.4rem; border-radius:3px; font-size:0.75rem">${d.chunk_strategy || 'recursive'} (${d.chunk_size || 512}/${d.chunk_overlap || 50})</span></td>
+            <td><span style="background:#2563eb; color:#fff; padding:0.2rem 0.4rem; border-radius:3px; font-size:0.75rem; font-weight:600">${d.embedding_provider || 'bge-m3'}</span></td>
+            <td><span style="background:${secBg}; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-size:0.7rem; font-weight:bold">${d.security_classification || 'Internal'}</span> <div style="margin-top:0.2rem">${piiBadge}</div></td>
+            <td>${d.total_chunks}</td>
+            <td><span style="background:#059669; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-weight:bold; font-size:0.75rem">v${d.version}</span></td>
+            <td><button class="action-btn delete-btn" onclick="removeDoc('${d.document_id}')">Delete</button></td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('Failed to load doc list:', e);
+    }
+  }
+
+  window.removeDoc = async function(docId) {
+    if (confirm(`Delete document ${docId}?`)) {
+      await deleteDocumentApi(docId);
+      await refreshDocTable();
+    }
+  };
+
+  // Phase 9 RAGAS / DeepEval Evaluation Event Listener
+  const runEvalBtn = document.getElementById('run-eval-btn');
+  if (runEvalBtn) {
+    runEvalBtn.addEventListener('click', async () => {
+      const q = document.getElementById('eval-query-input').value.trim();
+      const strat = document.getElementById('eval-strategy-select').value;
+      if (!q) return;
+
+      runEvalBtn.disabled = true;
+      runEvalBtn.innerText = 'Evaluating...';
+
+      const statusElem = document.getElementById('upload-status') || document.createElement('div');
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout for deep evaluation
+
+        const response = await fetch(`${API_BASE_URL}/evaluations/run`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, rag_strategy: strat, tenant_id: 'default_tenant' }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errPayload = await response.json().catch(() => ({}));
+          throw new Error(errPayload.detail || `HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        document.getElementById('eval-precision').innerText = (data.context_precision || 0).toFixed(2);
+        document.getElementById('eval-recall').innerText = (data.context_recall || 0).toFixed(2);
+        document.getElementById('eval-faithfulness').innerText = (data.faithfulness || 0).toFixed(2);
+        document.getElementById('eval-relevancy').innerText = (data.answer_relevancy || 0).toFixed(2);
+        document.getElementById('eval-overall').innerText = (data.overall_score || 0).toFixed(2);
+        document.getElementById('eval-latency-cost').innerText = `${(data.latency_ms || 0).toFixed(1)}ms | $${(data.total_cost_usd || 0).toFixed(4)}`;
+        document.getElementById('eval-answer').innerText = data.answer || 'N/A';
+        document.getElementById('eval-results-card').style.display = 'block';
+      } catch (err) {
+        console.error('Evaluation Error:', err);
+        const errMsg = err.name === 'AbortError' ? 'Evaluation request timed out after 120s.' : err.message;
+        const errContainer = document.getElementById('eval-answer');
+        if (errContainer && document.getElementById('eval-results-card').style.display !== 'none') {
+          console.warn('Evaluation completed with warning:', errMsg);
+        } else {
+          console.error('Evaluation failed:', errMsg);
+        }
+      } finally {
+        runEvalBtn.disabled = false;
+        runEvalBtn.innerText = 'Run Evaluation';
+      }
+    });
+  }
+
+  // Traces Observability Loader
+  async function loadTracesTable() {
+    const tbody = document.getElementById('traces-table-body');
+    if (!tbody) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/traces?limit=25`);
+      if (!response.ok) {
+        tbody.innerHTML = '<tr><td colspan="8" style="padding:1rem; text-align:center; color:#ef4444">Failed to fetch execution traces.</td></tr>';
+        return;
+      }
+      const traces = await response.json();
+      if (!traces || traces.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="padding:1rem; text-align:center; color:#94a3b8">No execution traces recorded yet. Send queries in Chat to generate trace spans.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = traces.map(t => {
+        let timeStr = 'Just now';
+        if (t.timestamp) {
+          if (typeof t.timestamp === 'number') {
+            const d = new Date(t.timestamp > 1e11 ? t.timestamp : t.timestamp * 1000);
+            timeStr = isNaN(d.getTime()) ? 'Just now' : d.toLocaleTimeString();
+          } else {
+            const d = new Date(t.timestamp);
+            timeStr = isNaN(d.getTime()) ? String(t.timestamp) : d.toLocaleTimeString();
+          }
+        }
+        const strat = t.rag_strategy || (t.metadata && t.metadata.rag_strategy) || t.name || 'RAG';
+        const tokens = (t.metadata && t.metadata.total_tokens) || t.token_count || t.tokens || 0;
+        const spanId = t.span_id || t.trace_id || 'trace_span';
+
+        return `
+          <tr style="border-bottom:1px solid #334155">
+            <td style="font-family:monospace; font-size:0.75rem; color:#38bdf8">${spanId}</td>
+            <td><span style="background:#1e293b; border:1px solid #3b82f6; padding:0.15rem 0.4rem; border-radius:3px; font-size:0.75rem">${strat}</span></td>
+            <td style="font-size:0.8rem">${t.name || 'RAG_Execution'}</td>
+            <td style="font-weight:bold; color:#10b981">${(t.latency_ms || 0).toFixed(1)}ms</td>
+            <td style="font-size:0.8rem">${tokens} tokens</td>
+            <td><span style="background:#0f172a; padding:0.15rem 0.35rem; border-radius:3px; font-size:0.7rem; color:#94a3b8">${t.tenant_id || 'default_tenant'}</span></td>
+            <td style="font-size:0.75rem; color:#94a3b8">${timeStr}</td>
+            <td><span style="background:#16a34a; color:#fff; padding:0.1rem 0.3rem; border-radius:3px; font-size:0.7rem">${t.status || 'OK'}</span></td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('Traces Load Error:', e);
+      tbody.innerHTML = '<tr><td colspan="8" style="padding:1rem; text-align:center; color:#ef4444">Error loading traces.</td></tr>';
+    }
+  }
+
+  const refreshTracesBtn = document.getElementById('refresh-traces-btn');
+  if (refreshTracesBtn) {
+    refreshTracesBtn.addEventListener('click', loadTracesTable);
+  }
+
+  // Side-by-Side Strategy Comparison Benchmark Runner
+  const runBenchmarkBtn = document.getElementById('run-benchmark-btn');
+  if (runBenchmarkBtn) {
+    runBenchmarkBtn.addEventListener('click', async () => {
+      const q = document.getElementById('benchmark-query-input').value.trim();
+      const statusElem = document.getElementById('benchmark-status');
+      const tbody = document.getElementById('comparison-table-body');
+      if (!q || !tbody) return;
+
+      const strategies = [
+        "Basic", "Hybrid", "MMR", "Reranked", "Parent-Child", 
+        "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG", "ReAct"
+      ];
+
+      runBenchmarkBtn.disabled = true;
+      runBenchmarkBtn.innerText = 'Benchmarking 11 Strategies...';
+      if (statusElem) statusElem.innerHTML = '<span style="color:#38bdf8">⚡ Running benchmark queries across all 11 strategies concurrently...</span>';
+
+      tbody.innerHTML = '<tr><td colspan="8" style="padding:1rem; text-align:center; color:#38bdf8">Running live benchmark across 11 RAG strategies...</td></tr>';
+
+      const results = [];
+      for (const strat of strategies) {
+        try {
+          const res = await sendChatMessage(q, strat, 2048);
+          results.push({
+            strategy: strat,
+            status: 'SUCCESS',
+            latency: res.latency_ms || 0,
+            tokens: res.token_usage?.total_tokens || 0,
+            cost: res.estimated_cost_usd || 0,
+            topScore: (res.citations && res.citations.length > 0) ? res.citations[0].relevance_score : null,
+            citationsCount: res.citations ? res.citations.length : 0,
+            answerSnippet: (res.answer || '').substring(0, 90) + '...'
+          });
+        } catch (err) {
+          results.push({
+            strategy: strat,
+            status: 'ERROR',
+            latency: 0,
+            tokens: 0,
+            cost: 0,
+            topScore: null,
+            citationsCount: 0,
+            answerSnippet: err.message
+          });
+        }
+      }
+
+      tbody.innerHTML = results.map(r => {
+        const scoreBadge = r.topScore !== null ? `<span style="color:#10b981; font-weight:bold">${r.topScore.toFixed(4)}</span>` : '<span style="color:#94a3b8">N/A</span>';
+        const statusBadge = r.status === 'SUCCESS' ? `<span style="background:#16a34a; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-size:0.7rem">PASSED</span>` : `<span style="background:#dc2626; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-size:0.7rem">FAILED</span>`;
+
+        return `
+          <tr style="border-bottom:1px solid #334155">
+            <td style="font-weight:600; color:#cbd5e1">${r.strategy}</td>
+            <td>${statusBadge}</td>
+            <td style="font-weight:bold; color:#38bdf8">${r.latency.toFixed(1)}ms</td>
+            <td>${r.tokens} tokens</td>
+            <td style="color:#10b981">$${r.cost.toFixed(4)}</td>
+            <td>${scoreBadge}</td>
+            <td><span style="background:#1e293b; border:1px solid #334155; padding:0.15rem 0.4rem; border-radius:3px; font-size:0.75rem">${r.citationsCount} Chunks</span></td>
+            <td style="font-size:0.8rem; color:#94a3b8">${r.answerSnippet}</td>
+          </tr>
+        `;
+      }).join('');
+
+      if (statusElem) statusElem.innerHTML = `<span style="color:#10b981">✓ Benchmark complete across all 11 strategies!</span>`;
+      runBenchmarkBtn.disabled = false;
+      runBenchmarkBtn.innerText = 'Run Side-by-Side Benchmark';
+    });
+  }
+});
