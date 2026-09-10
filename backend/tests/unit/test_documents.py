@@ -1,13 +1,15 @@
 """Unit tests for document parsers and parser factory."""
 
 from src.documents import get_parser_for_file
+from src.documents.multimodal_parser import MultimodalParser
 from src.documents.pdf_parser import PDFParser
 from src.documents.structured_parser import StructuredParser
 from src.documents.text_parser import TextParser
 
 
 def test_parser_factory_matching():
-    assert isinstance(get_parser_for_file("sample.pdf"), PDFParser)
+    assert isinstance(get_parser_for_file("sample.pdf"), (PDFParser, MultimodalParser))
+    assert isinstance(get_parser_for_file("chart.png"), MultimodalParser)
     assert isinstance(get_parser_for_file("doc.txt"), TextParser)
     assert isinstance(get_parser_for_file("data.csv"), StructuredParser)
 
