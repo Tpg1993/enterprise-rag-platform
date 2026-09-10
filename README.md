@@ -38,6 +38,7 @@ The platform provides a complete web workspace (chat, document ingestion, strate
 For in-depth architectural specifications and operational runbooks, refer to the documentation suite in [`docs/`](docs/):
 
 - 📘 **[High-Level Design (HLD)](docs/HLD.md)**: System architecture, subsystem interaction flows, and Mermaid diagrams.
+- 📐 **[Low-Level Design (LLD)](docs/LLD.md)**: UML class hierarchy, sequence flows, LangGraph state machines, math formulas, and ER diagrams.
 - 🔌 **[REST API Reference](docs/api_reference.md)**: Full endpoint specifications, JSON schemas, headers, and `curl` examples.
 - 🛡️ **[Security & Governance Guide](docs/security.md)**: Zero Trust model, PBKDF2 password hashing, JWT tokens, RBAC/ABAC matrix, Presidio PII redaction, and SQL AST sandboxing.
 - 🧪 **[Phase-Wise Testing Matrix](docs/rag_phase_test_matrix.md)**: Step-by-step test procedures across all 25 implementation phases.
