@@ -61,7 +61,7 @@ docs/proofs/
 | **22** | **Auth, JWT, RBAC (Phase 20 from AGENTS.md)** | ✅ Done | `sarvam-105b-auth-rbac-v1.0.0-none` | [README](phase-22-auth-rbac/README.md) |
 | **23** | **Persistent Chat + Eval History (PostgreSQL)** | ✅ Done | `sarvam-105b-persistent-history-v1.0.0-none` | [README](phase-23-persistent-history/README.md) |
 | **24** | **Redis Multi-Tier Caching** | ✅ Done | `sarvam-105b-redis-caching-v1.0.0-none` | [README](phase-24-redis-caching/README.md) |
-| **25** | **OpenTelemetry + Prometheus + Grafana** | 🔲 Planned | `main` | — |
+| **25** | **OpenTelemetry + Prometheus + Grafana** | ✅ Done | `sarvam-105b-opentelemetry-metrics-v1.0.0-none` | [README](phase-25-opentelemetry-metrics/README.md) |
 | **26** | **PII Redaction (Presidio) + OPA Guardrails** | 🔲 Planned | `main` | — |
 
 ---
@@ -77,7 +77,8 @@ docs/proofs/
 | All 15+ Phases Full Demo | Complete platform walkthrough | [phase-18-strategy-comparison/all-phases-full-demo.webp](phase-18-strategy-comparison/all-phases-full-demo.webp) |
 | Fixed Traces + Comparison Demo | LangSmith Traces + Comparison tabs | [phase-17-langsmith-observability/fixed-comparison-traces-demo.webp](phase-17-langsmith-observability/fixed-comparison-traces-demo.webp) |
 | Redis Cache Hit Demo | Cache MISS vs ⚡ Cache HIT with 0ms latency | [phase-24-redis-caching/redis-cache-hit-demo.webp](phase-24-redis-caching/redis-cache-hit-demo.webp) |
+| Prometheus Metrics Demo | Live `/metrics` scraping & RED telemetry | [phase-25-opentelemetry-metrics/prometheus-metrics-demo.webp](phase-25-opentelemetry-metrics/prometheus-metrics-demo.webp) |
 
 ---
 
-*Last updated: 2026-09-09 | Platform Version: 2.0.0*
+*Last updated: 2026-09-10 | Platform Version: 3.2.0*

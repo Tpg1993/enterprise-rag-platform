@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: "rag_platform"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["rag_api:8000", "host.docker.internal:8000"]
+        labels:
+          application: "enterprise-rag-platform"
+          environment: "production"

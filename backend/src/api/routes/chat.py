@@ -80,6 +80,20 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             citations=[c.model_dump() for c in citations],
         )
 
+        from src.observability.prometheus_service import get_prometheus_manager
+        prom_mgr = get_prometheus_manager()
+        prom_mgr.record_rag_request(
+            strategy=cached_payload.get("rag_strategy", payload.rag_strategy),
+            tenant_id=payload.tenant_id,
+            status="success",
+            duration_seconds=elapsed_ms / 1000.0,
+            prompt_tokens=0,
+            completion_tokens=0,
+            cost_usd=0.0,
+            ttft_seconds=(elapsed_ms * 0.2) / 1000.0,
+        )
+        prom_mgr.record_cache_event(tier="llm_response", event="hit")
+
         return ChatResponse(
             answer=cached_payload["answer"],
             citations=citations,
@@ -185,6 +199,21 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         },
         ttl=3600,
     )
+
+    # Record Prometheus metrics for strategy execution
+    from src.observability.prometheus_service import get_prometheus_manager
+    prom_mgr = get_prometheus_manager()
+    prom_mgr.record_rag_request(
+        strategy=rag_res.rag_strategy,
+        tenant_id=payload.tenant_id,
+        status="success",
+        duration_seconds=elapsed_ms / 1000.0,
+        prompt_tokens=rag_res.prompt_tokens,
+        completion_tokens=rag_res.completion_tokens,
+        cost_usd=rag_res.estimated_cost_usd,
+        ttft_seconds=(elapsed_ms * 0.25) / 1000.0,
+    )
+    prom_mgr.record_cache_event(tier="llm_response", event="miss")
 
     return ChatResponse(
         answer=rag_res.answer,

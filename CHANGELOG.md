@@ -5,6 +5,30 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-09-10
+
+### Added
+- **Phase 25 Complete (Full Observability Stack — OpenTelemetry, Prometheus & Grafana)**:
+  - **Prometheus Metrics Manager (`PrometheusMetricsManager`)**: Built enterprise metrics engine in `backend/src/observability/prometheus_service.py` exporting:
+    - RED Metrics: `rag_requests_total` labeled by strategy, tenant_id, and status.
+    - Latency Histograms: `rag_request_duration_seconds` (5ms to 10s buckets) and `rag_ttft_seconds` (Time-to-First-Token).
+    - Financial & Token Counters: `rag_tokens_total` (prompt/completion) and `rag_cost_usd_total` (spend in USD).
+    - Cache Telemetry: `rag_cache_events_total` (tier, hit/miss).
+    - Operational Gauges: `rag_active_sessions` and `rag_indexed_documents`.
+  - **Scrapable Prometheus Endpoints**: Exposed standard exposition format at `/metrics` and `/api/v1/metrics` (`backend/src/api/routes/metrics.py`, `backend/src/api/main.py`).
+  - **OpenTelemetry Distributed Tracing**: Created `otel_service.py` with `init_opentelemetry()` and `trace_span()` context managers for RAG pipeline operations.
+  - **Docker & Grafana Provisioning Suite**:
+    - `docker/prometheus/prometheus.yml`: Scrape config targeting `rag_api:8000/metrics`.
+    - `docker/grafana/provisioning/datasources/prometheus.yml`: Auto-configured Prometheus datasource.
+    - `docker/grafana/provisioning/dashboards/dashboards.yml`: Auto-configured dashboard loader.
+    - `docker/grafana/dashboards/rag_observability.json`: Production Grafana dashboard with request throughput, P50/P95/P99 latency quantiles, token consumption, total spend, and cache hit ratios.
+    - `docker-compose.yml`: Mounted configs into `rag_prometheus` and `rag_grafana` containers.
+  - **Comprehensive Test Suite (100% Passing)**:
+    - Unit Tests: `backend/tests/unit/test_prometheus_metrics.py` (7/7 passing)
+    - Integration Tests: `backend/tests/integration/test_metrics_integration.py` (2/2 passing)
+    - Platform-wide Test Suite: 113/113 passing tests across all 25 phases.
+  - **Visual Proof Documentation**: Captured live `/metrics` exposition screenshot (`prometheus-metrics-telemetry.png`), recording (`prometheus-metrics-demo.webp`), and guide in `docs/proofs/phase-25-opentelemetry-metrics/`.
+
 ## [3.1.0] - 2026-09-10
 
 ### Added

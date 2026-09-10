@@ -74,6 +74,7 @@ For in-depth architectural specifications and operational runbooks, refer to the
 | **22** | **Auth, JWT & RBAC/ABAC Policies** | ✅ Done | `sarvam-105b-auth-rbac-v1.0.0-none` | [README](docs/proofs/phase-22-auth-rbac/README.md) |
 | **23** | **Persistent Chat & Eval History** | ✅ Done | `sarvam-105b-persistent-history-v1.0.0-none` | [README](docs/proofs/phase-23-persistent-history/README.md) |
 | **24** | **Redis Multi-Tier Caching Engine** | ✅ Done | `sarvam-105b-redis-caching-v1.0.0-none` | [README](docs/proofs/phase-24-redis-caching/README.md) |
+| **25** | **Full Observability Stack (OTel, Prometheus, Grafana)** | ✅ Done | `sarvam-105b-opentelemetry-metrics-v1.0.0-none` | [README](docs/proofs/phase-25-opentelemetry-metrics/README.md) |
 
 ---
 
