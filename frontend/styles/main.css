@@ -122,12 +122,18 @@ body {
   overflow-y: auto;
 }
 
+.chat-workspace-layout {
+  display: flex;
+  height: 100%;
+  gap: 1rem;
+  width: 100%;
+}
+
 .chat-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .chat-messages {
@@ -268,13 +274,41 @@ body {
   font-size: 0.85rem;
 }
 
-.action-btn.delete-btn {
-  background-color: #ef4444;
-  color: #fff;
-  border: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
+.session-item {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  background: #0f172a;
+  border: 1px solid #334155;
   cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.session-item:hover {
+  border-color: #3b82f6;
+  background: #1e293b;
+}
+
+.session-item.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.session-item .session-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-item .session-meta {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  display: flex;
+  justify-content: space-between;
 }
 

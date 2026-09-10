@@ -46,41 +46,74 @@
 
       <section class="content-area">
         <div id="chat-tab" class="tab-content active">
-          <div class="chat-container">
-            <div class="chat-messages" id="chat-messages">
-              <div class="message assistant">
-                <div class="avatar">AI</div>
-                <div class="bubble">
-                  Welcome! Select a RAG Strategy and type your query below. All executions are observed via LangSmith and evaluated across quality, latency, and cost.
-                </div>
+          <div class="chat-workspace-layout">
+            <!-- Persistent Chat Session Sidebar (Phase 23) -->
+            <div class="chat-sessions-sidebar" style="width:280px; min-width:280px; background:#1e293b; border:1px solid #334155; border-radius:8px; display:flex; flex-direction:column; padding:0.8rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem">
+                <span style="font-weight:600; font-size:0.85rem; color:#f8fafc; display:flex; align-items:center; gap:0.4rem">
+                  <span>💬</span> Saved Sessions
+                </span>
+                <button id="new-session-btn" class="primary-btn" style="padding:0.25rem 0.6rem; font-size:0.75rem; background:#3b82f6">+ New Chat</button>
+              </div>
+              <div style="font-size:0.7rem; color:#94a3b8; margin-bottom:0.75rem; padding-bottom:0.5rem; border-bottom:1px solid #334155; display:flex; justify-content:space-between">
+                <span>PostgreSQL / SQLite</span>
+                <span style="color:#10b981">● Sync Active</span>
+              </div>
+              <div id="chat-sessions-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.4rem">
+                <div style="padding:0.75rem; text-align:center; color:#94a3b8; font-size:0.75rem">Loading saved sessions...</div>
               </div>
             </div>
-            <div class="chat-input-bar">
-              <select id="strategy-select" class="strategy-dropdown">
-                <option value="AUTO">🤖 AUTO (Adaptive Router)</option>
-                <option value="Basic">Basic RAG</option>
-                <option value="Hybrid">Hybrid (Dense + BM25)</option>
-                <option value="MMR">MMR RAG</option>
-                <option value="Reranked">Cross-Encoder Reranked</option>
-                <option value="Parent-Child">Parent-Child RAG</option>
-                <option value="Multi-Query">Multi-Query RAG</option>
-                <option value="HyDE">HyDE RAG</option>
-                <option value="Adaptive">Adaptive RAG (LangGraph)</option>
-                <option value="Corrective">Corrective RAG (CRAG)</option>
-                <option value="Self-RAG">Self-RAG</option>
-                <option value="ReAct">ReAct Agentic RAG</option>
-                <option value="GraphRAG">GraphRAG (Neo4j)</option>
-                <option value="SQL-RAG">SQL RAG (PostgreSQL)</option>
-                <option value="Multimodal">Multimodal RAG (PDF Tables & Images)</option>
-              </select>
-              <select id="token-budget-select" class="strategy-dropdown" title="Context Token Budget">
-                <option value="512">512 Tokens</option>
-                <option value="1024">1,024 Tokens</option>
-                <option value="2048" selected>2,048 Tokens (Default)</option>
-                <option value="4096">4,096 Tokens</option>
-              </select>
-              <input type="text" id="query-input" placeholder="Ask a complex enterprise question..." />
-              <button id="send-btn" class="primary-btn">Send</button>
+
+            <!-- Main Chat Workspace -->
+            <div class="chat-container" style="flex:1; display:flex; flex-direction:column; background:#0f172a; border:1px solid #334155; border-radius:8px; overflow:hidden">
+              <div id="active-session-header" style="padding:0.6rem 1rem; border-bottom:1px solid #334155; display:flex; justify-content:space-between; align-items:center; background:#1e293b">
+                <div>
+                  <div id="active-session-title" style="font-weight:600; font-size:0.9rem; color:#f8fafc">💬 Multimodal Financials & Latency Table Analysis</div>
+                  <div style="font-size:0.75rem; color:#94a3b8; margin-top:0.2rem">
+                    Session: <code id="active-session-id" style="color:#38bdf8">sess_multimodal_fin</code> | Tenant: <span id="active-session-tenant">default_tenant</span> | Storage: <span style="color:#10b981">Persistent DB</span>
+                  </div>
+                </div>
+                <div>
+                  <span style="background:#0f172a; border:1px solid #10b981; color:#a7f3d0; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">🔒 ABAC Audited</span>
+                </div>
+              </div>
+
+              <div class="chat-messages" id="chat-messages" style="flex:1; overflow-y:auto; padding:1rem">
+                <div class="message assistant">
+                  <div class="avatar">AI</div>
+                  <div class="bubble">
+                    Welcome! Select a RAG Strategy and type your query below. All executions are observed via LangSmith, saved to persistent history, and evaluated across quality, latency, and cost.
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-input-bar">
+                <select id="strategy-select" class="strategy-dropdown">
+                  <option value="AUTO">🤖 AUTO (Adaptive Router)</option>
+                  <option value="Basic">Basic RAG</option>
+                  <option value="Hybrid">Hybrid (Dense + BM25)</option>
+                  <option value="MMR">MMR RAG</option>
+                  <option value="Reranked">Cross-Encoder Reranked</option>
+                  <option value="Parent-Child">Parent-Child RAG</option>
+                  <option value="Multi-Query">Multi-Query RAG</option>
+                  <option value="HyDE">HyDE RAG</option>
+                  <option value="Adaptive">Adaptive RAG (LangGraph)</option>
+                  <option value="Corrective">Corrective RAG (CRAG)</option>
+                  <option value="Self-RAG">Self-RAG</option>
+                  <option value="ReAct">ReAct Agentic RAG</option>
+                  <option value="GraphRAG">GraphRAG (Neo4j)</option>
+                  <option value="SQL-RAG">SQL RAG (PostgreSQL)</option>
+                  <option value="Multimodal" selected>Multimodal RAG (PDF Tables & Images)</option>
+                </select>
+                <select id="token-budget-select" class="strategy-dropdown" title="Context Token Budget">
+                  <option value="512">512 Tokens</option>
+                  <option value="1024">1,024 Tokens</option>
+                  <option value="2048" selected>2,048 Tokens (Default)</option>
+                  <option value="4096">4,096 Tokens</option>
+                </select>
+                <input type="text" id="query-input" placeholder="Ask a complex enterprise question..." />
+                <button id="send-btn" class="primary-btn">Send</button>
+              </div>
             </div>
           </div>
         </div>

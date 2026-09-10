@@ -115,14 +115,29 @@ async def upload_document(
     )
 
     # 4. Chunk
-    chunker = get_chunker(
-        strategy=chunk_strategy, chunk_size=chunk_size, chunk_overlap=chunk_overlap
-    )
-    chunks = chunker.chunk(sanitized_text, doc_id, tenant_id=tenant_id)
-
-    # Attach document-level metadata to chunk metadata
-    for c in chunks:
-        c.metadata.update(meta_info.model_dump())
+    if parsed_doc.chunks and any(
+        c.metadata.get("chunk_type") in ("table", "image_figure", "figure")
+        for c in parsed_doc.chunks
+    ):
+        from src.chunking.base import Chunk
+        chunks = [
+            Chunk(
+                chunk_id=f"{doc_id}_{c.chunk_index}",
+                document_id=doc_id,
+                content=c.content,
+                chunk_index=c.chunk_index,
+                metadata={**c.metadata, **meta_info.model_dump()},
+                tenant_id=tenant_id,
+            )
+            for c in parsed_doc.chunks
+        ]
+    else:
+        chunker = get_chunker(
+            strategy=chunk_strategy, chunk_size=chunk_size, chunk_overlap=chunk_overlap
+        )
+        chunks = chunker.chunk(sanitized_text, doc_id, tenant_id=tenant_id)
+        for c in chunks:
+            c.metadata.update(meta_info.model_dump())
 
     # 5. Embed using selected provider
     embedder_instance = get_embedding_provider(chosen_embedder)
