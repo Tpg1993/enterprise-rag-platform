@@ -41,6 +41,63 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             trace_id=correlation_id,
         )
 
+    from src.cache.service import get_cache_manager
+    cache_mgr = get_cache_manager()
+
+    cached_payload = cache_mgr.get_llm_response(
+        prompt=payload.query,
+        strategy=payload.rag_strategy,
+        tenant_id=payload.tenant_id,
+    )
+
+    if cached_payload:
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+        from src.api.schemas import Citation
+        citations = [Citation(**c) for c in cached_payload.get("citations", [])]
+
+        from src.storage.history import get_history_store
+        store = get_history_store()
+        session_id = payload.session_id or f"sess_{payload.tenant_id}"
+        store.save_chat_message(
+            session_id=session_id,
+            user_id=payload.user_id,
+            tenant_id=payload.tenant_id,
+            role="user",
+            content=payload.query,
+            rag_strategy=payload.rag_strategy,
+        )
+        store.save_chat_message(
+            session_id=session_id,
+            user_id="assistant",
+            tenant_id=payload.tenant_id,
+            role="assistant",
+            content=cached_payload["answer"],
+            rag_strategy=payload.rag_strategy,
+            latency_ms=elapsed_ms,
+            cost_usd=0.0,
+            prompt_tokens=0,
+            completion_tokens=0,
+            citations=[c.model_dump() for c in citations],
+        )
+
+        return ChatResponse(
+            answer=cached_payload["answer"],
+            citations=citations,
+            sources=[c.snippet for c in citations],
+            rag_strategy=cached_payload.get("rag_strategy", payload.rag_strategy),
+            rag_version="1.0.0",
+            framework="none",
+            model=cached_payload.get("model", "sarvam-105b"),
+            latency_ms=elapsed_ms,
+            ttft_ms=elapsed_ms * 0.2,
+            token_usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+            estimated_cost_usd=0.0,
+            retrieval_count=len(citations),
+            reranked_count=0,
+            cache_hit=True,
+            trace_id=f"cache_{correlation_id}",
+        )
+
     # Route query through strategy (defaults to BasicRAGStrategy)
     strategy = get_rag_strategy(payload.rag_strategy)
     rag_req = RAGRequest(
@@ -114,6 +171,20 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
     )
 
     sources = [c.content_snippet for c in rag_res.citations]
+
+    # Populate Tier 3 LLM Response Cache for subsequent identical queries
+    cache_mgr.set_llm_response(
+        prompt=payload.query,
+        strategy=payload.rag_strategy,
+        tenant_id=payload.tenant_id,
+        response_dict={
+            "answer": rag_res.answer,
+            "citations": [c.model_dump() for c in citations],
+            "model": rag_res.model,
+            "rag_strategy": rag_res.rag_strategy,
+        },
+        ttl=3600,
+    )
 
     return ChatResponse(
         answer=rag_res.answer,

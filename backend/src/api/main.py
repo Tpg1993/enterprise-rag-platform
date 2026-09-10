@@ -52,6 +52,7 @@ import os
 from fastapi.staticfiles import StaticFiles
 
 from src.api.routes.auth import router as auth_router
+from src.api.routes.cache import router as cache_router
 from src.api.routes.evaluations import router as evaluations_router
 
 # API v1 Routers
@@ -60,6 +61,7 @@ app.include_router(auth_router)
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(evaluations_router, prefix="/api/v1")
+app.include_router(cache_router, prefix="/api/v1")
 app.include_router(traces_router)
 
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend"))

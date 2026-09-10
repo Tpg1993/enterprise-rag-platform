@@ -60,7 +60,7 @@ docs/proofs/
 | **21** | **Multimodal RAG (PDF images, OCR tables)** | ✅ Done | `sarvam-105b-multimodal-rag-v1.0.0-langgraph` | [README](phase-21-multimodal-rag/README.md) |
 | **22** | **Auth, JWT, RBAC (Phase 20 from AGENTS.md)** | ✅ Done | `sarvam-105b-auth-rbac-v1.0.0-none` | [README](phase-22-auth-rbac/README.md) |
 | **23** | **Persistent Chat + Eval History (PostgreSQL)** | ✅ Done | `sarvam-105b-persistent-history-v1.0.0-none` | [README](phase-23-persistent-history/README.md) |
-| **24** | **Redis Multi-Tier Caching** | 🔲 Planned | `main` | — |
+| **24** | **Redis Multi-Tier Caching** | ✅ Done | `sarvam-105b-redis-caching-v1.0.0-none` | [README](phase-24-redis-caching/README.md) |
 | **25** | **OpenTelemetry + Prometheus + Grafana** | 🔲 Planned | `main` | — |
 | **26** | **PII Redaction (Presidio) + OPA Guardrails** | 🔲 Planned | `main` | — |
 
@@ -76,6 +76,7 @@ docs/proofs/
 | Strategy Comparison Demo | All 11 strategies side-by-side | [phase-18-strategy-comparison/strategy-comparison-demo.webp](phase-18-strategy-comparison/strategy-comparison-demo.webp) |
 | All 15+ Phases Full Demo | Complete platform walkthrough | [phase-18-strategy-comparison/all-phases-full-demo.webp](phase-18-strategy-comparison/all-phases-full-demo.webp) |
 | Fixed Traces + Comparison Demo | LangSmith Traces + Comparison tabs | [phase-17-langsmith-observability/fixed-comparison-traces-demo.webp](phase-17-langsmith-observability/fixed-comparison-traces-demo.webp) |
+| Redis Cache Hit Demo | Cache MISS vs ⚡ Cache HIT with 0ms latency | [phase-24-redis-caching/redis-cache-hit-demo.webp](phase-24-redis-caching/redis-cache-hit-demo.webp) |
 
 ---
 

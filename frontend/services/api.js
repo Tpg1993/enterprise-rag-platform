@@ -156,15 +156,20 @@ document.addEventListener('DOMContentLoaded', () => {
           ? ` | Top Score: <strong style="color:#10b981">${res.citations[0].relevance_score.toFixed(4)}</strong>`
           : '';
 
+        const cacheBadge = res.cache_hit
+          ? `<span style="background:#064e3b; border:1px solid #10b981; color:#a7f3d0; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">⚡ Cache HIT</span>`
+          : `<span style="background:#1e293b; border:1px solid #475569; color:#94a3b8; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; margin-left:0.4rem">Cache MISS</span>`;
+
         const aiDiv = document.createElement('div');
         aiDiv.className = 'message assistant';
         aiDiv.innerHTML = `
           <div class="avatar">AI</div>
           <div class="bubble">
-            <p>${res.answer}</p>
+            <p>${res.answer.replace(/\n/g, '<br/>')}</p>
             ${citationsHtml}
-            <div style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem">
-              Strategy: <strong>${res.rag_strategy}</strong>${topScore} | Latency: ${res.latency_ms.toFixed(1)}ms | Cost: $${res.estimated_cost_usd.toFixed(4)}
+            <div style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem; display:flex; align-items:center; flex-wrap:wrap; gap:0.3rem">
+              <span>Strategy: <strong>${res.rag_strategy}</strong>${topScore} | Latency: <strong>${res.latency_ms.toFixed(1)}ms</strong> | Cost: <strong>$${res.estimated_cost_usd.toFixed(4)}</strong></span>
+              ${cacheBadge}
             </div>
           </div>
         `;
