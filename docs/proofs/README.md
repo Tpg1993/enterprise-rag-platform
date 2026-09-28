@@ -62,7 +62,7 @@ docs/proofs/
 | **23** | **Persistent Chat + Eval History (PostgreSQL)** | ✅ Done | `sarvam-105b-persistent-history-v1.0.0-none` | [README](phase-23-persistent-history/README.md) |
 | **24** | **Redis Multi-Tier Caching** | ✅ Done | `sarvam-105b-redis-caching-v1.0.0-none` | [README](phase-24-redis-caching/README.md) |
 | **25** | **OpenTelemetry + Prometheus + Grafana** | ✅ Done | `sarvam-105b-opentelemetry-metrics-v1.0.0-none` | [README](phase-25-opentelemetry-metrics/README.md) |
-| **26** | **PII Redaction (Presidio) + OPA Guardrails** | 🔲 Planned | `main` | — |
+| **26** | **PII Redaction (Presidio) + OPA Guardrails** | ✅ Done | `sarvam-105b-security-guardrails-v1.0.0-none` | [README](phase-26-security-guardrails/README.md) |
 
 ---
 
@@ -78,7 +78,8 @@ docs/proofs/
 | Fixed Traces + Comparison Demo | LangSmith Traces + Comparison tabs | [phase-17-langsmith-observability/fixed-comparison-traces-demo.webp](phase-17-langsmith-observability/fixed-comparison-traces-demo.webp) |
 | Redis Cache Hit Demo | Cache MISS vs ⚡ Cache HIT with 0ms latency | [phase-24-redis-caching/redis-cache-hit-demo.webp](phase-24-redis-caching/redis-cache-hit-demo.webp) |
 | Prometheus Metrics Demo | Live `/metrics` scraping & RED telemetry | [phase-25-opentelemetry-metrics/prometheus-metrics-demo.webp](phase-25-opentelemetry-metrics/prometheus-metrics-demo.webp) |
+| OPA & PII Guardrails Demo | OPA prompt injection rejection & Presidio PII | [phase-26-security-guardrails/opa-pii-security-demo.webp](phase-26-security-guardrails/opa-pii-security-demo.webp) |
 
 ---
 
-*Last updated: 2026-09-10 | Platform Version: 3.2.0*
+*Last updated: 2026-09-28 | Platform Version: 3.3.0*

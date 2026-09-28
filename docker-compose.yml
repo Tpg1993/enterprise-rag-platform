@@ -126,6 +126,23 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
 
+  # -----------------------------------------------------------------
+  # SECURITY PROFILE (Open Policy Agent)
+  # -----------------------------------------------------------------
+  opa:
+    image: openpolicyagent/opa:0.62.0
+    profiles: ["security"]
+    container_name: rag_opa
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./docker/opa/policies:/policies:ro
+    command:
+      - "run"
+      - "--server"
+      - "--addr=:8181"
+      - "/policies"
+
 volumes:
   qdrant_storage:
   redis_data:

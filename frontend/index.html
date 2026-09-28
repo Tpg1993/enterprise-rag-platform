@@ -464,6 +464,46 @@
                 <p style="font-size:0.85rem; color:#cbd5e1; margin-top:0.4rem">Supported Roles: ADMIN, ANALYST, USER, VIEWER with strict tenant_id query-level data isolation.</p>
                 <div style="margin-top:0.8rem; font-size:0.8rem; color:#38bdf8">Default Session: <strong>default_tenant</strong></div>
               </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#06b6d4">🛡️ Open Policy Agent (OPA) Guardrails</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin-top:0.4rem">Enforces Zero Trust Rego security policies for query length, role bounds, and prompt injection defense.</p>
+                <div style="margin-top:0.8rem; font-size:0.8rem; color:#38bdf8">Policy: <strong>rag.security (Enforced)</strong></div>
+              </div>
+            </div>
+
+            <!-- Interactive Security & PII Guardrails Inspector -->
+            <div style="margin-top:1.5rem; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:1.2rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem">
+                <div>
+                  <h3 style="color:#f8fafc; font-size:1.05rem; display:flex; align-items:center; gap:0.4rem; margin:0">
+                    <span>🔬</span> Live Security & PII Guardrails Inspector
+                  </h3>
+                  <p style="font-size:0.8rem; color:#94a3b8; margin-top:0.2rem">Test input queries against OPA Rego policies and Presidio PII entity detection in real time.</p>
+                </div>
+                <div style="display:flex; gap:0.5rem">
+                  <button id="btn-test-sample-safe" class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:#0f172a; border:1px solid #475569; color:#f8fafc; border-radius:4px; cursor:pointer">Sample Safe</button>
+                  <button id="btn-test-sample-pii" class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:#0f172a; border:1px solid #475569; color:#f8fafc; border-radius:4px; cursor:pointer">Sample PII</button>
+                  <button id="btn-test-sample-injection" class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:#0f172a; border:1px solid #475569; color:#f8fafc; border-radius:4px; cursor:pointer">Sample Injection</button>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:0.6rem; margin-bottom:0.8rem">
+                <input type="text" id="sec-inspect-input" placeholder="Type or paste query to inspect (e.g. Client john@example.com SSN 123-45-6789)..." style="flex:1; background:#0f172a; border:1px solid #475569; color:#f8fafc; border-radius:6px; padding:0.6rem 0.8rem; font-size:0.85rem">
+                <button id="btn-sec-inspect" class="primary-btn" style="padding:0.6rem 1.2rem; font-size:0.85rem; background:#059669; border:none; color:white; border-radius:6px; font-weight:600; cursor:pointer">Run Inspection</button>
+              </div>
+
+              <div id="sec-inspect-results" style="display:none; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:1rem; font-size:0.85rem">
+                <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:0.75rem">
+                  <div>Verdict: <span id="sec-verdict-badge" style="font-weight:bold; padding:0.2rem 0.6rem; border-radius:4px"></span></div>
+                  <div>OPA Policy: <span id="sec-opa-badge" style="color:#38bdf8; font-weight:600"></span></div>
+                  <div>PII Detected: <span id="sec-pii-count-badge" style="font-weight:600"></span></div>
+                </div>
+                <div style="margin-top:0.5rem">
+                  <div style="color:#94a3b8; font-size:0.75rem; margin-bottom:0.25rem">Presidio Redacted Context Preview:</div>
+                  <pre id="sec-redacted-preview" style="background:#1e293b; padding:0.6rem; border-radius:4px; color:#a7f3d0; font-family:monospace; font-size:0.8rem; white-space:pre-wrap; margin:0"></pre>
+                </div>
+              </div>
             </div>
 
             <div style="margin-top:2rem">

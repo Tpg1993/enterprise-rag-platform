@@ -55,6 +55,7 @@ from src.api.routes.auth import router as auth_router
 from src.api.routes.cache import router as cache_router
 from src.api.routes.evaluations import router as evaluations_router
 from src.api.routes.metrics import router as metrics_router
+from src.api.routes.security import router as security_router
 
 # API v1 Routers
 app.include_router(health_router, prefix="/api/v1")
@@ -63,6 +64,7 @@ app.include_router(chat_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(evaluations_router, prefix="/api/v1")
 app.include_router(cache_router, prefix="/api/v1")
+app.include_router(security_router, prefix="/api/v1")
 app.include_router(traces_router)
 app.include_router(metrics_router)
 app.include_router(metrics_router, prefix="/api/v1")

@@ -73,8 +73,8 @@ For in-depth architectural specifications and operational runbooks, refer to the
 | **21** | **Multimodal RAG (PDF Tables & Images)** | ✅ Done | `sarvam-105b-multimodal-rag-v1.0.0-langgraph` | [README](docs/proofs/phase-21-multimodal-rag/README.md) |
 | **22** | **Auth, JWT & RBAC/ABAC Policies** | ✅ Done | `sarvam-105b-auth-rbac-v1.0.0-none` | [README](docs/proofs/phase-22-auth-rbac/README.md) |
 | **23** | **Persistent Chat & Eval History** | ✅ Done | `sarvam-105b-persistent-history-v1.0.0-none` | [README](docs/proofs/phase-23-persistent-history/README.md) |
-| **24** | **Redis Multi-Tier Caching Engine** | ✅ Done | `sarvam-105b-redis-caching-v1.0.0-none` | [README](docs/proofs/phase-24-redis-caching/README.md) |
 | **25** | **Full Observability Stack (OTel, Prometheus, Grafana)** | ✅ Done | `sarvam-105b-opentelemetry-metrics-v1.0.0-none` | [README](docs/proofs/phase-25-opentelemetry-metrics/README.md) |
+| **26** | **PII Redaction (Presidio) + OPA Guardrails** | ✅ Done | `sarvam-105b-security-guardrails-v1.0.0-none` | [README](docs/proofs/phase-26-security-guardrails/README.md) |
 
 ---
 

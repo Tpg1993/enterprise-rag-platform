@@ -5,6 +5,30 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-09-28
+
+### Added
+- **Phase 26 Complete (PII Redaction with Presidio & Open Policy Agent Guardrails)**:
+  - **Open Policy Agent (OPA) Guardrail Engine (`OPAPolicyEngine`)**:
+    - Created `docker/opa/policies/prompt_policy.rego` defining Zero Trust policies: role authorization (`ADMIN`, `ANALYST`, `USER`, `VIEWER`), prompt injection & jailbreak signature detection, tenant boundary isolation, and character threshold validation.
+    - Built `OPAPolicyEngine` in `backend/src/security/opa_engine.py` with seamless dual-mode execution: embedded local evaluation (~0.02ms) and remote HTTP client for live OPA daemon (`rag_opa`).
+    - Added `opa` service to `docker-compose.yml` under `security` profile (`openpolicyagent/opa:0.62.0`).
+  - **Presidio PII Redactor & Anonymization Engine (`PresidioPIIRedactor`)**:
+    - Implemented structured `PIIDetectionReport` in `backend/src/security/pii.py` detecting and redacting `EMAIL`, `PHONE`, `SSN`, `CREDIT_CARD`, `API_KEY`, and `IP_ADDRESS` entities.
+    - Integrated automatic PII redaction into `/api/v1/chat` (`backend/src/api/routes/chat.py`), guaranteeing sensitive data is sanitized before cache storage, vector retrieval, and external Sarvam AI API inference.
+  - **Security REST APIs**:
+    - Exposed `POST /api/v1/security/inspect` for real-time diagnostic evaluation of queries against OPA policies and Presidio PII entity detection (`backend/src/api/routes/security.py`).
+    - Exposed `GET /api/v1/security/status` reporting active guardrail posture, OPA package, and supported PII entities.
+  - **Enterprise Web UI Integration**:
+    - Built interactive **"Live Security & PII Guardrails Inspector"** with test fixtures in the Governance tab (`frontend/index.html`, `frontend/services/api.js`).
+    - Added dynamic `🛡️ X PII Redacted` and `OPA Passed` / `⚠️ OPA Intercepted` badges to chat output bubbles.
+  - **Comprehensive Test Suite (100% Passing)**:
+    - Unit Tests: `backend/tests/unit/test_opa_guardrails.py` (12/12 passing) and `backend/tests/unit/test_presidio_pii_security.py` (7/7 passing).
+    - Integration Tests: `backend/tests/integration/test_security_opa_integration.py` (6/6 passing).
+    - Platform-wide Test Suite: 138/138 passing tests across all 26 phases.
+  - **Visual Proof Documentation**:
+    - Captured verified recording (`opa-pii-security-demo.webp`), chat screenshot (`pii-redacted-chat-verified.png`), and architecture guide in `docs/proofs/phase-26-security-guardrails/`.
+
 ## [3.2.0] - 2026-09-10
 
 ### Added

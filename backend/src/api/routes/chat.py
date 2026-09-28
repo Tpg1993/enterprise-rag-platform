@@ -18,19 +18,26 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
 
     start_time = time.perf_counter()
 
-    from src.security.guardrails import PromptInjectionGuardrail
-
-    guardrail = PromptInjectionGuardrail()
-    sec_check = guardrail.inspect(payload.query)
-    if not sec_check.is_safe:
+    from src.security.opa_engine import OPAEvalRequest, get_opa_engine
+    opa_engine = get_opa_engine()
+    user_role = (payload.metadata.get("role", "USER") if payload.metadata else "USER")
+    opa_res = await opa_engine.evaluate_async(
+        OPAEvalRequest(
+            query=payload.query,
+            role=user_role,
+            tenant_id=payload.tenant_id,
+            rag_strategy=payload.rag_strategy,
+        )
+    )
+    if not opa_res.allow:
         return ChatResponse(
-            answer="⚠️ [SECURITY ALERT]: Malicious prompt injection instruction detected and intercepted. Query blocked by OWASP LLM security policy.",
+            answer=f"⚠️ [SECURITY ALERT]: Query blocked by Zero Trust OPA Security Policy: {opa_res.block_reason}",
             citations=[],
             sources=[],
-            rag_strategy=f"{payload.rag_strategy} (Security Intercepted)",
+            rag_strategy=f"{payload.rag_strategy} (OPA Intercepted)",
             rag_version="1.0.0",
             framework="none",
-            model="security-guardrail",
+            model="opa-security-guardrail",
             latency_ms=1.2,
             ttft_ms=0.5,
             token_usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
@@ -39,13 +46,24 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             reranked_count=0,
             cache_hit=False,
             trace_id=correlation_id,
+            pii_redacted=False,
+            pii_count=0,
+            security_verdict="BLOCKED",
         )
+
+    # 2. Presidio PII Analysis & Redaction
+    from src.security.pii import get_pii_redactor
+    pii_redactor = get_pii_redactor()
+    pii_report = pii_redactor.analyze_and_redact(payload.query)
+    effective_query = pii_report.redacted_text if pii_report.has_pii else payload.query
+    pii_redacted = pii_report.has_pii
+    pii_count = pii_report.total_redacted
 
     from src.cache.service import get_cache_manager
     cache_mgr = get_cache_manager()
 
     cached_payload = cache_mgr.get_llm_response(
-        prompt=payload.query,
+        prompt=effective_query,
         strategy=payload.rag_strategy,
         tenant_id=payload.tenant_id,
     )
@@ -110,12 +128,15 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             reranked_count=0,
             cache_hit=True,
             trace_id=f"cache_{correlation_id}",
+            pii_redacted=pii_redacted,
+            pii_count=pii_count,
+            security_verdict="ALLOWED",
         )
 
     # Route query through strategy (defaults to BasicRAGStrategy)
     strategy = get_rag_strategy(payload.rag_strategy)
     rag_req = RAGRequest(
-        query=payload.query,
+        query=effective_query,
         tenant_id=payload.tenant_id,
         rag_strategy=payload.rag_strategy,
         max_context_tokens=payload.max_context_tokens,
@@ -188,7 +209,7 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
 
     # Populate Tier 3 LLM Response Cache for subsequent identical queries
     cache_mgr.set_llm_response(
-        prompt=payload.query,
+        prompt=effective_query,
         strategy=payload.rag_strategy,
         tenant_id=payload.tenant_id,
         response_dict={
@@ -235,6 +256,9 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         reranked_count=0,
         cache_hit=False,
         trace_id=rag_res.trace_id or correlation_id,
+        pii_redacted=pii_redacted,
+        pii_count=pii_count,
+        security_verdict="ALLOWED",
     )
 
 

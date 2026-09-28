@@ -125,3 +125,20 @@ Stateful agents (e.g. `ReActRAGStrategy`, `AdaptiveRAGStrategy`) run under stric
 - **Iteration Limits**: Hard cap of **10 agent thought-action loops**. If an agent exceeds 10 iterations without reaching a terminal node, it terminates with a safe partial answer.
 - **Tool Allowlists**: Only explicit, pre-registered tools (`knowledge_base_retrieval`, `web_search_fallback`, `calculator`) can be invoked.
 - **Execution Cost Capping**: Agent executions track accumulated token consumption and abort if token costs exceed enterprise safety thresholds.
+
+---
+
+## 9. Open Policy Agent (OPA) Guardrails & Rego Policy Engine
+
+Zero Trust query enforcement is managed by the OPA Policy Engine (`backend/src/security/opa_engine.py`):
+- **Rego Policy**: Defined in [`docker/opa/policies/prompt_policy.rego`](../docker/opa/policies/prompt_policy.rego).
+- **Rule Verifications**:
+  - **Role Bounds**: Ensures request role is within valid roles (`ADMIN`, `ANALYST`, `USER`, `VIEWER`).
+  - **Prompt Injection Defense**: Intercepts jailbreaks, instruction overrides (`ignore all previous instructions`, `dan mode`, `reveal system prompt`).
+  - **Query Length Constraints**: Bounded between 1 and 10,000 characters.
+  - **Tenant Boundary Enforcement**: Mandatory non-empty `tenant_id` context.
+- **Dual-Mode Execution**:
+  - In local and CI offline environments, runs embedded Python policy evaluation with **~0.02ms latency**.
+  - In containerized deployments (`profiles: ["security"]`), optionally connects to live `rag_opa` daemon at `http://opa:8181/v1/data/rag/security`.
+- **Diagnostic API**: Exposes `POST /api/v1/security/inspect` and `GET /api/v1/security/status` for real-time security auditing.
+

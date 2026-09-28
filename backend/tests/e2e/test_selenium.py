@@ -7,6 +7,7 @@ import uvicorn
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
 from src.api.main import app
 
 
@@ -98,13 +99,16 @@ def test_selenium_ui_navigation_and_elements():
         assert "Multimodal" in option_values
 
         # 5. Test GraphRAG query execution and DOM response
-        strategy_dropdown.send_keys("GraphRAG")
+        select_elem = Select(strategy_dropdown)
+        select_elem.select_by_value("GraphRAG")
+        
         query_input = driver.find_element(By.ID, "query-input")
         send_btn = driver.find_element(By.ID, "send-btn")
 
+        driver.execute_script("arguments[0].scrollIntoView(true);", query_input)
         query_input.clear()
         query_input.send_keys("What entities does Sarvam AI connect to?")
-        send_btn.click()
+        driver.execute_script("arguments[0].click();", send_btn)
 
         # Wait for assistant response bubble
         time.sleep(2.0)

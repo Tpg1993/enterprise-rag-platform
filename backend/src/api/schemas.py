@@ -43,6 +43,9 @@ class ChatResponse(BaseModel):
     reranked_count: int = 0
     cache_hit: bool = False
     trace_id: str = ""
+    pii_redacted: bool = False
+    pii_count: int = 0
+    security_verdict: str = "ALLOWED"
 
 
 class HealthResponse(BaseModel):
