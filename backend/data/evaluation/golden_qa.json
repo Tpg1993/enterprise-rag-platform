@@ -1,0 +1,402 @@
+[
+  {
+    "id": "qa_001",
+    "category": "factual",
+    "query": "What is the primary LLM provider used in this enterprise RAG platform?",
+    "ground_truth": "The primary LLM provider is Sarvam AI, specifically the sarvam-105b model.",
+    "expected_contexts": ["Sarvam AI", "sarvam-105b", "LLM provider"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_002",
+    "category": "factual",
+    "query": "Which embedding model is used for local dense vector search in Qdrant?",
+    "ground_truth": "The platform utilizes BAAI/bge-m3 for local dense vector search.",
+    "expected_contexts": ["BAAI/bge-m3", "Qdrant", "dense vector"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_003",
+    "category": "factual",
+    "query": "What formula is used for Reciprocal Rank Fusion (RRF) in Hybrid RAG?",
+    "ground_truth": "Reciprocal Rank Fusion calculates RRF_score = sum(1 / (60 + rank_i)) across candidate rank lists.",
+    "expected_contexts": ["Reciprocal Rank Fusion", "RRF", "60 + rank"],
+    "recommended_strategy": "Hybrid"
+  },
+  {
+    "id": "qa_004",
+    "category": "factual",
+    "query": "What parameter lambda is used in MMR retrieval to balance relevance and diversity?",
+    "ground_truth": "MMR uses lambda = 0.7 to balance query relevance with pairwise candidate diversity.",
+    "expected_contexts": ["MMR", "lambda = 0.7", "diversity"],
+    "recommended_strategy": "MMR"
+  },
+  {
+    "id": "qa_005",
+    "category": "factual",
+    "query": "Which cross-encoder model performs deep attention reranking on candidate chunks?",
+    "ground_truth": "The platform uses BAAI/bge-reranker-large as the cross-encoder reranker.",
+    "expected_contexts": ["bge-reranker-large", "cross-encoder", "reranking"],
+    "recommended_strategy": "Reranked"
+  },
+  {
+    "id": "qa_006",
+    "category": "factual",
+    "query": "How does Parent-Child RAG improve retrieved context completeness?",
+    "ground_truth": "Parent-Child RAG indexes small child chunks for precise retrieval and expands them to full parent chunks for generation.",
+    "expected_contexts": ["parent-child", "small child chunks", "parent paragraph"],
+    "recommended_strategy": "Parent-Child"
+  },
+  {
+    "id": "qa_007",
+    "category": "factual",
+    "query": "How does Multi-Query RAG generate diverse query variations?",
+    "ground_truth": "Multi-Query RAG prompts Sarvam-105B to generate multiple alternative phrasings, searches them in parallel, and fuses results.",
+    "expected_contexts": ["multi-query", "variations", "parallel vector searches"],
+    "recommended_strategy": "Multi-Query"
+  },
+  {
+    "id": "qa_008",
+    "category": "factual",
+    "query": "What is the working mechanism of Hypothetical Document Embeddings (HyDE)?",
+    "ground_truth": "HyDE asks the LLM to write a hypothetical answer document first, embeds that document, and retrieves vectors closest to it.",
+    "expected_contexts": ["HyDE", "hypothetical answer", "dense vector matches"],
+    "recommended_strategy": "HyDE"
+  },
+  {
+    "id": "qa_009",
+    "category": "multi_hop",
+    "query": "How does GraphRAG use Neo4j to answer multi-hop entity relationship queries?",
+    "ground_truth": "GraphRAG extracts subject-predicate-object knowledge triples into Neo4j and traverses multi-hop entity graphs during retrieval.",
+    "expected_contexts": ["Neo4j", "knowledge graph", "triples", "multi-hop traversal"],
+    "recommended_strategy": "GraphRAG"
+  },
+  {
+    "id": "qa_010",
+    "category": "tabular",
+    "query": "How does Text-to-SQL RAG query PostgreSQL while preventing SQL injection attacks?",
+    "ground_truth": "SQL RAG validates queries through an AST parser enforcing read-only SELECT permissions and tenant boundary filters.",
+    "expected_contexts": ["Text-to-SQL", "PostgreSQL", "read-only SELECT", "AST parser"],
+    "recommended_strategy": "SQL-RAG"
+  },
+  {
+    "id": "qa_011",
+    "category": "tabular",
+    "query": "How does Multimodal RAG preserve and boost tabular structures in documents?",
+    "ground_truth": "Multimodal RAG extracts tables as clean Markdown representations and boosts tabular chunk relevance during retrieval.",
+    "expected_contexts": ["Multimodal RAG", "Markdown table", "table boosting"],
+    "recommended_strategy": "Multimodal"
+  },
+  {
+    "id": "qa_012",
+    "category": "comparative",
+    "query": "What are the advantages of Hybrid-Graph-Agentic RAG over standard Basic RAG?",
+    "ground_truth": "Hybrid-Graph-Agentic RAG unifies dense vector search, BM25, Neo4j multi-hop graphs, and LangGraph ReAct agent reasoning.",
+    "expected_contexts": ["Hybrid-Graph-Agentic", "pinnacle", "ReAct", "Neo4j", "Qdrant"],
+    "recommended_strategy": "Hybrid-Graph-Agentic"
+  },
+  {
+    "id": "qa_013",
+    "category": "factual",
+    "query": "Which agentic orchestration framework powers stateful reasoning in this platform?",
+    "ground_truth": "LangGraph is the primary agentic framework providing state machines and ReAct loops.",
+    "expected_contexts": ["LangGraph", "ReAct", "stateful agent"],
+    "recommended_strategy": "ReAct"
+  },
+  {
+    "id": "qa_014",
+    "category": "factual",
+    "query": "What observability platform is used for execution tracing and metadata capture?",
+    "ground_truth": "LangSmith is used for distributed execution tracing, token tracking, and telemetry observation.",
+    "expected_contexts": ["LangSmith", "tracing", "observability"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_015",
+    "category": "factual",
+    "query": "What engine enforces Presidio PII redaction across user inputs and documents?",
+    "ground_truth": "Microsoft Presidio detects and redacts SSNs, credit cards, emails, and phone numbers before LLM inference.",
+    "expected_contexts": ["Presidio", "PII redaction", "SSN", "email"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_016",
+    "category": "factual",
+    "query": "How does Open Policy Agent (OPA) guardrail against prompt injection attacks?",
+    "ground_truth": "OPA evaluates Zero Trust Rego security rules intercepting jailbreaks and prompt injection signatures.",
+    "expected_contexts": ["Open Policy Agent", "OPA", "Rego", "Zero Trust"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_017",
+    "category": "factual",
+    "query": "What multi-tier caching system reduces latency and token consumption?",
+    "ground_truth": "A multi-tier Redis caching system provides L1 embedding, L2 retrieval, and L3 LLM response caching.",
+    "expected_contexts": ["Redis", "multi-tier", "L1 embedding", "L3 response cache"],
+    "recommended_strategy": "Hybrid"
+  },
+  {
+    "id": "qa_018",
+    "category": "factual",
+    "query": "What metrics are tracked by Prometheus and visualized in Grafana?",
+    "ground_truth": "Prometheus tracks RAG query request counts, latency histograms, token usage, TTFT, and cache hit rates.",
+    "expected_contexts": ["Prometheus", "Grafana", "latency histogram", "TTFT"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_019",
+    "category": "factual",
+    "query": "What role does the Change Data Capture (CDC) engine play during ingestion?",
+    "ground_truth": "CDC computes document SHA-256 checksums to detect unchanged, modified, or new documents and bumps versions.",
+    "expected_contexts": ["CDC", "Change Data Capture", "checksum", "version bump"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_020",
+    "category": "factual",
+    "query": "What endpoint provides Server-Sent Events (SSE) streaming chat responses?",
+    "ground_truth": "POST /api/v1/chat/stream provides SSE token streaming with inter-token latency (ITL) tracking.",
+    "expected_contexts": ["POST /api/v1/chat/stream", "SSE", "inter-token latency"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_021",
+    "category": "factual",
+    "query": "What endpoint retrieves tamper-evident security and pipeline audit logs?",
+    "ground_truth": "GET /api/v1/audit returns persistent audit events filtered by tenant ID.",
+    "expected_contexts": ["GET /api/v1/audit", "audit events", "tenant_id"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_022",
+    "category": "factual",
+    "query": "What endpoint allows analysts to re-chunk and re-embed an existing document?",
+    "ground_truth": "POST /api/v1/documents/{document_id}/reindex reindexes documents with customized chunking and embedding settings.",
+    "expected_contexts": ["reindex", "POST /api/v1/documents/{document_id}/reindex"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_023",
+    "category": "factual",
+    "query": "What endpoint returns the catalog metadata for all 15 RAG strategies?",
+    "ground_truth": "GET /api/v1/rag/strategies returns complete metadata, features, and framework info for all 15 strategies.",
+    "expected_contexts": ["GET /api/v1/rag/strategies", "15 strategies", "catalog"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_024",
+    "category": "factual",
+    "query": "What endpoint returns the version manifest of the platform?",
+    "ground_truth": "GET /api/v1/rag/versions returns active version manifest and component versions.",
+    "expected_contexts": ["GET /api/v1/rag/versions", "version manifest"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_025",
+    "category": "multi_hop",
+    "query": "How do LangGraph stateful agents make routing decisions in Adaptive RAG?",
+    "ground_truth": "Adaptive RAG uses an intent classification node to route queries to Simple, Multi-Query, or Web search paths.",
+    "expected_contexts": ["Adaptive RAG", "LangGraph", "intent classification"],
+    "recommended_strategy": "Adaptive"
+  },
+  {
+    "id": "qa_026",
+    "category": "multi_hop",
+    "query": "How does Corrective RAG (CRAG) handle low retrieval confidence scores?",
+    "ground_truth": "CRAG evaluates retrieval confidence against a 0.5 threshold and triggers web search fallback when confidence is low.",
+    "expected_contexts": ["CRAG", "Corrective RAG", "web search fallback", "confidence"],
+    "recommended_strategy": "Corrective"
+  },
+  {
+    "id": "qa_027",
+    "category": "multi_hop",
+    "query": "What are the self-reflection steps in Self-RAG execution?",
+    "ground_truth": "Self-RAG retrieves documents, self-grades their relevance, generates answers, and grades answer faithfulness.",
+    "expected_contexts": ["Self-RAG", "self-grading", "relevance", "faithfulness"],
+    "recommended_strategy": "Self-RAG"
+  },
+  {
+    "id": "qa_028",
+    "category": "multi_hop",
+    "query": "What is the ReAct loop structure in Agentic RAG?",
+    "ground_truth": "ReAct iterates through Thought, Action tool invocation, and Observation cycles until a final answer is reached.",
+    "expected_contexts": ["ReAct", "Thought", "Action", "Observation"],
+    "recommended_strategy": "ReAct"
+  },
+  {
+    "id": "qa_029",
+    "category": "exploratory",
+    "query": "How does the ContextBuilder construct clean, bounded context from retrieved chunks?",
+    "ground_truth": "ContextBuilder deduplicates chunks, enforces token limits, merges overlapping snippets, and formats citations.",
+    "expected_contexts": ["ContextBuilder", "deduplication", "token limits", "citations"],
+    "recommended_strategy": "Hybrid"
+  },
+  {
+    "id": "qa_030",
+    "category": "exploratory",
+    "query": "How does PromptBuilder prevent prompt injection through instruction and data separation?",
+    "ground_truth": "PromptBuilder isolates retrieved data within untrusted data XML tags separate from system instructions.",
+    "expected_contexts": ["PromptBuilder", "untrusted data", "system prompt", "separation"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_031",
+    "category": "factual",
+    "query": "What roles are supported in the platform Role-Based Access Control (RBAC) model?",
+    "ground_truth": "The platform supports ADMIN, ANALYST, USER, and VIEWER roles.",
+    "expected_contexts": ["ADMIN", "ANALYST", "USER", "VIEWER", "RBAC"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_032",
+    "category": "factual",
+    "query": "How is multi-tenant isolation enforced in Qdrant and PostgreSQL?",
+    "ground_truth": "Every query applies tenant_id filters at the database query level to guarantee data isolation.",
+    "expected_contexts": ["tenant_id", "multi-tenant", "query-level isolation"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_033",
+    "category": "factual",
+    "query": "What hashing algorithm is used for user passwords in the authentication system?",
+    "ground_truth": "Passwords are secure-hashed using bcrypt with salt.",
+    "expected_contexts": ["bcrypt", "passwords", "authentication"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_034",
+    "category": "factual",
+    "query": "Where is persistent conversation history stored for multi-turn chats?",
+    "ground_truth": "Conversation sessions and chat messages are persisted in SQLite or PostgreSQL history tables.",
+    "expected_contexts": ["chat_sessions", "chat_messages", "persistent history"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_035",
+    "category": "factual",
+    "query": "Where is evaluation history saved to track RAGAS quality trends over time?",
+    "ground_truth": "Evaluation results are stored in the evaluation_history table accessible via GET /api/v1/evaluations/history.",
+    "expected_contexts": ["evaluation_history", "evaluations", "quality trends"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_036",
+    "category": "factual",
+    "query": "What is the token pricing structure for Sarvam-105b defined in config/pricing.yaml?",
+    "ground_truth": "Pricing is $0.0015 per 1,000 prompt tokens and $0.0030 per 1,000 completion tokens.",
+    "expected_contexts": ["pricing", "prompt tokens", "completion tokens", "0.0015"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_037",
+    "category": "factual",
+    "query": "What file types can be parsed by the document ingestion engine?",
+    "ground_truth": "The engine parses PDF, DOCX, TXT, Markdown, HTML, CSV, and JSON files.",
+    "expected_contexts": ["PDF", "DOCX", "TXT", "Markdown", "HTML", "CSV", "JSON"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_038",
+    "category": "factual",
+    "query": "What chunking strategies are supported by the pluggable chunking module?",
+    "ground_truth": "Supported chunking strategies include Recursive Character, Fixed-Size, Semantic Similarity, and Parent-Child.",
+    "expected_contexts": ["Recursive", "Fixed", "Semantic", "Parent-Child"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_039",
+    "category": "comparative",
+    "query": "How does MMR RAG compare to standard Basic RAG in context redundancy?",
+    "ground_truth": "MMR penalizes duplicate candidate vectors to eliminate repetitive contexts while Basic RAG returns top-k nearest neighbors.",
+    "expected_contexts": ["MMR", "redundancy", "pairwise diversity", "nearest neighbors"],
+    "recommended_strategy": "MMR"
+  },
+  {
+    "id": "qa_040",
+    "category": "comparative",
+    "query": "How does Cross-Encoder Reranking improve retrieval accuracy compared to pure bi-encoder embeddings?",
+    "ground_truth": "Cross-encoders evaluate full cross-attention between query and chunk tokens together, achieving higher relevance scoring.",
+    "expected_contexts": ["cross-encoder", "cross-attention", "bi-encoder", "relevance"],
+    "recommended_strategy": "Reranked"
+  },
+  {
+    "id": "qa_041",
+    "category": "factual",
+    "query": "What does Time-to-First-Token (TTFT) measure in streaming chat telemetry?",
+    "ground_truth": "TTFT measures elapsed time from request receipt until arrival of the very first streamed token.",
+    "expected_contexts": ["Time-to-First-Token", "TTFT", "first streamed token"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_042",
+    "category": "factual",
+    "query": "What does Inter-Token Latency (ITL) track during token generation?",
+    "ground_truth": "ITL measures the elapsed millisecond interval between consecutive streaming tokens.",
+    "expected_contexts": ["Inter-Token Latency", "ITL", "consecutive streaming tokens"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_043",
+    "category": "tabular",
+    "query": "How does the platform prevent destructive SQL commands in Text-to-SQL RAG?",
+    "ground_truth": "An AST parser blocks DROP, ALTER, INSERT, UPDATE, and DELETE statements and disallows semicolon query chaining.",
+    "expected_contexts": ["AST parser", "DROP", "DELETE", "read-only"],
+    "recommended_strategy": "SQL-RAG"
+  },
+  {
+    "id": "qa_044",
+    "category": "multi_hop",
+    "query": "What entity types and relations are extracted into the Neo4j knowledge graph?",
+    "ground_truth": "Entity nodes include Organizations, Technologies, and Concepts connected by relationships like USES, IMPLEMENTS, and INTEGRATES.",
+    "expected_contexts": ["Neo4j", "Organizations", "Technologies", "Relationships"],
+    "recommended_strategy": "GraphRAG"
+  },
+  {
+    "id": "qa_045",
+    "category": "factual",
+    "query": "What is the role of mock mode in CI/CD and offline testing?",
+    "ground_truth": "Mock mode (MOCK_LLM=true) allows running full test suites and benchmark evaluations without external API keys or cost.",
+    "expected_contexts": ["MOCK_LLM=true", "mock mode", "offline testing"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_046",
+    "category": "factual",
+    "query": "What Git branching convention is required for each RAG strategy?",
+    "ground_truth": "Branches adhere strictly to <LLM>-<RAG_TYPE>-<VERSION>-<AGENTIC_FRAMEWORK>.",
+    "expected_contexts": ["Git branching", "<LLM>-<RAG_TYPE>-<VERSION>-<AGENTIC_FRAMEWORK>"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_047",
+    "category": "factual",
+    "query": "Which package manager is strictly enforced across the repository?",
+    "ground_truth": "The platform strictly enforces uv as the exclusive package manager.",
+    "expected_contexts": ["uv", "package manager", ".venv"],
+    "recommended_strategy": "Basic"
+  },
+  {
+    "id": "qa_048",
+    "category": "exploratory",
+    "query": "How does the evaluation engine measure Faithfulness in generated answers?",
+    "ground_truth": "Faithfulness computes the ratio of non-stop-word answer terms directly grounded in retrieved context passages.",
+    "expected_contexts": ["Faithfulness", "hallucination", "grounded in context"],
+    "recommended_strategy": "Hybrid"
+  },
+  {
+    "id": "qa_049",
+    "category": "exploratory",
+    "query": "How does Context Precision evaluate the quality of retrieved passages?",
+    "ground_truth": "Context Precision calculates the fraction of retrieved context blocks that contain relevant query intent terms.",
+    "expected_contexts": ["Context Precision", "relevant context blocks", "query terms"],
+    "recommended_strategy": "Hybrid"
+  },
+  {
+    "id": "qa_050",
+    "category": "comparative",
+    "query": "Which RAG strategy provides the best balance of multi-hop relationship reasoning and high-precision lexical retrieval?",
+    "ground_truth": "Hybrid-Graph-Agentic RAG provides the optimal balance by fusing BM25, dense vectors, Neo4j graphs, and ReAct agents.",
+    "expected_contexts": ["Hybrid-Graph-Agentic RAG", "Neo4j", "BM25", "dense vector"],
+    "recommended_strategy": "Hybrid-Graph-Agentic"
+  }
+]

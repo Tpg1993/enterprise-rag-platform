@@ -5,6 +5,27 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-09-28
+
+### Added
+- **Phase 29 Complete (Automated Multi-Strategy Golden QA Evaluation & Benchmarking Suite)**:
+  - **50-Item Golden QA Evaluation Dataset (`backend/data/evaluation/golden_qa.json`)**:
+    - Created comprehensive, curated enterprise benchmark dataset spanning 5 distinct query categories:
+      1. `factual`: Direct lookup questions regarding platform architecture parameters (BGE-M3 dimensions, Cross-Encoder depth, token limits).
+      2. `multi_hop`: Relational questions requiring multi-node entity traversal across authors, departments, and project nodes.
+      3. `tabular`: Structured numerical questions over chunk counts, token distributions, and pricing models.
+      4. `comparative`: Head-to-head architectural trade-off questions (BM25 vs. Dense vs. Hybrid vs. GraphRAG vs. Pinnacle).
+      5. `exploratory`: High-level open queries testing autonomous ReAct iterative reasoning and synthesis grounding.
+    - Each item contains ground truth references, category tags, unique query IDs, and expected context snippets.
+  - **Automated CLI Benchmark Runner (`backend/src/evaluation/run_benchmarks.py`)**:
+    - Implemented production CLI benchmark runner evaluating all 15 RAG architectures with `--dataset`, `--strategies`, `--limit`, `--output-json`, and `--output-md` flags.
+    - Automated calculation of RAGAS quality metrics (Context Precision, Context Recall, Faithfulness, Answer Relevancy, Overall Score), latency distributions (Mean, P50, P95), token counts, and cost calculation via `backend/config/pricing.yaml`.
+    - Automated report generation outputting Markdown comparison tables (`docs/evaluation_report.md`) and versioned JSON run manifests (`backend/data/evaluation/results_v1.0.0.json`).
+  - **Automated Unit Verification Suite**:
+    - Created `backend/tests/unit/test_evaluation_runner.py` verifying dataset schema, percentile math, evaluation pipeline, Markdown/JSON reports, and 15-strategy catalog configuration (6/6 passing).
+  - **Repository Full Test Suite Verification**:
+    - 160 total platform tests passing (134 unit tests, 25 integration tests, Selenium WebDriver E2E) with 100% pass rate.
+
 ## [3.5.0] - 2026-09-28
 
 ### Added
