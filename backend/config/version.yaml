@@ -1,6 +1,6 @@
 application:
   name: "enterprise-rag-platform"
-  version: "1.0.0"
+  version: "3.3.0"
   environment: "development"
 
 models:
@@ -30,12 +30,44 @@ rag:
   reranked:
     version: "1.0.0"
     framework: "none"
+  parent_child:
+    version: "1.0.0"
+    framework: "none"
+  multi_query:
+    version: "1.0.0"
+    framework: "langchain"
+  hyde:
+    version: "1.0.0"
+    framework: "langchain"
   adaptive:
+    version: "1.0.0"
+    framework: "langgraph"
+  corrective:
+    version: "1.0.0"
+    framework: "langgraph"
+  self_rag:
     version: "1.0.0"
     framework: "langgraph"
   react:
     version: "1.0.0"
     framework: "langgraph"
+  graph_rag:
+    version: "1.0.0"
+    framework: "langgraph"
+  sql_rag:
+    version: "1.0.0"
+    framework: "langgraph"
+  multimodal:
+    version: "1.0.0"
+    framework: "langgraph"
+
+security:
+  opa_guardrails:
+    version: "1.0.0"
+    framework: "open-policy-agent"
+  presidio_pii:
+    version: "1.0.0"
+    framework: "microsoft-presidio"
 
 prompts:
   grounding_version: "v1.0"

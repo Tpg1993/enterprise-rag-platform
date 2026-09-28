@@ -349,3 +349,42 @@ This matrix documents the features, architectural coverage, and exact step-by-st
 - **Features & Deliverables**: Complete documentation suite (`docs/`): `HLD.md`, `LLD.md`, `architecture.md`, `deployment.md`, `security.md`, `scalability.md`, `observability.md`, `cost-optimization.md`, and individual strategy runbooks. 24 standard Mermaid system diagrams.
 - **What It Covers**: End-to-end architecture documentation, data flow diagrams, ingestion CDC sequence diagrams, security/RBAC threat models, and production deployment runbooks.
 - **How To Test It**: Validate markdown rendering and Mermaid diagram syntax in `docs/architecture/diagrams.md`.
+
+---
+
+## Phase 25: Full Observability Stack (OpenTelemetry, Prometheus, Grafana)
+
+- **Features & Deliverables**: `PrometheusMetricsManager` (`src/observability/prometheus_service.py`), OpenTelemetry distributed tracing (`src/observability/otel_service.py`), Prometheus scrapable endpoint (`/metrics`, `/api/v1/metrics`), Grafana dashboard provisioning (`docker/grafana/dashboards/rag_observability.json`).
+- **What It Covers**: RED metrics (requests, errors, duration), latency histograms (P50, P95, P99), TTFT gauges, token consumption, financial cost tracking, and cache hit/miss telemetry.
+- **How To Test It**:
+  - **Automated Tests**:
+    ```bash
+    uv run pytest backend/tests/unit/test_prometheus_metrics.py backend/tests/integration/test_metrics_integration.py
+    ```
+  - **Live Scrape Test**:
+    ```bash
+    curl http://localhost:8000/metrics
+    ```
+
+---
+
+## Phase 26: PII Redaction (Presidio) & Open Policy Agent (OPA) Guardrails
+
+- **Features & Deliverables**: Rego policy definition (`docker/opa/policies/prompt_policy.rego`), `OPAPolicyEngine` (`src/security/opa_engine.py`), `PresidioPIIRedactor` (`src/security/pii.py`), Security REST APIs (`POST /api/v1/security/inspect`, `GET /api/v1/security/status`), Live Security & PII Inspector in Web UI (`frontend/index.html`, `frontend/services/api.js`).
+- **What It Covers**: Zero Trust Rego security rules, prompt injection & jailbreak detection, role boundary authorization, query character bounds, entity detection and masking (`EMAIL`, `PHONE`, `SSN`, `CREDIT_CARD`, `API_KEY`, `IP_ADDRESS`), and chat response security badges (`🛡️ X PII Redacted`, `OPA Passed`, `⚠️ OPA Intercepted`).
+- **How To Test It**:
+  - **Automated Tests**:
+    ```bash
+    uv run pytest backend/tests/unit/test_opa_guardrails.py backend/tests/unit/test_presidio_pii_security.py backend/tests/integration/test_security_opa_integration.py
+    ```
+  - **API Inspection Test**:
+    ```bash
+    curl -X POST http://localhost:8000/api/v1/security/inspect \
+      -H "Content-Type: application/json" \
+      -d '{"text": "Customer test@corp.com with SSN 123-45-6789", "role": "USER", "tenant_id": "default_tenant"}'
+    ```
+  - **Selenium E2E Test**:
+    ```bash
+    uv run pytest backend/tests/e2e/test_selenium.py
+    ```
+

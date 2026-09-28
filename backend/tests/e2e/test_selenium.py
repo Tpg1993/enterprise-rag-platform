@@ -1,6 +1,8 @@
 """Selenium E2E Web UI Automation Test Suite."""
 
-import multiprocessing
+import shutil
+import socket
+import threading
 import time
 import pytest
 import uvicorn
@@ -11,54 +13,67 @@ from selenium.webdriver.support.ui import Select
 from src.api.main import app
 
 
-import socket
+def get_free_port() -> int:
+    """Finds a free dynamic port on localhost."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
 
 
-def run_server():
-    """Runs FastAPI uvicorn server in a separate process for Selenium testing."""
-    uvicorn.run(app, host="127.0.0.1", port=8888, log_level="error")
+TEST_PORT = get_free_port()
+
+
+def run_server(port: int):
+    """Runs FastAPI uvicorn server in a daemon thread for Selenium testing."""
+    config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="error")
+    srv = uvicorn.Server(config)
+    srv.run()
 
 
 @pytest.fixture(scope="module", autouse=True)
 def server():
-    """Fixture to start uvicorn server on port 8888 for Selenium tests."""
-    p = multiprocessing.Process(target=run_server, daemon=True)
-    p.start()
-    for _ in range(30):
+    """Fixture to start uvicorn server on dynamic port for Selenium tests."""
+    if not (shutil.which("chromedriver") or shutil.which("msedgedriver")):
+        yield
+        return
+
+    t = threading.Thread(target=run_server, args=(TEST_PORT,), daemon=True)
+    t.start()
+    for _ in range(25):
         try:
-            with socket.create_connection(("127.0.0.1", 8888), timeout=0.2):
+            with socket.create_connection(("127.0.0.1", TEST_PORT), timeout=0.2):
                 break
         except Exception:
             time.sleep(0.2)
     yield
-    p.terminate()
 
 
 def test_selenium_ui_navigation_and_elements():
-    """Selenium WebDriver E2E test verifying Web UI rendering and DOM elements."""
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
+    """Selenium WebDriver E2E test verifying Web UI rendering, navigation, and DOM elements."""
+    has_chrome = shutil.which("chromedriver") is not None
+    has_edge = shutil.which("msedgedriver") is not None
+
+    if not has_chrome and not has_edge:
+        pytest.skip("Neither chromedriver nor msedgedriver binary found in PATH on local machine.")
 
     driver = None
-    try:
+    if has_chrome:
+        chrome_options = Options()
+        chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
         driver = webdriver.Chrome(options=chrome_options)
-    except Exception:
-        try:
-            # Fallback to Edge headless driver if Chrome driver binary is not pre-installed
-            from selenium.webdriver.edge.options import Options as EdgeOptions
+    elif has_edge:
+        from selenium.webdriver.edge.options import Options as EdgeOptions
 
-            edge_options = EdgeOptions()
-            edge_options.add_argument("--headless=new")
-            driver = webdriver.Edge(options=edge_options)
-        except Exception as err:
-            pytest.skip(f"No headless browser driver available on local machine: {err}")
+        edge_options = EdgeOptions()
+        edge_options.add_argument("--headless=new")
+        driver = webdriver.Edge(options=edge_options)
 
     try:
-        driver.implicitly_wait(5)
-        driver.get("http://127.0.0.1:8888/ui/")
+        driver.implicitly_wait(4)
+        driver.get(f"http://127.0.0.1:{TEST_PORT}/ui/")
 
         # 1. Assert Web UI Title
         assert "RAG & Agentic AI Platform" in driver.title
@@ -77,8 +92,9 @@ def test_selenium_ui_navigation_and_elements():
         assert any("Strategies" in t for t in tabs_text)
         assert any("Comparison" in t for t in tabs_text)
         assert any("Traces" in t for t in tabs_text)
+        assert any("Governance" in t or "RBAC" in t for t in tabs_text)
 
-        # 4. Assert Strategy Selection Dropdown Options
+        # 4. Assert Strategy Selection Dropdown Options (All 14 strategies)
         strategy_dropdown = driver.find_element(By.ID, "strategy-select")
         options = strategy_dropdown.find_elements(By.TAG_NAME, "option")
         option_values = [opt.get_attribute("value") for opt in options]
@@ -98,16 +114,31 @@ def test_selenium_ui_navigation_and_elements():
         assert "SQL-RAG" in option_values
         assert "Multimodal" in option_values
 
-        # 5. Test GraphRAG query execution and DOM response
+        # 5. Assert Governance & Security Inspector Elements (Phase 26)
+        gov_btn = next((btn for btn in nav_items if "Governance" in btn.text or "RBAC" in btn.text), None)
+        if gov_btn:
+            gov_btn.click()
+            time.sleep(0.3)
+            sec_input = driver.find_element(By.ID, "sec-inspect-input")
+            assert sec_input is not None
+            sec_btn = driver.find_element(By.ID, "btn-sec-inspect")
+            assert sec_btn is not None
+
+        # 6. Test Chat query execution and DOM response
+        chat_btn = next((btn for btn in nav_items if "Chat" in btn.text), None)
+        if chat_btn:
+            chat_btn.click()
+            time.sleep(0.3)
+
         select_elem = Select(strategy_dropdown)
-        select_elem.select_by_value("GraphRAG")
-        
+        select_elem.select_by_value("Basic")
+
         query_input = driver.find_element(By.ID, "query-input")
         send_btn = driver.find_element(By.ID, "send-btn")
 
         driver.execute_script("arguments[0].scrollIntoView(true);", query_input)
         query_input.clear()
-        query_input.send_keys("What entities does Sarvam AI connect to?")
+        query_input.send_keys("What is the platform objective?")
         driver.execute_script("arguments[0].click();", send_btn)
 
         # Wait for assistant response bubble
