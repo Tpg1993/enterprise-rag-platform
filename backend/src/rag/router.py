@@ -3,10 +3,6 @@
 import logging
 
 from src.rag.base import BaseRAGStrategy
-from src.rag.basic.strategy import BasicRAGStrategy
-from src.rag.hybrid.strategy import HybridRAGStrategy
-from src.rag.mmr.strategy import MMRRAGStrategy
-from src.rag.reranked.strategy import RerankedRAGStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +76,12 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
                 vector_store=get_vector_store(),
                 embedding_provider=get_embedding_provider(),
             )
+        elif s_upper in (
+            "HYBRID-GRAPH-AGENTIC", "HYBRID_GRAPH_AGENTIC", "HYBRIDGRAPHAGENTIC", "MASTER"
+        ):
+            from src.rag.hybrid_graph_agentic.strategy import HybridGraphAgenticRAGStrategy
+
+            _strategies[s_clean] = HybridGraphAgenticRAGStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

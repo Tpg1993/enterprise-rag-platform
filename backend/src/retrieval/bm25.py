@@ -104,3 +104,15 @@ class BM25Retriever:
             self._rebuild_index(tenant_id)
             return True
         return False
+
+
+_global_bm25: BM25Retriever | None = None
+
+
+def get_bm25_retriever() -> BM25Retriever:
+    """Returns singleton instance of BM25Retriever."""
+    global _global_bm25
+    if _global_bm25 is None:
+        _global_bm25 = BM25Retriever()
+    return _global_bm25
+

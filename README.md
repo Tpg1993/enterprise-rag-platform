@@ -12,7 +12,7 @@ The platform provides a complete web workspace (chat, document ingestion, strate
 
 ---
 
-## 2. 14 Supported Production RAG Strategies
+## 2. 15 Supported Production RAG Strategies
 
 | # | Strategy Name | Core Architecture | Primary Use Case |
 | :---: | :--- | :--- | :--- |
@@ -30,6 +30,7 @@ The platform provides a complete web workspace (chat, document ingestion, strate
 | **12** | **GraphRAG** | Multi-hop knowledge graph traversal in Neo4j fused with dense vectors in Qdrant | Relational enterprise entity reasoning |
 | **13** | **SQL RAG** | Schema-grounded Text-to-SQL with AST read-only validation (`sqlglot`) | Tabular relational business metrics |
 | **14** | **Multimodal RAG** | Extracts vector tables and image figures (PyMuPDF) with token intent reranking | Complex PDFs, financials & charts |
+| **15** | **Hybrid-Graph-Agentic RAG** | Unified pinnacle fusing Dense Qdrant + BM25 Lexical + Neo4j Graph traversal via BGE Reranker into a LangGraph ReAct agent | Holistic enterprise reasoning across unstructured text and relational knowledge |
 
 ---
 
@@ -75,6 +76,7 @@ For in-depth architectural specifications and operational runbooks, refer to the
 | **23** | **Persistent Chat & Eval History** | ✅ Done | `sarvam-105b-persistent-history-v1.0.0-none` | [README](docs/proofs/phase-23-persistent-history/README.md) |
 | **25** | **Full Observability Stack (OTel, Prometheus, Grafana)** | ✅ Done | `sarvam-105b-opentelemetry-metrics-v1.0.0-none` | [README](docs/proofs/phase-25-opentelemetry-metrics/README.md) |
 | **26** | **PII Redaction (Presidio) + OPA Guardrails** | ✅ Done | `sarvam-105b-security-guardrails-v1.0.0-none` | [README](docs/proofs/phase-26-security-guardrails/README.md) |
+| **27** | **Hybrid-Graph-Agentic Pinnacle RAG** | ✅ Done | `sarvam-105b-hybrid-graph-agentic-rag-v1.0.0-langgraph` | [README](docs/proofs/phase-27-hybrid-graph-agentic-rag/README.md) |
 
 ---
 

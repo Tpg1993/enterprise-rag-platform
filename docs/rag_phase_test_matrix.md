@@ -388,3 +388,38 @@ This matrix documents the features, architectural coverage, and exact step-by-st
     uv run pytest backend/tests/e2e/test_selenium.py
     ```
 
+---
+
+## Phase 27: Unified Hybrid-Graph-Agentic Pinnacle RAG Strategy
+
+- **Features & Deliverables**: `HybridGraphAgenticRAGStrategy` (`src/rag/hybrid_graph_agentic/strategy.py`), router integration (`src/rag/router.py`), dynamic LangGraph framework resolution (`src/api/routes/chat.py`), strategy option 15 & catalog card 15 in Enterprise Web UI (`frontend/index.html`), 15-strategy side-by-side benchmark integration (`frontend/services/api.js`).
+- **What It Covers**:
+  - Unified multi-modal evidence synthesis:
+    1. Qdrant dense vector search (`bge-m3`).
+    2. BM25 sparse lexical search (`rank-bm25`).
+    3. Reciprocal Rank Fusion (RRF, $k=60$) combining dense and lexical hits.
+    4. Neo4j multi-hop entity-relationship knowledge graph traversal (`Neo4jGraphStore`).
+    5. Cross-Encoder deep attention rescoring (`CrossEncoderReranker`).
+    6. Stateful LangGraph ReAct agent loop grounded by Sarvam AI (`sarvam-105b`).
+  - Strict tenant boundary isolation, token budgeting, and dual-modality bracketed citations (documents + knowledge graph).
+- **How To Test It**:
+  - **Automated Unit Tests**:
+    ```bash
+    uv run pytest backend/tests/unit/test_hybrid_graph_agentic_rag.py
+    ```
+  - **Automated Integration & Benchmark Tests**:
+    ```bash
+    uv run pytest backend/tests/integration/test_hybrid_graph_agentic_integration.py backend/tests/integration/test_strategy_comparison.py
+    ```
+  - **E2E & Selenium WebDriver Tests**:
+    ```bash
+    uv run pytest backend/tests/e2e/test_ui_e2e.py backend/tests/e2e/test_selenium.py
+    ```
+  - **Chat API Execution**:
+    ```bash
+    curl -X POST http://localhost:8000/api/v1/chat \
+      -H "Content-Type: application/json" \
+      -d '{"query": "Explain Sarvam AI and sarvam-105b language support", "rag_strategy": "Hybrid-Graph-Agentic"}'
+    ```
+
+

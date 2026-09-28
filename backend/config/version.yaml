@@ -1,6 +1,6 @@
 application:
   name: "enterprise-rag-platform"
-  version: "3.3.0"
+  version: "3.4.0"
   environment: "development"
 
 models:
@@ -58,6 +58,9 @@ rag:
     version: "1.0.0"
     framework: "langgraph"
   multimodal:
+    version: "1.0.0"
+    framework: "langgraph"
+  hybrid_graph_agentic:
     version: "1.0.0"
     framework: "langgraph"
 

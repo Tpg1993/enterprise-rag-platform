@@ -33,7 +33,7 @@ async def test_web_ui_bundle_mounting():
     assert 'data-tab="evaluations"' in html_text
     assert 'data-tab="admin"' in html_text
 
-    # Validate Strategy selection options (All 14 strategies)
+    # Validate Strategy selection options (All 15 strategies)
     assert 'value="Basic"' in html_text
     assert 'value="Hybrid"' in html_text
     assert 'value="MMR"' in html_text
@@ -48,6 +48,7 @@ async def test_web_ui_bundle_mounting():
     assert 'value="GraphRAG"' in html_text
     assert 'value="SQL-RAG"' in html_text
     assert 'value="Multimodal"' in html_text
+    assert 'value="Hybrid-Graph-Agentic"' in html_text
 
     # Validate Phase 26 Security & PII Inspector DOM elements
     assert 'id="sec-inspect-input"' in html_text

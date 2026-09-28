@@ -234,7 +234,8 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         cost_usd=rag_res.estimated_cost_usd,
         ttft_seconds=(elapsed_ms * 0.25) / 1000.0,
     )
-    prom_mgr.record_cache_event(tier="llm_response", event="miss")
+    strat_name = rag_res.rag_strategy
+    framework = "langgraph" if any(k in strat_name.upper() for k in ("ADAPTIVE", "CORRECTIVE", "SELF-RAG", "REACT", "GRAPH", "SQL", "AGENTIC")) else "none"
 
     return ChatResponse(
         answer=rag_res.answer,
@@ -242,7 +243,7 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         sources=sources,
         rag_strategy=rag_res.rag_strategy,
         rag_version="1.0.0",
-        framework="none",
+        framework=framework,
         model=rag_res.model,
         latency_ms=elapsed_ms,
         ttft_ms=elapsed_ms * 0.25,

@@ -11,7 +11,7 @@ async def test_side_by_side_strategy_comparison():
         strategies = [
             "Basic", "Hybrid", "MMR", "Reranked", "Parent-Child",
             "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG",
-            "ReAct", "GraphRAG", "SQL-RAG", "Multimodal"
+            "ReAct", "GraphRAG", "SQL-RAG", "Multimodal", "Hybrid-Graph-Agentic"
         ]
         query = "Explain Sarvam-105B multi-architecture RAG platform."
 
@@ -46,3 +46,5 @@ async def test_side_by_side_strategy_comparison():
         assert "GraphRAG" in results
         assert "SQL-RAG" in results
         assert "Multimodal" in results
+        assert "Hybrid-Graph-Agentic" in results
+

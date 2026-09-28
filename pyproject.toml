@@ -1,6 +1,6 @@
 [project]
 name = "enterprise-rag-platform"
-version = "3.3.0"
+version = "3.4.0"
 description = "Enterprise Multi-Architecture Production-Grade RAG & Agentic AI Platform (Sarvam AI + LangChain + LangGraph + LangSmith)"
 readme = "README.md"
 requires-python = ">=3.11"

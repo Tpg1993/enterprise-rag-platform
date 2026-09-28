@@ -90,7 +90,7 @@ def test_selenium_ui_navigation_and_elements():
         assert any("Traces" in t for t in tabs_text)
         assert any("Governance" in t or "RBAC" in t for t in tabs_text)
 
-        # 4. Assert Strategy Selection Dropdown Options (All 14 strategies)
+        # 4. Assert Strategy Selection Dropdown Options (All 15 strategies)
         strategy_dropdown = driver.find_element(By.ID, "strategy-select")
         options = strategy_dropdown.find_elements(By.TAG_NAME, "option")
         option_values = [opt.get_attribute("value") for opt in options]
@@ -109,6 +109,7 @@ def test_selenium_ui_navigation_and_elements():
         assert "GraphRAG" in option_values
         assert "SQL-RAG" in option_values
         assert "Multimodal" in option_values
+        assert "Hybrid-Graph-Agentic" in option_values
 
         # 5. Assert Governance & Security Inspector Elements (Phase 26)
         gov_btn = next((btn for btn in nav_items if "Governance" in btn.text or "RBAC" in btn.text), None)

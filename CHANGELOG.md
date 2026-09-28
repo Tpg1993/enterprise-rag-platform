@@ -5,6 +5,33 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-09-28
+
+### Added
+- **Phase 27 Complete (Unified Hybrid-Graph-Agentic Pinnacle RAG Strategy)**:
+  - **`HybridGraphAgenticRAGStrategy` Engine (`backend/src/rag/hybrid_graph_agentic/strategy.py`)**:
+    - Unified production-grade pinnacle architecture combining:
+      1. Dense vector search via Qdrant (`BAAI/bge-m3`).
+      2. Sparse lexical search via BM25 (`rank-bm25`).
+      3. Reciprocal Rank Fusion (RRF with $k=60$) combining dense and lexical candidate runs.
+      4. Neo4j multi-hop knowledge graph entity-relationship traversal (`Neo4jGraphStore`).
+      5. Cross-Encoder deep attention rescoring (`CrossEncoderReranker`).
+      6. Stateful LangGraph ReAct agent reasoning and Sarvam AI (`sarvam-105b`) grounded response synthesis.
+  - **Strategy Router Factory Integration**:
+    - Integrated `HYBRID-GRAPH-AGENTIC` into `backend/src/rag/router.py` with alias support (`HYBRID_GRAPH_AGENTIC`, `HYBRIDGRAPHAGENTIC`, `MASTER`).
+  - **Dynamic Framework Resolution**:
+    - Enhanced `/api/v1/chat` in `backend/src/api/routes/chat.py` with dynamic framework resolution tagging agentic workflows as `langgraph`.
+  - **Enterprise Web UI & Benchmark Updates**:
+    - Added Strategy Option 15 (`Hybrid-Graph-Agentic RAG (Pinnacle Agent)`) to chat query dropdown and evaluation strategy dropdown in `frontend/index.html`.
+    - Added Strategy Catalog Card 15 to the architecture catalog tab.
+    - Updated side-by-side benchmark runner in `frontend/services/api.js` to execute and benchmark all 15 production strategies.
+  - **Automated Verification & Test Suite (100% Passing)**:
+    - Unit Tests: `backend/tests/unit/test_hybrid_graph_agentic_rag.py` (4/4 passing).
+    - Integration Tests: `backend/tests/integration/test_hybrid_graph_agentic_integration.py` (1/1 passing).
+    - Strategy Comparison Benchmark: `backend/tests/integration/test_strategy_comparison.py` (1/1 passing across all 15 strategies).
+    - Selenium & E2E Tests: `backend/tests/e2e/test_selenium.py` and `backend/tests/e2e/test_ui_e2e.py` (4/4 passing).
+    - Repository Full Test Suite: **147/147 tests passing** with 0 regressions.
+
 ## [3.3.0] - 2026-09-28
 
 ### Added

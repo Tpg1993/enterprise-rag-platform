@@ -103,7 +103,8 @@
                   <option value="ReAct">ReAct Agentic RAG</option>
                   <option value="GraphRAG">GraphRAG (Neo4j)</option>
                   <option value="SQL-RAG">SQL RAG (PostgreSQL)</option>
-                  <option value="Multimodal" selected>Multimodal RAG (PDF Tables & Images)</option>
+                  <option value="Multimodal">Multimodal RAG (PDF Tables & Images)</option>
+                  <option value="Hybrid-Graph-Agentic" selected>Hybrid-Graph-Agentic RAG (Pinnacle Agent)</option>
                 </select>
                 <select id="token-budget-select" class="strategy-dropdown" title="Context Token Budget">
                   <option value="512">512 Tokens</option>
@@ -211,6 +212,7 @@
                     <option value="Reranked">Cross-Encoder Reranked</option>
                     <option value="GraphRAG">GraphRAG (Neo4j)</option>
                     <option value="SQL-RAG">SQL RAG (PostgreSQL)</option>
+                    <option value="Hybrid-Graph-Agentic">Hybrid-Graph-Agentic RAG</option>
                   </select>
                 </div>
                 <div style="display:flex; align-items:flex-end">
@@ -366,6 +368,12 @@
                 <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Joint retrieval over textual chunks, structured tables (Markdown), and visual image figures with modality-aware reranking.</p>
                 <span style="background:#0f172a; border:1px solid #d97706; color:#fef3c7; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Tables + Vision Figures</span>
               </div>
+
+              <div style="background:#1e293b; border:1px solid #6366f1; padding:1.2rem; border-radius:8px">
+                <h3 style="color:#c084fc">15. Hybrid-Graph-Agentic RAG</h3>
+                <p style="font-size:0.85rem; color:#cbd5e1; margin:0.5rem 0">Unified architecture fusing Dense Qdrant vectors + BM25 Lexical + Neo4j Graph traversal via BGE Reranker into a LangGraph ReAct agent.</p>
+                <span style="background:#0f172a; border:1px solid #8b5cf6; color:#d8b4fe; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem">Unified Pinnacle Agent</span>
+              </div>
             </div>
           </div>
         </div>
@@ -374,7 +382,7 @@
         <div id="comparison-tab" class="tab-content" style="display: none;">
           <div class="doc-management-container">
             <h2>📊 Side-by-Side Strategy Comparison Matrix</h2>
-            <p class="subtitle">Benchmark performance, latency, token consumption, and context precision across all 11 RAG strategies.</p>
+            <p class="subtitle">Benchmark performance, latency, token consumption, and context precision across all 15 RAG strategies.</p>
             
             <div class="upload-card" style="margin-bottom:1.5rem">
               <div class="form-row" style="flex-wrap:wrap; gap:1rem">
