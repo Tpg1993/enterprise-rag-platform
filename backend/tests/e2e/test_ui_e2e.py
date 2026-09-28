@@ -30,13 +30,29 @@ async def test_web_ui_bundle_mounting():
     assert 'data-tab="strategies"' in html_text
     assert 'data-tab="comparison"' in html_text
     assert 'data-tab="traces"' in html_text
+    assert 'data-tab="evaluations"' in html_text
+    assert 'data-tab="admin"' in html_text
 
-    # Validate Strategy selection options
+    # Validate Strategy selection options (All 14 strategies)
     assert 'value="Basic"' in html_text
     assert 'value="Hybrid"' in html_text
     assert 'value="MMR"' in html_text
+    assert 'value="Reranked"' in html_text
     assert 'value="Parent-Child"' in html_text
     assert 'value="Multi-Query"' in html_text
+    assert 'value="HyDE"' in html_text
+    assert 'value="Adaptive"' in html_text
+    assert 'value="Corrective"' in html_text
+    assert 'value="Self-RAG"' in html_text
+    assert 'value="ReAct"' in html_text
+    assert 'value="GraphRAG"' in html_text
+    assert 'value="SQL-RAG"' in html_text
+    assert 'value="Multimodal"' in html_text
+
+    # Validate Phase 26 Security & PII Inspector DOM elements
+    assert 'id="sec-inspect-input"' in html_text
+    assert 'id="btn-sec-inspect"' in html_text
+    assert "Open Policy Agent (OPA) Guardrails" in html_text
 
 
 @pytest.mark.asyncio

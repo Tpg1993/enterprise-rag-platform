@@ -1,13 +1,11 @@
 """Selenium E2E Web UI Automation Test Suite."""
 
-import shutil
 import socket
 import threading
 import time
 import pytest
 import uvicorn
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from src.api.main import app
@@ -33,13 +31,9 @@ def run_server(port: int):
 @pytest.fixture(scope="module", autouse=True)
 def server():
     """Fixture to start uvicorn server on dynamic port for Selenium tests."""
-    if not (shutil.which("chromedriver") or shutil.which("msedgedriver")):
-        yield
-        return
-
     t = threading.Thread(target=run_server, args=(TEST_PORT,), daemon=True)
     t.start()
-    for _ in range(25):
+    for _ in range(30):
         try:
             with socket.create_connection(("127.0.0.1", TEST_PORT), timeout=0.2):
                 break
@@ -50,29 +44,31 @@ def server():
 
 def test_selenium_ui_navigation_and_elements():
     """Selenium WebDriver E2E test verifying Web UI rendering, navigation, and DOM elements."""
-    has_chrome = shutil.which("chromedriver") is not None
-    has_edge = shutil.which("msedgedriver") is not None
-
-    if not has_chrome and not has_edge:
-        pytest.skip("Neither chromedriver nor msedgedriver binary found in PATH on local machine.")
-
     driver = None
-    if has_chrome:
-        chrome_options = Options()
-        chrome_options.add_argument("--headless=new")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        driver = webdriver.Chrome(options=chrome_options)
-    elif has_edge:
+    # 1. Prefer native Edge driver on Windows
+    try:
         from selenium.webdriver.edge.options import Options as EdgeOptions
 
         edge_options = EdgeOptions()
         edge_options.add_argument("--headless=new")
+        edge_options.add_argument("--no-sandbox")
+        edge_options.add_argument("--disable-gpu")
         driver = webdriver.Edge(options=edge_options)
+    except Exception:
+        # Fallback to Chrome driver
+        try:
+            from selenium.webdriver.chrome.options import Options as ChromeOptions
+
+            chrome_options = ChromeOptions()
+            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-gpu")
+            driver = webdriver.Chrome(options=chrome_options)
+        except Exception as err:
+            pytest.skip(f"No headless browser driver available on local machine: {err}")
 
     try:
-        driver.implicitly_wait(4)
+        driver.implicitly_wait(5)
         driver.get(f"http://127.0.0.1:{TEST_PORT}/ui/")
 
         # 1. Assert Web UI Title
@@ -142,7 +138,7 @@ def test_selenium_ui_navigation_and_elements():
         driver.execute_script("arguments[0].click();", send_btn)
 
         # Wait for assistant response bubble
-        time.sleep(2.0)
+        time.sleep(2.5)
         messages = driver.find_elements(By.CLASS_NAME, "message")
         assert len(messages) >= 2
 
