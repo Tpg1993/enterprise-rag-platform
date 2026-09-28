@@ -77,6 +77,10 @@ For in-depth architectural specifications and operational runbooks, refer to the
 | **25** | **Full Observability Stack (OTel, Prometheus, Grafana)** | ✅ Done | `sarvam-105b-opentelemetry-metrics-v1.0.0-none` | [README](docs/proofs/phase-25-opentelemetry-metrics/README.md) |
 | **26** | **PII Redaction (Presidio) + OPA Guardrails** | ✅ Done | `sarvam-105b-security-guardrails-v1.0.0-none` | [README](docs/proofs/phase-26-security-guardrails/README.md) |
 | **27** | **Hybrid-Graph-Agentic Pinnacle RAG** | ✅ Done | `sarvam-105b-hybrid-graph-agentic-rag-v1.0.0-langgraph` | [README](docs/proofs/phase-27-hybrid-graph-agentic-rag/README.md) |
+| **28** | **Enterprise UI Integrations & Real-Time Telemetry** (SSE Stream, ITL Meter, Re-index Modal, Audit Log) | ✅ Done | `sarvam-105b-hybrid-graph-agentic-rag-v1.0.0-langgraph` | [README](docs/proofs/README.md) |
+| **29** | **Automated Multi-Strategy Golden QA Evaluation Suite** (50 Golden QA Items, CLI Runner, Matrix Report) | ✅ Done | `sarvam-105b-hybrid-graph-agentic-rag-v1.0.0-langgraph` | [Report](docs/evaluation_report.md) |
+| **30** | **Production Containerization, Docker Profiles & CI/CD** (Multi-Stage Dockerfile, 5 Profiles, GitHub Actions) | ✅ Done | `sarvam-105b-hybrid-graph-agentic-rag-v1.0.0-langgraph` | [CI](.github/workflows/ci.yml) |
+| **31** | **Documentation, Master Spec Synchronization & Final Release Sign-Off** | ✅ Done | `sarvam-105b-hybrid-graph-agentic-rag-v1.0.0-langgraph` | [Spec](MASTER%20SPECIFICATION.md) |
 
 ---
 
@@ -121,13 +125,21 @@ In accordance with Section 4 of `AGENTS.md`, all phases are backed by dedicated 
 
 ```bash
 # Run all unit tests
-uv run pytest backend/tests/unit/
+uv run pytest backend/tests/unit/ -v
 
 # Run all multi-component integration tests
-uv run pytest backend/tests/integration/
+uv run pytest backend/tests/integration/ -v
 
-# Run specific phase test suite (e.g. Multimodal + Persistent History)
-uv run pytest backend/tests/unit/test_persistent_history.py backend/tests/unit/test_multimodal_rag.py
+# Run Selenium WebDriver E2E UI tests
+uv run pytest backend/tests/e2e/test_selenium.py -v
+
+# Run Golden QA Multi-Strategy Benchmark Suite
+uv run python backend/src/evaluation/run_benchmarks.py --limit 5
+
+# Build and run Docker containers with specific profiles
+docker compose --profile core up -d
+docker compose --profile observability up -d
+docker compose --profile security up -d
 ```
 
 ---
