@@ -147,3 +147,12 @@ class Tracer:
             spans = [s for s in spans if s.tenant_id == tenant_id]
         return spans[::-1][:limit]
 
+    @staticmethod
+    def get_trace_by_id(trace_id: str) -> TraceSpan | None:
+        """Retrieves a single recorded execution trace span by trace_id."""
+        for s in reversed(_trace_store):
+            if s.trace_id == trace_id:
+                return s
+        return None
+
+

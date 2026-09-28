@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Strategy Catalog & Version Manifest APIs (Section 62)**:
     - Implemented `GET /api/v1/rag/strategies` returning dynamic metadata, features, category, version, and framework for all 15 production RAG strategies (`backend/src/api/routes/rag.py`).
     - Implemented `GET /api/v1/rag/versions` serving active platform version manifest from `backend/config/version.yaml`.
+  - **Comprehensive Production REST API Endpoints (Phases 27.2)**:
+    - **Single Execution Trace Lookup (`GET /api/v1/traces/{trace_id}`)**: Added dedicated endpoint and `Tracer.get_trace_by_id` retrieving specific spans with metadata, token breakdown, and latency profile.
+    - **Document Re-indexing Pipeline (`POST /api/v1/documents/{document_id}/reindex`)**: Invalidates obsolete vector embeddings and BM25 index, re-chunks document with custom strategy/size/overlap, re-embeds via BGE-M3, bumps CDC version, and records audit event.
+    - **Security & Access Audit Trail (`GET /api/v1/audit`)**: High-performance persistent audit trail tracking security blocks (OPA), PII redactions, document ingestion, reindexing, and deletion events with multi-tenant filtering.
+    - **Server-Sent Events (SSE) Streaming Chat (`POST /api/v1/chat/stream`)**: Real-time token streaming with inter-token latency (ITL) tracking, TTFT measurement, OPA Zero Trust evaluation, Presidio PII redaction, Tier 3 caching, and end-of-stream telemetry.
   - **Dynamic Framework Resolution**:
     - Enhanced `/api/v1/chat` in `backend/src/api/routes/chat.py` with dynamic framework resolution tagging agentic workflows as `langgraph`.
   - **Enterprise Web UI & Benchmark Updates**:

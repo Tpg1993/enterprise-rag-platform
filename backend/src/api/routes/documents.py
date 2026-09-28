@@ -1,10 +1,9 @@
-"""FastAPI routes for document upload, ingestion, CDC, and index management."""
-
+import logging
 import time
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel
 from src.chunking import get_chunker
 from src.documents import get_parser_for_file
@@ -17,6 +16,8 @@ from src.ingestion import (
 )
 from src.rag.hybrid.strategy import global_bm25_retriever
 from src.retrieval import get_vector_store
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Documents"])
 
@@ -73,6 +74,7 @@ class DocumentSummary(BaseModel):
 
 @router.post("/documents", response_model=DocumentIngestionResponse)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     chunk_strategy: str = Form("recursive"),
     chunk_size: int = Form(512),
@@ -81,6 +83,19 @@ async def upload_document(
     tenant_id: str = Form("default_tenant"),
 ) -> DocumentIngestionResponse:
     """Uploads, parses, cleans, redacts PII, extracts metadata, embeds, and indexes a document."""
+    # Check query params if form values were default
+    qp = request.query_params
+    if tenant_id == "default_tenant" and "tenant_id" in qp:
+        tenant_id = qp["tenant_id"]
+    if chunk_strategy == "recursive" and "chunk_strategy" in qp:
+        chunk_strategy = qp["chunk_strategy"]
+    if chunk_size == 512 and "chunk_size" in qp:
+        chunk_size = int(qp["chunk_size"])
+    if chunk_overlap == 50 and "chunk_overlap" in qp:
+        chunk_overlap = int(qp["chunk_overlap"])
+    if embedding_provider == "bge-m3" and "embedding_provider" in qp:
+        embedding_provider = qp["embedding_provider"]
+
     start_time = time.perf_counter()
     filename = file.filename or "file.txt"
     file_bytes = await file.read()
@@ -193,7 +208,25 @@ async def upload_document(
         "has_pii": meta_info.has_pii,
         "redacted_count": meta_info.redacted_count,
         "language": meta_info.language,
+        "content": cleaned_text,
     }
+
+    from src.storage.history import get_history_store
+
+    get_history_store().record_audit_event(
+        event_type="DOCUMENT_INGEST",
+        user_id="analyst",
+        tenant_id=tenant_id,
+        action="INGEST",
+        resource=f"document:{doc_id}",
+        status="SUCCESS",
+        details={
+            "document_id": doc_id,
+            "filename": filename,
+            "version": version,
+            "total_chunks": len(chunks),
+        },
+    )
 
     return DocumentIngestionResponse(
         document_id=doc_id,
@@ -214,6 +247,97 @@ async def upload_document(
         has_pii=meta_info.has_pii,
         redacted_count=meta_info.redacted_count,
         language=meta_info.language,
+    )
+
+
+@router.post("/documents/{document_id}/reindex", response_model=DocumentIngestionResponse)
+async def reindex_document(
+    document_id: str,
+    tenant_id: str = Query("default_tenant"),
+    chunk_strategy: str = Query("recursive"),
+    chunk_size: int = Query(512),
+    chunk_overlap: int = Query(50),
+    embedding_provider: str = Query("bge-m3"),
+) -> DocumentIngestionResponse:
+    """Reindexes an existing document with specified chunking strategy and embedding provider."""
+    start_time = time.perf_counter()
+    if document_id not in document_db:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc_info = document_db[document_id]
+    text_content = doc_info.get("content", "")
+    filename = doc_info["filename"]
+
+    # 1. Invalidate old vectors and BM25 index
+    vector_store.delete_document(document_id, tenant_id=tenant_id)
+    bm25_retriever.delete_document(document_id, tenant_id=tenant_id)
+
+    # 2. Re-chunk
+    chunker = get_chunker(chunk_strategy, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    chunks = chunker.chunk(text_content, document_id=document_id, tenant_id=tenant_id)
+
+    # 3. Re-embed and index
+    embedder = get_embedding_provider(embedding_provider)
+    texts = [c.content for c in chunks]
+    vectors = embedder.embed_documents(texts)
+    vector_store.upsert_chunks(chunks, vectors)
+    bm25_retriever.index_chunks(chunks, tenant_id=tenant_id)
+
+    # 4. Bump version in CDC
+    version = cdc_engine.record_ingestion(document_id, doc_info["checksum"], tenant_id=tenant_id)
+    total_tokens = sum(c.token_count for c in chunks)
+    elapsed_ms = (time.perf_counter() - start_time) * 1000
+
+    # 5. Update registry
+    doc_info.update(
+        {
+            "total_chunks": len(chunks),
+            "total_tokens": total_tokens,
+            "version": version,
+            "chunk_strategy": chunk_strategy,
+            "chunk_size": chunk_size,
+            "chunk_overlap": chunk_overlap,
+            "embedding_provider": embedding_provider,
+        }
+    )
+
+    from src.storage.history import get_history_store
+
+    get_history_store().record_audit_event(
+        event_type="DOCUMENT_REINDEX",
+        user_id="analyst",
+        tenant_id=tenant_id,
+        action="REINDEX",
+        resource=f"document:{document_id}",
+        status="SUCCESS",
+        details={
+            "document_id": document_id,
+            "filename": filename,
+            "version": version,
+            "chunk_strategy": chunk_strategy,
+            "embedding_provider": embedding_provider,
+        },
+    )
+
+    return DocumentIngestionResponse(
+        document_id=document_id,
+        filename=filename,
+        status="reindexed",
+        chunk_strategy=chunk_strategy,
+        embedding_provider=embedding_provider,
+        total_chunks=len(chunks),
+        total_tokens=total_tokens,
+        checksum=doc_info["checksum"],
+        version=version,
+        latency_ms=elapsed_ms,
+        tenant_id=tenant_id,
+        file_size_human=doc_info.get("file_size_human", "0 KB"),
+        word_count=doc_info.get("word_count", 0),
+        author=doc_info.get("author", "Unknown"),
+        security_classification=doc_info.get("security_classification", "INTERNAL"),
+        has_pii=doc_info.get("has_pii", False),
+        redacted_count=doc_info.get("redacted_count", 0),
+        language=doc_info.get("language", "en"),
     )
 
 
@@ -238,4 +362,17 @@ async def delete_document(
     cdc_engine.invalidate(document_id)
     del document_db[document_id]
 
+    from src.storage.history import get_history_store
+
+    get_history_store().record_audit_event(
+        event_type="DOCUMENT_DELETE",
+        user_id="analyst",
+        tenant_id=tenant_id,
+        action="DELETE",
+        resource=f"document:{document_id}",
+        status="SUCCESS",
+        details={"document_id": document_id},
+    )
+
     return {"status": "deleted", "document_id": document_id}
+

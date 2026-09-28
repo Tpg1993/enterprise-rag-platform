@@ -80,3 +80,21 @@ class RAGVersionResponse(BaseModel):
     prompts: dict[str, Any] = Field(default_factory=dict)
     evaluation_dataset: dict[str, Any] = Field(default_factory=dict)
 
+
+class AuditEvent(BaseModel):
+    event_id: str
+    event_type: str
+    user_id: str
+    tenant_id: str
+    action: str
+    resource: str
+    status: str
+    details: dict[str, Any] = Field(default_factory=dict)
+    timestamp: float
+
+
+class AuditEventsResponse(BaseModel):
+    total_events: int
+    events: list[AuditEvent]
+
+

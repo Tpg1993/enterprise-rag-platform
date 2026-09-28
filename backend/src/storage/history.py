@@ -99,10 +99,27 @@ class PersistentHistoryStore:
                 )
                 """
             )
+            # 4. Security & Access Audit Events
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS audit_events (
+                    event_id TEXT PRIMARY KEY,
+                    event_type TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    tenant_id TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    resource TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    details_json TEXT DEFAULT '{}',
+                    timestamp REAL NOT NULL
+                )
+                """
+            )
             # Indices for rapid querying with tenant bounds
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_tenant ON chat_sessions(tenant_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_messages_session ON chat_messages(session_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_eval_tenant ON evaluation_history(tenant_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_tenant ON audit_events(tenant_id)")
             conn.commit()
 
     def create_session(
@@ -345,6 +362,91 @@ class PersistentHistoryStore:
                 )
             rows = cursor.fetchall()
             return [dict(r) for r in rows]
+
+    def record_audit_event(
+        self,
+        event_type: str,
+        user_id: str,
+        tenant_id: str,
+        action: str,
+        resource: str,
+        status: str = "SUCCESS",
+        details: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Records a security or access audit event."""
+        event_id = f"aud_{uuid.uuid4().hex[:12]}"
+        now = time.time()
+        details_json = json.dumps(details or {})
+        with self._lock, self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO audit_events (
+                    event_id, event_type, user_id, tenant_id,
+                    action, resource, status, details_json, timestamp
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event_id, event_type, user_id, tenant_id,
+                    action, resource, status, details_json, now
+                ),
+            )
+            conn.commit()
+        return {
+            "event_id": event_id,
+            "event_type": event_type,
+            "user_id": user_id,
+            "tenant_id": tenant_id,
+            "action": action,
+            "resource": resource,
+            "status": status,
+            "details": details or {},
+            "timestamp": now,
+        }
+
+    def get_audit_events(
+        self, tenant_id: str | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """Retrieves audit events filtered by tenant_id."""
+        with self._lock, self._get_connection() as conn:
+            cursor = conn.cursor()
+            if tenant_id:
+                cursor.execute(
+                    """
+                    SELECT event_id, event_type, user_id, tenant_id,
+                           action, resource, status, details_json, timestamp
+                    FROM audit_events
+                    WHERE tenant_id = ?
+                    ORDER BY timestamp DESC LIMIT ?
+                    """,
+                    (tenant_id, limit),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT event_id, event_type, user_id, tenant_id,
+                           action, resource, status, details_json, timestamp
+                    FROM audit_events
+                    ORDER BY timestamp DESC LIMIT ?
+                    """,
+                    (limit,),
+                )
+            rows = cursor.fetchall()
+            return [
+                {
+                    "event_id": r["event_id"],
+                    "event_type": r["event_type"],
+                    "user_id": r["user_id"],
+                    "tenant_id": r["tenant_id"],
+                    "action": r["action"],
+                    "resource": r["resource"],
+                    "status": r["status"],
+                    "details": json.loads(r["details_json"]),
+                    "timestamp": r["timestamp"],
+                }
+                for r in rows
+            ]
 
 
 _history_store: PersistentHistoryStore | None = None

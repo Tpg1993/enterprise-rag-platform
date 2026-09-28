@@ -51,6 +51,7 @@ app.add_middleware(
 import os
 from fastapi.staticfiles import StaticFiles
 
+from src.api.routes.audit import router as audit_router
 from src.api.routes.auth import router as auth_router
 from src.api.routes.cache import router as cache_router
 from src.api.routes.evaluations import router as evaluations_router
@@ -66,6 +67,7 @@ app.include_router(documents_router, prefix="/api/v1")
 app.include_router(evaluations_router, prefix="/api/v1")
 app.include_router(cache_router, prefix="/api/v1")
 app.include_router(security_router, prefix="/api/v1")
+app.include_router(audit_router)
 app.include_router(rag_router)
 app.include_router(traces_router)
 app.include_router(metrics_router)
