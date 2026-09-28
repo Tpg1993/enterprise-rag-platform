@@ -1,4 +1,4 @@
-"""Pydantic v2 schemas for API requests, chat completions, citations, and health metrics."""
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -23,7 +23,9 @@ class ChatRequest(BaseModel):
     session_id: str | None = Field(default=None, description="Optional session identifier")
     stream: bool = Field(default=False, description="Enable streaming completion")
     top_k: int = Field(default=5, description="Number of context chunks to retrieve")
-    max_context_tokens: int = Field(default=2048, description="Target token budget for retrieved context")
+    max_context_tokens: int = Field(
+        default=2048, description="Target token budget for retrieved context"
+    )
     metadata: dict[str, str] = Field(default_factory=dict, description="Custom request metadata")
 
 
@@ -53,3 +55,28 @@ class HealthResponse(BaseModel):
     version: str = "1.0.0"
     environment: str = "development"
     services: dict[str, str] = Field(default_factory=dict)
+
+
+class RAGStrategyMetadata(BaseModel):
+    id: str
+    name: str
+    description: str
+    framework: str
+    category: str
+    version: str = "1.0.0"
+    features: list[str] = Field(default_factory=list)
+
+
+class RAGStrategiesResponse(BaseModel):
+    total_strategies: int
+    strategies: list[RAGStrategyMetadata]
+
+
+class RAGVersionResponse(BaseModel):
+    application: dict[str, Any]
+    models: dict[str, Any]
+    rag: dict[str, Any]
+    security: dict[str, Any] = Field(default_factory=dict)
+    prompts: dict[str, Any] = Field(default_factory=dict)
+    evaluation_dataset: dict[str, Any] = Field(default_factory=dict)
+

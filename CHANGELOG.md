@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       6. Stateful LangGraph ReAct agent reasoning and Sarvam AI (`sarvam-105b`) grounded response synthesis.
   - **Strategy Router Factory Integration**:
     - Integrated `HYBRID-GRAPH-AGENTIC` into `backend/src/rag/router.py` with alias support (`HYBRID_GRAPH_AGENTIC`, `HYBRIDGRAPHAGENTIC`, `MASTER`).
+  - **Strategy Catalog & Version Manifest APIs (Section 62)**:
+    - Implemented `GET /api/v1/rag/strategies` returning dynamic metadata, features, category, version, and framework for all 15 production RAG strategies (`backend/src/api/routes/rag.py`).
+    - Implemented `GET /api/v1/rag/versions` serving active platform version manifest from `backend/config/version.yaml`.
   - **Dynamic Framework Resolution**:
     - Enhanced `/api/v1/chat` in `backend/src/api/routes/chat.py` with dynamic framework resolution tagging agentic workflows as `langgraph`.
   - **Enterprise Web UI & Benchmark Updates**:
