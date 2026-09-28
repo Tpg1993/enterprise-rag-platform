@@ -3,6 +3,7 @@
 import socket
 import threading
 import time
+
 import pytest
 import uvicorn
 from selenium import webdriver
@@ -111,8 +112,10 @@ def test_selenium_ui_navigation_and_elements():
         assert "Multimodal" in option_values
         assert "Hybrid-Graph-Agentic" in option_values
 
-        # 5. Assert Governance & Security Inspector Elements (Phase 26)
-        gov_btn = next((btn for btn in nav_items if "Governance" in btn.text or "RBAC" in btn.text), None)
+        # 5. Assert Governance & Security Inspector Elements and Audit Trail (Phase 26 & 28)
+        gov_btn = next(
+            (btn for btn in nav_items if "Governance" in btn.text or "RBAC" in btn.text), None
+        )
         if gov_btn:
             gov_btn.click()
             time.sleep(0.3)
@@ -120,12 +123,30 @@ def test_selenium_ui_navigation_and_elements():
             assert sec_input is not None
             sec_btn = driver.find_element(By.ID, "btn-sec-inspect")
             assert sec_btn is not None
+            audit_table = driver.find_element(By.ID, "audit-table-body")
+            assert audit_table is not None
+            audit_filter = driver.find_element(By.ID, "audit-filter-type")
+            assert audit_filter is not None
+            refresh_audit_btn = driver.find_element(By.ID, "refresh-audit-btn")
+            assert refresh_audit_btn is not None
 
-        # 6. Test Chat query execution and DOM response
+        # 6. Assert Phase 28 Modals (Re-index and Trace Span Inspector)
+        reindex_modal = driver.find_element(By.ID, "reindex-modal")
+        assert reindex_modal is not None
+        trace_modal = driver.find_element(By.ID, "trace-modal")
+        assert trace_modal is not None
+
+        # 7. Test Chat query execution with streaming and live ITL tracking
         chat_btn = next((btn for btn in nav_items if "Chat" in btn.text), None)
         if chat_btn:
             chat_btn.click()
             time.sleep(0.3)
+
+        stream_toggle = driver.find_element(By.ID, "stream-toggle")
+        assert stream_toggle is not None
+        assert stream_toggle.is_selected()
+        itl_meter = driver.find_element(By.ID, "live-itl-meter")
+        assert itl_meter is not None
 
         select_elem = Select(strategy_dropdown)
         select_elem.select_by_value("Basic")

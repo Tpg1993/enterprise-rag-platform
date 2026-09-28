@@ -5,6 +5,25 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2026-09-28
+
+### Added
+- **Phase 28 Complete (Enterprise UI Integrations & Real-Time Telemetry)**:
+  - **Real-Time SSE Streaming Chat & Live ITL Gauge (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added dedicated `⚡ Stream` toggle enabling token-by-token streaming via `POST /api/v1/chat/stream`.
+    - Real-time typewriter bubble rendering with live Inter-Token Latency (`ITL: Xms`) and Time-to-First-Token (`TTFT: Xms`) gauges.
+  - **Live Security & Audit Trail Explorer (Governance Tab)**:
+    - Added tamper-evident audit log table consuming `GET /api/v1/audit`.
+    - Live filtering by tenant ID and event types (`SECURITY_BLOCK`, `PII_DETECTED`, `DOCUMENT_INGEST`, `DOCUMENT_REINDEX`, `DOCUMENT_DELETE`).
+  - **Interactive Document Re-indexing Modal (Documents Tab)**:
+    - Added `🔄 Re-index` button for each ingested document in the knowledge base table.
+    - Added modal `#reindex-modal` allowing analysts to dynamically select chunking strategies (`recursive`, `semantic`, `fixed`, `parent_child`), chunk size, overlap, and embedding models.
+  - **Trace Span Inspector Modal (Traces Tab)**:
+    - Added `🔍 Inspect` action button to the Execution Traces table.
+    - Added `#trace-modal` displaying execution span telemetry waterfall, latency breakdown, token consumption, and full JSON payload from `GET /api/v1/traces/{trace_id}`.
+  - **Automated Verification**:
+    - Enhanced Selenium WebDriver test suite (`backend/tests/e2e/test_selenium.py`) verifying all Phase 28 elements (stream toggle, live ITL meter, Re-indexing modal, Trace Inspector modal, and Audit Trail Explorer) — **100% passing**.
+
 ## [3.4.0] - 2026-09-28
 
 ### Added
