@@ -27,9 +27,9 @@ docs/proofs/
 ├── phase-13-adaptive-rag/                  ← Query intent router
 ├── phase-14-corrective-rag/               ← Web-search fallback on low confidence
 ├── phase-15-self-rag/                      ← Self-reflection hallucination grader
-├── phase-16-react-rag/                     ← LangGraph ReAct agent loop
-├── phase-17-langsmith-observability/       ← Internal Trace Explorer UI
-└── phase-18-strategy-comparison/          ← Side-by-side strategy benchmark
+├── phase-25-opentelemetry-metrics/         ← Prometheus, Grafana dashboards, OTel
+├── phase-26-security-guardrails/          ← Presidio PII redaction & OPA guardrails
+└── phase-27-hybrid-graph-agentic-rag/     ← Unified Pinnacle RAG Strategy
 ```
 
 ---
@@ -63,6 +63,7 @@ docs/proofs/
 | **24** | **Redis Multi-Tier Caching** | ✅ Done | `sarvam-105b-redis-caching-v1.0.0-none` | [README](phase-24-redis-caching/README.md) |
 | **25** | **OpenTelemetry + Prometheus + Grafana** | ✅ Done | `sarvam-105b-opentelemetry-metrics-v1.0.0-none` | [README](phase-25-opentelemetry-metrics/README.md) |
 | **26** | **PII Redaction (Presidio) + OPA Guardrails** | ✅ Done | `sarvam-105b-security-guardrails-v1.0.0-none` | [README](phase-26-security-guardrails/README.md) |
+| **27** | **Hybrid-Graph-Agentic Pinnacle RAG** | ✅ Done | `sarvam-105b-hybrid-graph-agentic-rag-v1.0.0-langgraph` | [README](phase-27-hybrid-graph-agentic-rag/README.md) |
 
 ---
 
@@ -82,4 +83,4 @@ docs/proofs/
 
 ---
 
-*Last updated: 2026-09-28 | Platform Version: 3.3.0*
+*Last updated: 2026-09-28 | Platform Version: 3.4.0*
