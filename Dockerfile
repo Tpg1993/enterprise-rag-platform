@@ -27,6 +27,7 @@ COPY --chown=appuser:appgroup . /app
 
 # Set PATH to use virtual environment
 ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app/backend:/app" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 

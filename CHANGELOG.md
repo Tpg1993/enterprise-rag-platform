@@ -5,6 +5,30 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2026-09-28
+
+### Added
+- **Phase 30 Complete (Production Containerization, Docker Compose Profiles & CI/CD Pipeline)**:
+  - **Hardened Multi-Stage Dockerfile (`Dockerfile`)**:
+    - Builder stage: `python:3.11-slim`, installs `uv` from official image, freezes dependencies with `uv sync --frozen --no-dev`.
+    - Runner stage: Dedicated unprivileged non-root user `appuser:appgroup` (UID 10001), configured `PYTHONPATH=/app/backend:/app`, native `HEALTHCHECK` targeting `/api/v1/health` with 30s interval and 10s start period.
+  - **Modular Docker Compose Orchestration (`docker-compose.yml`)**:
+    - Configured 5 enterprise profiles:
+      1. `core`: FastAPI API gateway, Qdrant vector database (`v1.10.0`), Redis cache (`7-alpine`), and PostgreSQL (`16-alpine`).
+      2. `graph`: Neo4j graph database (`5.18.0`) for GraphRAG multi-hop relationship exploration.
+      3. `search`: OpenSearch (`2.12.0`) distributed BM25 search alternative.
+      4. `observability`: Prometheus (`v2.51.0`) and Grafana (`10.4.0`) with automated dashboard provisioning.
+      5. `security`: Open Policy Agent (`0.62.0`) for real-time prompt injection and authorization policies.
+  - **Enterprise GitHub Actions CI/CD Pipeline (`.github/workflows/ci.yml`)**:
+    - Configured multi-stage workflow:
+      - `lint-and-typecheck`: Ruff linter and formatting validation with Astral `setup-uv`.
+      - `test-suite`: Unit and integration test execution with automated benchmark sanity checks.
+      - `docker-build`: Container buildx compilation and architecture verification.
+  - **Development Automation Targets (`Makefile`)**:
+    - Added `benchmark` (`uv run python backend/src/evaluation/run_benchmarks.py --limit 5`) and `docker-build` (`docker build -t enterprise-rag:latest .`) commands.
+  - **Automated Verification Suite (`backend/tests/unit/test_containerization.py`)**:
+    - Unit tests validating Dockerfile non-root/healthcheck directives, docker-compose profile distribution, and CI workflow schema (3/3 passing).
+
 ## [3.6.0] - 2026-09-28
 
 ### Added
