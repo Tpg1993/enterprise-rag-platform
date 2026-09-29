@@ -5,6 +5,29 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.8.0] - 2026-09-29
+
+### Added
+- **Phase 39 Complete (Automated Claim-Level Hallucination Guardrail & NLI Fact-Checker)**:
+  - **Claim Extraction & NLI Fact-Checking Engine (`backend/src/security/fact_checker.py`, `backend/src/security/__init__.py`)**:
+    - `ClaimExtractor`: Decomposes LLM responses into atomic factual statements while stripping conversational filler preambles.
+    - `NLIFactChecker`: Evaluates propositions against context chunks using token overlap and semantic entailment heuristics.
+    - Produces `FactCheckReport` classifying each claim as `SUPPORTED`, `NEUTRAL`, or `CONTRADICTED` with confidence scores and chunk mappings.
+    - Computes overall `grounding_score` (0.0 to 1.0) and assigns categorical risk (`LOW`, `MEDIUM`, `HIGH`).
+    - Supports strict auto-redaction mode to strip contradicted claims from answers.
+  - **REST API & Schema Integration (`backend/src/api/routes/security.py`, `backend/src/api/routes/chat.py`, `backend/src/api/schemas.py`)**:
+    - Added `POST /api/v1/security/fact-check` endpoint for standalone answer verification against arbitrary context chunks.
+    - Added `enable_fact_check: bool = False` to `ChatRequest`.
+    - Enriched `ChatResponse` and streaming SSE `done` event with `fact_check_score`, `fact_check_risk`, and `fact_check_claims_count`.
+  - **Interactive Frontend UI Controls (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added `🛡️ Fact-Check` toggle checkbox in chat controls next to Stream and Compress.
+    - Added dynamic grounding score badge in message metadata: `🛡️ 98% Grounded (LOW)`.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_fact_checker.py` (6/6 passing).
+    - Integration Tests: `backend/tests/integration/test_fact_check_integration.py` (3/3 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing).
+    - Full Platform Test Suite: **227 / 227 tests passing**.
+
 ## [4.7.0] - 2026-09-29
 
 ### Added

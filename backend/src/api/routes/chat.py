@@ -311,6 +311,24 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
     )
     framework = "langgraph" if any(k in strat_name.upper() for k in agentic_keywords) else "none"
 
+    fact_check_score = None
+    fact_check_risk = None
+    fact_check_claims_count = None
+    if payload.enable_fact_check:
+        from src.security.fact_checker import get_fact_checker
+        checker = get_fact_checker()
+        context_chunks = [
+            {"chunk_id": c.chunk_id, "content": c.content_snippet}
+            for c in rag_res.citations
+        ]
+        fc_report = checker.verify(
+            answer=rag_res.answer,
+            context_chunks=context_chunks,
+        )
+        fact_check_score = fc_report.grounding_score
+        fact_check_risk = fc_report.risk_level
+        fact_check_claims_count = fc_report.total_claims
+
     return ChatResponse(
         answer=rag_res.answer,
         citations=citations,
@@ -336,6 +354,9 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         security_verdict="ALLOWED",
         compression_ratio=rag_res.compression_ratio,
         tokens_saved=rag_res.tokens_saved,
+        fact_check_score=fact_check_score,
+        fact_check_risk=fact_check_risk,
+        fact_check_claims_count=fact_check_claims_count,
     )
 
 
@@ -679,6 +700,24 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             else "none"
         )
 
+        fact_check_score = None
+        fact_check_risk = None
+        fact_check_claims_count = None
+        if payload.enable_fact_check:
+            from src.security.fact_checker import get_fact_checker
+            checker = get_fact_checker()
+            context_chunks = [
+                {"chunk_id": c.chunk_id, "content": c.content_snippet}
+                for c in rag_res.citations
+            ]
+            fc_report = checker.verify(
+                answer=rag_res.answer,
+                context_chunks=context_chunks,
+            )
+            fact_check_score = fc_report.grounding_score
+            fact_check_risk = fc_report.risk_level
+            fact_check_claims_count = fc_report.total_claims
+
         done_data = {
             "type": "done",
             "answer": rag_res.answer,
@@ -705,6 +744,9 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             "security_verdict": "ALLOWED",
             "compression_ratio": rag_res.compression_ratio,
             "tokens_saved": rag_res.tokens_saved,
+            "fact_check_score": fact_check_score,
+            "fact_check_risk": fact_check_risk,
+            "fact_check_claims_count": fact_check_claims_count,
             "done": True,
         }
         yield f"data: {json.dumps(done_data)}\n\n"

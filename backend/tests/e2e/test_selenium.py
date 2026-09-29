@@ -167,6 +167,9 @@ def test_selenium_ui_navigation_and_elements():
         assert not compression_toggle.is_selected()
         driver.execute_script("arguments[0].click();", compression_toggle)
         assert compression_toggle.is_selected()
+        fact_check_toggle = driver.find_element(By.ID, "fact-check-toggle")
+        assert fact_check_toggle is not None
+        assert fact_check_toggle.is_selected()
         itl_meter = driver.find_element(By.ID, "live-itl-meter")
         assert itl_meter is not None
 

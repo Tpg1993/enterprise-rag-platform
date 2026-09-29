@@ -37,6 +37,9 @@ class ChatRequest(BaseModel):
     compression_target_ratio: float = Field(
         default=0.6, description="Target compression ratio (0.2 - 0.9)"
     )
+    enable_fact_check: bool = Field(
+        default=False, description="Enable automated claim-level hallucination fact-checking"
+    )
     metadata: dict[str, str] = Field(default_factory=dict, description="Custom request metadata")
 
 
@@ -61,6 +64,30 @@ class ChatResponse(BaseModel):
     security_verdict: str = "ALLOWED"
     compression_ratio: float | None = None
     tokens_saved: int | None = None
+    fact_check_score: float | None = None
+    fact_check_risk: str | None = None
+    fact_check_claims_count: int | None = None
+
+
+class FactCheckRequest(BaseModel):
+    answer: str = Field(..., description="Answer text to verify")
+    context_chunks: list[dict[str, Any]] = Field(
+        default_factory=list, description="Context chunks to ground against"
+    )
+    strict_correction: bool = Field(
+        default=False, description="Strip contradicted claims from answer"
+    )
+
+
+class FactCheckResponse(BaseModel):
+    total_claims: int
+    supported_claims: int
+    contradicted_claims: int
+    neutral_claims: int
+    grounding_score: float
+    risk_level: str
+    claims: list[dict[str, Any]] = Field(default_factory=list)
+    corrected_answer: str | None = None
 
 
 class HealthResponse(BaseModel):

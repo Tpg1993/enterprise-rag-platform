@@ -2,9 +2,10 @@
 
 import logging
 from typing import Any
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
 
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
+from src.api.schemas import FactCheckRequest, FactCheckResponse
 from src.security.opa_engine import OPAEvalRequest, OPAEvalResponse, get_opa_engine
 from src.security.pii import PIIDetectionReport, get_pii_redactor
 
@@ -82,4 +83,33 @@ async def get_security_status() -> dict[str, Any]:
             "max_rows": 1000,
             "timeout_seconds": 5.0,
         },
+        "fact_checker_guardrail": {
+            "engine": "NLI Entailment & Claim Extractor",
+            "active": True,
+            "grounding_modes": ["AUDIT", "STRICT_CORRECTION"],
+        },
     }
+
+
+@router.post("/fact-check", response_model=FactCheckResponse)
+async def fact_check_payload(payload: FactCheckRequest) -> FactCheckResponse:
+    """Verifies atomic propositions in an answer against provided context chunks."""
+    from src.security.fact_checker import get_fact_checker
+
+    checker = get_fact_checker()
+    report = checker.verify(
+        answer=payload.answer,
+        context_chunks=payload.context_chunks,
+        strict_correction=payload.strict_correction,
+    )
+
+    return FactCheckResponse(
+        total_claims=report.total_claims,
+        supported_claims=report.supported_claims,
+        contradicted_claims=report.contradicted_claims,
+        neutral_claims=report.neutral_claims,
+        grounding_score=report.grounding_score,
+        risk_level=report.risk_level,
+        claims=[c.model_dump() for c in report.claims],
+        corrected_answer=report.corrected_answer,
+    )
