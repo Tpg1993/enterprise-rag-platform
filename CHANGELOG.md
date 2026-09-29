@@ -5,6 +5,27 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-09-29
+
+### Added
+- **Phase 34 Complete (Visual Bounding-Box Coordinates & Interactive PDF Citation Viewer)**:
+  - **Visual Geometry Extraction (`backend/src/documents/pdf_parser.py`, `multimodal_parser.py`)**:
+    - Enhanced PyMuPDF PDF parser to capture precise block-level `[x0, y0, x1, y1]` bounding boxes and `page_dimensions` (`width`, `height`).
+    - Enhanced Multimodal parser to extract geometric bounding boxes for vector tables, image figures, and textual content.
+  - **Chunk & Citation Schema Enhancements (`backend/src/documents/base.py`, `backend/src/chunking/base.py`, `backend/src/rag/base.py`, `backend/src/api/schemas.py`)**:
+    - Added `bbox: list[float] | None` and `page_dimensions: dict[str, float] | None` to `ParsedChunk`, `Chunk`, and `Citation`.
+    - Integrated automatic transfer of visual geometry through `ContextBuilder` and Chat API responses.
+  - **Document Page Visual Layout Endpoint (`backend/src/api/routes/documents.py`)**:
+    - Added `GET /api/v1/documents/{document_id}/preview` returning page canvas dimensions, text blocks, and visual bounding coordinates.
+  - **Interactive PDF Citation Viewer Modal (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added `#citation-pdf-modal` with simulated page canvas, drop shadow, page numbering, and dynamic glowing bounding-box highlight (`#pdf-highlight-bbox`).
+    - Rendered interactive citation pills in chat message streams that open the visual viewer on click.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_visual_citations.py` (3/3 passing).
+    - Integration Tests: `backend/tests/integration/test_visual_citations_integration.py` (2/2 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` verifying modal canvas and highlight bounding box (100% passing).
+    - Full Platform Test Suite: **183 / 183 tests passing**.
+
 ## [4.2.0] - 2026-09-29
 
 ### Added

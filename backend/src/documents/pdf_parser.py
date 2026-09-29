@@ -24,18 +24,62 @@ class PDFParser(DocumentParser):
 
             for page_num in range(total_pages):
                 page = doc.load_page(page_num)
-                page_text = page.get_text("text").strip()
-                if page_text:
-                    full_text_list.append(page_text)
-                    chunks.append(
-                        ParsedChunk(
-                            chunk_index=chunk_idx,
-                            content=page_text,
-                            page_number=page_num + 1,
-                            metadata={"filename": filename, "page": page_num + 1},
+                rect = page.rect
+                page_dims = {"width": round(rect.width, 2), "height": round(rect.height, 2)}
+                blocks = page.get_text("blocks")
+                has_blocks = False
+
+                for b in blocks:
+                    if len(b) >= 5 and b[4].strip():
+                        has_blocks = True
+                        block_text = b[4].strip()
+                        bbox = [round(b[0], 2), round(b[1], 2), round(b[2], 2), round(b[3], 2)]
+                        chunks.append(
+                            ParsedChunk(
+                                chunk_index=chunk_idx,
+                                content=block_text,
+                                page_number=page_num + 1,
+                                bbox=bbox,
+                                page_dimensions=page_dims,
+                                metadata={
+                                    "filename": filename,
+                                    "page": page_num + 1,
+                                    "page_number": page_num + 1,
+                                    "bbox": bbox,
+                                    "page_dimensions": page_dims,
+                                },
+                            )
                         )
-                    )
-                    chunk_idx += 1
+                        full_text_list.append(block_text)
+                        chunk_idx += 1
+
+                if not has_blocks:
+                    page_text = page.get_text("text").strip()
+                    if page_text:
+                        full_text_list.append(page_text)
+                        bbox = [
+                            round(rect.x0 + 36, 2),
+                            round(rect.y0 + 36, 2),
+                            round(rect.x1 - 36, 2),
+                            round(rect.y1 - 36, 2),
+                        ]
+                        chunks.append(
+                            ParsedChunk(
+                                chunk_index=chunk_idx,
+                                content=page_text,
+                                page_number=page_num + 1,
+                                bbox=bbox,
+                                page_dimensions=page_dims,
+                                metadata={
+                                    "filename": filename,
+                                    "page": page_num + 1,
+                                    "page_number": page_num + 1,
+                                    "bbox": bbox,
+                                    "page_dimensions": page_dims,
+                                },
+                            )
+                        )
+                        chunk_idx += 1
             doc.close()
 
             full_text = "\n\n".join(full_text_list)

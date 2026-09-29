@@ -16,6 +16,8 @@ class Chunk(BaseModel):
     token_count: int = 0
     page_number: int | None = None
     section_title: str | None = None
+    bbox: list[float] | None = None
+    page_dimensions: dict[str, float] | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

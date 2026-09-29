@@ -689,6 +689,48 @@
     </div>
   </div>
 
+  <!-- Interactive PDF Citation Visual Bounding Box Modal (Phase 34) -->
+  <div id="citation-pdf-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#0f172a; border:1px solid #38bdf8; border-radius:10px; width:860px; max-width:95%; max-height:90vh; display:flex; flex-direction:column; padding:1.25rem; box-shadow:0 15px 35px rgba(0,0,0,0.8);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid #334155; padding-bottom:0.6rem">
+        <div style="display:flex; align-items:center; gap:0.6rem">
+          <span style="font-size:1.3rem">📄</span>
+          <div>
+            <h3 id="pdf-modal-title" style="color:#f8fafc; margin:0; font-size:1rem; font-weight:600">Visual Citation Inspector</h3>
+            <div id="pdf-modal-subtitle" style="font-size:0.75rem; color:#94a3b8">Source Document & Verified Bounding-Box</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.6rem">
+          <span id="pdf-modal-score" style="background:#064e3b; border:1px solid #10b981; color:#a7f3d0; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; font-weight:bold">Score: 0.9500</span>
+          <button id="close-citation-modal-btn" style="background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer; line-height:1">&times;</button>
+        </div>
+      </div>
+      
+      <!-- Document Visual Viewport -->
+      <div id="pdf-viewport-container" style="flex:1; overflow-y:auto; background:#1e293b; border-radius:6px; padding:1.5rem; display:flex; flex-direction:column; align-items:center; position:relative">
+        <div id="pdf-page-canvas" style="background:#ffffff; color:#0f172a; width:595px; min-height:750px; border-radius:4px; box-shadow:0 8px 30px rgba(0,0,0,0.6); position:relative; padding:2.5rem 2rem; font-family:'Inter', sans-serif; font-size:0.85rem; line-height:1.6">
+          <div id="pdf-page-header" style="font-size:0.7rem; color:#64748b; border-bottom:1px solid #e2e8f0; padding-bottom:0.4rem; margin-bottom:1.5rem; display:flex; justify-content:space-between">
+            <span id="pdf-canvas-docname">Document</span>
+            <span id="pdf-canvas-pagenum">Page 1</span>
+          </div>
+          <div id="pdf-page-content" style="position:relative; z-index:1; color:#1e293b">
+            <!-- Simulated text lines -->
+          </div>
+          <!-- Visual Glowing Highlight Bounding Box -->
+          <div id="pdf-highlight-bbox" style="position:absolute; border:2px solid #0284c7; background:rgba(56, 189, 248, 0.25); box-shadow:0 0 15px rgba(56, 189, 248, 0.6); border-radius:4px; pointer-events:none; transition:all 0.3s ease; display:none; z-index:2">
+            <span style="position:absolute; top:-18px; left:0; background:#0284c7; color:#ffffff; font-size:0.65rem; font-weight:bold; padding:1px 5px; border-radius:3px; white-space:nowrap">Citation Target</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Snippet Details Footer -->
+      <div style="margin-top:0.75rem; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:0.6rem 0.8rem; font-size:0.75rem">
+        <div style="color:#94a3b8; margin-bottom:0.2rem; font-weight:600">Extracted Grounding Snippet:</div>
+        <div id="pdf-modal-snippet" style="color:#e2e8f0; font-family:'JetBrains Mono', monospace; line-height:1.4; max-height:4.5rem; overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="services/api.js"></script>
 </body>
 </html>

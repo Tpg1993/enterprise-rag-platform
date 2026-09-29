@@ -177,6 +177,13 @@ class ContextBuilder:
             context_blocks.append(f"{block_header}\n{chunk_content.strip()}")
             accumulated_tokens += chunk_tokens
 
+            bbox = payload.get("bbox") or hit.get("bbox")
+            page_dims = (
+                payload.get("page_dimensions")
+                or payload.get("metadata", {}).get("page_dimensions")
+                or hit.get("page_dimensions")
+            )
+
             citations.append(
                 Citation(
                     document_id=doc_id,
@@ -186,6 +193,8 @@ class ContextBuilder:
                     page_number=page,
                     section_title=section,
                     relevance_score=round(score, 4),
+                    bbox=bbox,
+                    page_dimensions=page_dims,
                 )
             )
 

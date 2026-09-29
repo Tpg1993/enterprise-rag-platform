@@ -11,6 +11,8 @@ class Citation(BaseModel):
     section: str | None = None
     snippet: str
     relevance_score: float = 0.0
+    bbox: list[float] | None = None
+    page_dimensions: dict[str, float] | None = None
 
 
 class ChatRequest(BaseModel):

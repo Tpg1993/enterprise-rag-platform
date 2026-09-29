@@ -1,7 +1,6 @@
 """Multimodal document parser for extracting text, structured tables, and visual figures."""
 
 import hashlib
-import io
 import logging
 from typing import Any
 
@@ -84,20 +83,32 @@ class MultimodalParser(DocumentParser):
             for page_num in range(total_pages):
                 page = doc.load_page(page_num)
                 page_display_num = page_num + 1
+                rect = page.rect
+                page_dims = {"width": round(rect.width, 2), "height": round(rect.height, 2)}
 
                 # 1. Extract regular text
                 page_text = page.get_text("text").strip()
                 if page_text:
                     full_text_list.append(page_text)
+                    default_bbox = [
+                        round(rect.x0 + 36, 2),
+                        round(rect.y0 + 36, 2),
+                        round(rect.x1 - 36, 2),
+                        round(rect.y1 - 36, 2),
+                    ]
                     chunks.append(
                         ParsedChunk(
                             chunk_index=chunk_idx,
                             content=page_text,
                             page_number=page_display_num,
+                            bbox=default_bbox,
+                            page_dimensions=page_dims,
                             metadata={
                                 "filename": filename,
                                 "page": page_display_num,
                                 "chunk_type": "text",
+                                "bbox": default_bbox,
+                                "page_dimensions": page_dims,
                             },
                         )
                     )
@@ -113,15 +124,19 @@ class MultimodalParser(DocumentParser):
                             if md_table:
                                 total_tables += 1
                                 table_content = (
-                                    f"[Structured Table: Table {t_idx + 1} on Page {page_display_num}]\n"
+                                    f"[Structured Table: Table {t_idx + 1} on "
+                                    f"Page {page_display_num}]\n"
                                     f"{md_table}"
                                 )
                                 full_text_list.append(table_content)
+                                tbl_bbox = [round(c, 2) for c in table.bbox]
                                 chunks.append(
                                     ParsedChunk(
                                         chunk_index=chunk_idx,
                                         content=table_content,
                                         page_number=page_display_num,
+                                        bbox=tbl_bbox,
+                                        page_dimensions=page_dims,
                                         metadata={
                                             "filename": filename,
                                             "page": page_display_num,
@@ -129,6 +144,8 @@ class MultimodalParser(DocumentParser):
                                             "table_index": t_idx + 1,
                                             "row_count": len(extracted_cells),
                                             "col_count": len(extracted_cells[0]),
+                                            "bbox": tbl_bbox,
+                                            "page_dimensions": page_dims,
                                         },
                                     )
                                 )
@@ -152,11 +169,28 @@ class MultimodalParser(DocumentParser):
                             f"Embedded visual artifact from {filename} page {page_display_num}."
                         )
                         full_text_list.append(image_caption)
+                        rects = page.get_image_rects(xref)
+                        if rects:
+                            img_bbox = [
+                                round(rects[0].x0, 2),
+                                round(rects[0].y0, 2),
+                                round(rects[0].x1, 2),
+                                round(rects[0].y1, 2),
+                            ]
+                        else:
+                            img_bbox = [
+                                round(rect.x0 + 72, 2),
+                                round(rect.y0 + 72, 2),
+                                round(rect.x1 - 72, 2),
+                                round(rect.y1 - 72, 2),
+                            ]
                         chunks.append(
                             ParsedChunk(
                                 chunk_index=chunk_idx,
                                 content=image_caption,
                                 page_number=page_display_num,
+                                bbox=img_bbox,
+                                page_dimensions=page_dims,
                                 metadata={
                                     "filename": filename,
                                     "page": page_display_num,
@@ -165,6 +199,8 @@ class MultimodalParser(DocumentParser):
                                     "xref": xref,
                                     "width": width,
                                     "height": height,
+                                    "bbox": img_bbox,
+                                    "page_dimensions": page_dims,
                                 },
                             )
                         )
@@ -232,12 +268,15 @@ class MultimodalParser(DocumentParser):
             chunk_index=0,
             content=content,
             page_number=1,
+            bbox=[0.0, 0.0, float(width), float(height)],
+            page_dimensions={"width": float(width), "height": float(height)},
             metadata={
                 "filename": filename,
                 "page": 1,
                 "chunk_type": "image_figure",
                 "width": width,
                 "height": height,
+                "aspect_ratio": aspect_ratio,
                 "format": fmt,
             },
         )

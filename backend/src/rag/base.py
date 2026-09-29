@@ -14,6 +14,8 @@ class Citation(BaseModel):
     page_number: int | None = None
     section_title: str | None = None
     relevance_score: float = 0.0
+    bbox: list[float] | None = None
+    page_dimensions: dict[str, float] | None = None
 
 
 class RAGRequest(BaseModel):

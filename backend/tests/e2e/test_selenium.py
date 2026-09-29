@@ -136,11 +136,17 @@ def test_selenium_ui_navigation_and_elements():
             refresh_audit_btn = driver.find_element(By.ID, "refresh-audit-btn")
             assert refresh_audit_btn is not None
 
-        # 6. Assert Phase 28 Modals (Re-index and Trace Span Inspector)
+        # 6. Assert Phase 28 & 34 Modals (Re-index, Trace Inspector, and PDF Citation Viewer)
         reindex_modal = driver.find_element(By.ID, "reindex-modal")
         assert reindex_modal is not None
         trace_modal = driver.find_element(By.ID, "trace-modal")
         assert trace_modal is not None
+        citation_modal = driver.find_element(By.ID, "citation-pdf-modal")
+        assert citation_modal is not None
+        pdf_canvas = driver.find_element(By.ID, "pdf-page-canvas")
+        assert pdf_canvas is not None
+        bbox_highlight = driver.find_element(By.ID, "pdf-highlight-bbox")
+        assert bbox_highlight is not None
 
         # 7. Test Chat query execution with streaming and live ITL tracking
         chat_btn = next(

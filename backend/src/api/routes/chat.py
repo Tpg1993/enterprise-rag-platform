@@ -235,6 +235,8 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             section=c.section_title or None,
             snippet=c.content_snippet,
             relevance_score=c.relevance_score,
+            bbox=c.bbox,
+            page_dimensions=c.page_dimensions,
         )
         for c in rag_res.citations
     ]
@@ -543,6 +545,8 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
                 section=c.section_title or None,
                 snippet=c.content_snippet,
                 relevance_score=c.relevance_score,
+                bbox=c.bbox,
+                page_dimensions=c.page_dimensions,
             )
             for c in rag_res.citations
         ]

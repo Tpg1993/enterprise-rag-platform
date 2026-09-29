@@ -132,6 +132,9 @@ Executes a query against any of the 14 RAG strategies. Automatically persists co
       "source": "enterprise_benchmark_report.pdf",
       "section_title": "Table 1 (Tabular Data)",
       "relevance_score": 0.9640,
+      "page": 1,
+      "bbox": [54.0, 110.0, 540.0, 210.0],
+      "page_dimensions": {"width": 595.0, "height": 842.0},
       "content_snippet": "| Benchmark Metric | Reported Value | Target Threshold |\n| ARR Revenue | $52.4 Million | $50.0 Million |"
     }
   ],
@@ -476,4 +479,36 @@ Resets daily and monthly token and dollar budget counters for the specified tena
 - `X-RateLimit-Remaining`: Remaining request capacity in sliding window.
 - `Retry-After`: Seconds to wait before submitting requests.
 - `X-Budget-Exceeded`: `"true"` if daily/monthly token or dollar budget is exhausted.
+
+---
+
+## 12. Visual Document Page Layout & Citation Preview (Phase 34)
+
+### `GET /documents/{document_id}/preview`
+Retrieves document page visual layout, dimensions, text blocks, and geometric bounding boxes for interactive citation grounding.
+
+**Query Parameters**:
+- `page`: Page number (default: `1`).
+- `tenant_id`: Tenant identifier (default: `default_tenant`).
+
+**Response (`200 OK`)**:
+```json
+{
+  "document_id": "doc_arch_spec",
+  "filename": "enterprise_benchmark_report.pdf",
+  "page_number": 1,
+  "page_dimensions": {
+    "width": 595.0,
+    "height": 842.0
+  },
+  "blocks": [
+    {
+      "content": "Enterprise Benchmark & Architecture Specification Document",
+      "bbox": [54.0, 72.0, 540.0, 108.0],
+      "chunk_id": "doc_arch_spec_0"
+    }
+  ],
+  "total_pages": 12
+}
+```
 

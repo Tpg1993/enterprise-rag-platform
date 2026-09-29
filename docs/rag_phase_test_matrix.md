@@ -502,5 +502,25 @@ This matrix documents the features, architectural coverage, and exact step-by-st
     uv run pytest backend/tests/e2e/test_selenium.py -v
     ```
 
+---
+
+## Phase 34: Visual Bounding-Box Coordinates & Interactive PDF Citation Viewer
+
+- **Features & Deliverables**: Block & table bounding-box extraction (`backend/src/documents/pdf_parser.py`, `multimodal_parser.py`), visual citation schemas (`backend/src/documents/base.py`, `backend/src/rag/base.py`, `backend/src/api/schemas.py`), page preview API (`GET /api/v1/documents/{document_id}/preview`), `#citation-pdf-modal` interactive viewer with glowing `#pdf-highlight-bbox` overlay (`frontend/index.html`, `frontend/services/api.js`).
+- **What It Covers**: Precise geometric block coordinate tracking, page width/height scaling, interactive click-to-inspect citations in chat UI, document layout preview.
+- **How To Test It**:
+  - **Automated Unit Tests**:
+    ```bash
+    uv run pytest backend/tests/unit/test_visual_citations.py -v
+    ```
+  - **Automated Integration Tests**:
+    ```bash
+    uv run pytest backend/tests/integration/test_visual_citations_integration.py -v
+    ```
+  - **Selenium WebDriver E2E Test**:
+    ```bash
+    uv run pytest backend/tests/e2e/test_selenium.py -v
+    ```
+
 
 
