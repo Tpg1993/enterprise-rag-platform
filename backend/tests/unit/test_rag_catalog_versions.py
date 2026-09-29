@@ -38,7 +38,7 @@ async def test_get_rag_versions_manifest():
     res = await get_rag_versions()
     assert isinstance(res, RAGVersionResponse)
     assert res.application["name"] == "enterprise-rag-platform"
-    assert res.application["version"] == "3.4.0"
+    assert res.application["version"] == "4.0.0"
 
     # Validate models metadata
     assert res.models["llm"]["model"] == "sarvam-105b"

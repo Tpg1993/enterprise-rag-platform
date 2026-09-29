@@ -32,6 +32,6 @@ async def test_get_rag_versions_endpoint():
         res = await client.get("/api/v1/rag/versions")
         assert res.status_code == 200
         data = res.json()
-        assert data["application"]["version"] == "3.4.0"
+        assert data["application"]["version"] == "4.0.0"
         assert data["models"]["llm"]["model"] == "sarvam-105b"
         assert "hybrid_graph_agentic" in data["rag"]
