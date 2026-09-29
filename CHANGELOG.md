@@ -5,6 +5,30 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-09-29
+
+### Added
+- **Phase 35 Complete (Autonomous Synthetic QA Dataset Generator & Tenant Self-Benchmarking)**:
+  - **Autonomous Synthetic QA Dataset Generator (`backend/src/evaluation/synthetic_generator.py`)**:
+    - Implemented `SyntheticQAGenerator` and `SyntheticQAPair` extracting candidate factual assertions, numerical entities, and key concepts directly from ingested tenant documents.
+    - Generates 4 diverse question-answer archetypes: `factoid` (direct factual queries), `multi_hop` (cross-chunk synthetic reasoning), `comparative` (standards vs metric differences), and `unanswerable` / false-premise (robust hallucination tripwires).
+    - Preserves exact source document, chunk ID, and page number anchors with ground-truth target answers.
+  - **Tenant Self-Benchmarking Engine (`backend/src/evaluation/tenant_benchmark.py`)**:
+    - Implemented `TenantBenchmarkRunner`, `StrategyBenchmarkScore`, and `TenantBenchmarkReport`.
+    - Automatically executes comparative evaluations across user-selected RAG strategies (`Basic`, `Hybrid`, `MMR`, `Self-RAG`, `Adaptive`, etc.) against tenant synthetic golden datasets.
+    - Aggregates multi-dimensional radar metrics: context precision, context recall, faithfulness, answer relevancy, hit rate, latency (ms), and cost ($).
+    - Computes composite weighted quality-latency scores and ranks strategies in a comprehensive tenant leaderboard with strengths profiling.
+  - **API Endpoints (`backend/src/api/routes/evaluations.py`)**:
+    - `POST /api/v1/evaluations/generate-synthetic`: Autonomous dataset generation with configurable target sample counts and tenant scoping.
+    - `POST /api/v1/evaluations/tenant-benchmark`: Multi-strategy comparative benchmark execution returning leaderboard and recommended strategy.
+  - **Enterprise UI Dashboard (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added `#evaluations-tab` with interactive Golden Dataset Generator controls, strategy leaderboard banner with rank badges and radar scores, synthetic QA preview cards, and historical run tracking.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_synthetic_qa.py` (5/5 passing).
+    - Integration Tests: `backend/tests/integration/test_synthetic_qa_integration.py` (3/3 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing).
+    - Full Platform Test Suite: **191 / 191 tests passing**.
+
 ## [4.3.0] - 2026-09-29
 
 ### Added

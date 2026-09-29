@@ -473,6 +473,112 @@
           </div>
         </div>
 
+        <!-- Evaluations & Synthetic Benchmarking Tab (Phase 35) -->
+        <div id="evaluations-tab" class="tab-content" style="display: none;">
+          <div class="doc-management-container">
+            <h2>📈 Autonomous Synthetic QA & Tenant Self-Benchmarking</h2>
+            <p class="subtitle">Generate high-fidelity golden evaluation pairs directly from tenant documents and run automated multi-strategy benchmarks.</p>
+
+            <div class="upload-card" style="margin-bottom:1.5rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem">
+                <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap">
+                  <div>
+                    <label style="font-size:0.8rem; color:#cbd5e1; display:block; margin-bottom:0.25rem">Target Tenant:</label>
+                    <select id="synthetic-tenant-select" class="strategy-dropdown">
+                      <option value="default_tenant" selected>default_tenant</option>
+                      <option value="premium_tenant">premium_tenant</option>
+                      <option value="benchmark_tenant">benchmark_tenant</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="font-size:0.8rem; color:#cbd5e1; display:block; margin-bottom:0.25rem">Golden Samples:</label>
+                    <select id="synthetic-count-select" class="strategy-dropdown">
+                      <option value="3">3 QA Pairs</option>
+                      <option value="5" selected>5 QA Pairs</option>
+                      <option value="10">10 QA Pairs</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:flex; gap:0.6rem; align-items:flex-end">
+                  <button id="btn-generate-synthetic" class="primary-btn" style="background:#0284c7; padding:0.55rem 1rem">⚡ Generate Golden QA Dataset</button>
+                  <button id="btn-run-tenant-benchmark" class="primary-btn" style="background:#8b5cf6; padding:0.55rem 1rem">🏆 Run Self-Benchmark</button>
+                </div>
+              </div>
+              <div id="eval-action-status" style="margin-top:0.75rem; font-size:0.85rem"></div>
+            </div>
+
+            <!-- Benchmark Leaderboard Banner -->
+            <div id="benchmark-results-card" style="display:none; background:#1e293b; border:1px solid #6366f1; border-radius:8px; padding:1.2rem; margin-bottom:1.5rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem">
+                <h3 style="color:#c084fc; margin:0; display:flex; align-items:center; gap:0.4rem">
+                  <span>🏆</span> Tenant Strategy Leaderboard
+                </h3>
+                <span id="benchmark-recommended-badge" style="background:#064e3b; border:1px solid #10b981; color:#a7f3d0; padding:0.25rem 0.6rem; border-radius:4px; font-size:0.75rem; font-weight:bold"></span>
+              </div>
+              <p id="benchmark-summary-text" style="font-size:0.85rem; color:#cbd5e1; margin-bottom:1rem"></p>
+
+              <table class="doc-table" style="width:100%; border-collapse:collapse">
+                <thead>
+                  <tr style="border-bottom:2px solid #334155; text-align:left; font-size:0.8rem">
+                    <th style="padding:0.6rem">Rank</th>
+                    <th>Strategy</th>
+                    <th>Overall Score</th>
+                    <th>Faithfulness</th>
+                    <th>Context Recall</th>
+                    <th>Relevancy</th>
+                    <th>Avg Latency</th>
+                    <th>Avg Cost</th>
+                    <th>Key Strengths</th>
+                  </tr>
+                </thead>
+                <tbody id="tenant-benchmark-table-body">
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Synthetic Golden QA Dataset Preview -->
+            <div style="margin-top:1.5rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem">
+                <h3 style="color:#f8fafc; margin:0; display:flex; align-items:center; gap:0.4rem">
+                  <span>🧬</span> Generated Synthetic QA Evaluation Pairs
+                </h3>
+                <span id="synthetic-count-badge" style="font-size:0.75rem; color:#94a3b8">0 pairs active</span>
+              </div>
+              <div id="synthetic-pairs-container" style="display:flex; flex-direction:column; gap:0.6rem">
+                <div style="padding:1.5rem; text-align:center; color:#94a3b8; background:#1e293b; border:1px solid #334155; border-radius:8px">
+                  Click '⚡ Generate Golden QA Dataset' to autonomously extract factoid, multi-hop, comparative, and unanswerable evaluation pairs from tenant documents.
+                </div>
+              </div>
+            </div>
+
+            <!-- Historical RAGAS / DeepEval Runs -->
+            <div style="margin-top:2rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem">
+                <h3 style="color:#f8fafc; margin:0">📜 Persistent Evaluation History</h3>
+                <button id="refresh-eval-history-btn" class="secondary-btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:#334155; border:1px solid #475569; color:#f8fafc; border-radius:4px; cursor:pointer">🔄 Refresh History</button>
+              </div>
+              <table class="doc-table" style="width:100%; border-collapse:collapse">
+                <thead>
+                  <tr style="border-bottom:2px solid #334155; text-align:left; font-size:0.8rem">
+                    <th style="padding:0.6rem">Timestamp</th>
+                    <th>Strategy</th>
+                    <th>Query</th>
+                    <th>Overall Score</th>
+                    <th>Faithfulness</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>Latency</th>
+                    <th>Cost</th>
+                  </tr>
+                </thead>
+                <tbody id="evaluations-table-body">
+                  <tr><td colspan="9" style="padding:1rem; text-align:center; color:#94a3b8">Loading evaluation history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Governance & RBAC Tab -->
         <div id="admin-tab" class="tab-content" style="display: none;">
           <div class="doc-management-container">

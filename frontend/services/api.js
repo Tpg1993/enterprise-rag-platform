@@ -1276,6 +1276,152 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.id === 'citation-pdf-modal') closeCitationPdfModal();
   });
 
+  // Phase 35: Autonomous Synthetic QA & Tenant Self-Benchmarking
+  async function loadEvaluationHistory() {
+    const tbody = document.getElementById('evaluations-table-body');
+    if (!tbody) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/evaluations/history?tenant_id=default_tenant&limit=25`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const runs = data.history || [];
+      if (runs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="padding:1rem; text-align:center; color:#94a3b8">No evaluation runs recorded yet. Run queries or self-benchmarks to populate metrics.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = runs.map(r => {
+        const timeStr = r.created_at ? new Date(r.created_at * 1000).toLocaleTimeString() : 'Recent';
+        return `
+          <tr style="border-bottom:1px solid #334155; font-size:0.8rem">
+            <td style="color:#94a3b8; padding:0.5rem">${timeStr}</td>
+            <td><strong style="color:#f8fafc">${r.strategy}</strong></td>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#cbd5e1" title="${r.query}">${r.query}</td>
+            <td><strong style="color:#10b981">${(r.overall_score || 0).toFixed(4)}</strong></td>
+            <td>${(r.faithfulness || 0).toFixed(3)}</td>
+            <td>${(r.context_precision || 0).toFixed(3)}</td>
+            <td>${(r.context_recall || 0).toFixed(3)}</td>
+            <td>${(r.latency_ms || 0).toFixed(1)}ms</td>
+            <td>$${(r.total_cost_usd || 0).toFixed(4)}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      console.warn('Error loading eval history:', err);
+    }
+  }
+
+  document.getElementById('btn-generate-synthetic')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-generate-synthetic');
+    const status = document.getElementById('eval-action-status');
+    const container = document.getElementById('synthetic-pairs-container');
+    const badge = document.getElementById('synthetic-count-badge');
+    const tenantId = document.getElementById('synthetic-tenant-select')?.value || 'default_tenant';
+    const count = parseInt(document.getElementById('synthetic-count-select')?.value || '5');
+
+    if (btn) { btn.disabled = true; btn.innerText = 'Extracting & Generating...'; }
+    if (status) status.innerHTML = `<span style="color:#38bdf8">⚡ Extracting ground-truth statements and synthesizing diverse QA pairs for ${tenantId}...</span>`;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/evaluations/generate-synthetic`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant_id: tenantId, count: count }),
+      });
+      if (!res.ok) throw new Error(`Generation failed: ${res.statusText}`);
+      const data = await res.json();
+      const samples = data.samples || [];
+
+      if (status) status.innerHTML = `<span style="color:#10b981">✓ Generated ${samples.length} high-fidelity golden evaluation pairs successfully!</span>`;
+      if (badge) badge.innerText = `${samples.length} pairs active`;
+
+      const typeColors = {
+        factoid: { bg: '#082f49', text: '#38bdf8', label: '🔵 Factoid' },
+        multi_hop: { bg: '#2e1065', text: '#c084fc', label: '🟣 Multi-Hop' },
+        comparative: { bg: '#451a03', text: '#fde047', label: '🟡 Comparative' },
+        unanswerable: { bg: '#450a0a', text: '#fca5a5', label: '🔴 False-Premise' },
+      };
+
+      container.innerHTML = samples.map((s, idx) => {
+        const style = typeColors[s.question_type] || typeColors.factoid;
+        return `
+          <div style="background:#1e293b; border:1px solid #334155; border-radius:6px; padding:0.8rem 1rem">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem">
+              <span style="background:${style.bg}; color:${style.text}; font-size:0.7rem; font-weight:bold; padding:0.15rem 0.5rem; border-radius:3px">${style.label}</span>
+              <span style="font-size:0.75rem; color:#94a3b8">Source: <strong style="color:#f8fafc">${s.source_document || 'Doc'}</strong> (Page ${s.page_number || 1})</span>
+            </div>
+            <div style="color:#f8fafc; font-weight:600; font-size:0.85rem; margin-bottom:0.35rem">Q${idx + 1}: ${s.question}</div>
+            <div style="font-size:0.8rem; color:#cbd5e1; background:#0f172a; padding:0.5rem 0.75rem; border-radius:4px; border-left:3px solid #38bdf8">
+              <strong style="color:#38bdf8">Ground Truth:</strong> ${s.ground_truth_answer}
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      if (status) status.innerHTML = `<span style="color:#ef4444">Error: ${err.message}</span>`;
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerText = '⚡ Generate Golden QA Dataset'; }
+    }
+  });
+
+  document.getElementById('btn-run-tenant-benchmark')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-run-tenant-benchmark');
+    const status = document.getElementById('eval-action-status');
+    const resultsCard = document.getElementById('benchmark-results-card');
+    const tbody = document.getElementById('tenant-benchmark-table-body');
+    const badge = document.getElementById('benchmark-recommended-badge');
+    const summary = document.getElementById('benchmark-summary-text');
+    const tenantId = document.getElementById('synthetic-tenant-select')?.value || 'default_tenant';
+    const count = parseInt(document.getElementById('synthetic-count-select')?.value || '4');
+
+    if (btn) { btn.disabled = true; btn.innerText = 'Benchmarking...'; }
+    if (status) status.innerHTML = `<span style="color:#8b5cf6">⚡ Running comparative self-benchmark across RAG strategies for ${tenantId}...</span>`;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/evaluations/tenant-benchmark`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenant_id: tenantId,
+          strategies: ['Basic', 'Hybrid', 'MMR', 'Reranked', 'Hybrid-Graph-Agentic'],
+          num_samples: count,
+        }),
+      });
+      if (!res.ok) throw new Error(`Benchmark failed: ${res.statusText}`);
+      const data = await res.json();
+
+      if (status) status.innerHTML = `<span style="color:#10b981">✓ Benchmark complete! Leaderboard updated.</span>`;
+      if (badge) badge.innerText = `Top Strategy: ${data.recommended_strategy}`;
+      if (summary) summary.innerText = data.summary;
+
+      tbody.innerHTML = (data.leaderboard || []).map(row => {
+        const medal = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `#${row.rank}`;
+        const strengthsHtml = (row.strengths || []).map(s => `<span style="background:#0f172a; border:1px solid #334155; color:#a5f3fc; padding:0.1rem 0.35rem; border-radius:3px; font-size:0.7rem; margin-right:0.25rem">${s}</span>`).join('');
+        return `
+          <tr style="border-bottom:1px solid #334155; font-size:0.8rem">
+            <td style="font-weight:bold; padding:0.6rem">${medal}</td>
+            <td><strong style="color:#f8fafc">${row.strategy}</strong></td>
+            <td><strong style="color:#10b981; font-size:0.85rem">${row.overall_score.toFixed(4)}</strong></td>
+            <td>${row.faithfulness.toFixed(3)}</td>
+            <td>${row.context_recall.toFixed(3)}</td>
+            <td>${row.answer_relevancy.toFixed(3)}</td>
+            <td>${row.avg_latency_ms.toFixed(1)}ms</td>
+            <td>$${row.avg_cost_usd.toFixed(4)}</td>
+            <td>${strengthsHtml}</td>
+          </tr>
+        `;
+      }).join('');
+
+      if (resultsCard) resultsCard.style.display = 'block';
+      loadEvaluationHistory();
+    } catch (err) {
+      if (status) status.innerHTML = `<span style="color:#ef4444">Benchmark Error: ${err.message}</span>`;
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerText = '🏆 Run Self-Benchmark'; }
+    }
+  });
+
+  document.getElementById('refresh-eval-history-btn')?.addEventListener('click', loadEvaluationHistory);
+
   // Initial loads
   loadUsersTable();
   loadRolesTable();

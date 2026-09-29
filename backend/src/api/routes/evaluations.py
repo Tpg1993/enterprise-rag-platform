@@ -1,6 +1,5 @@
 """FastAPI routes for Phase 9 RAGAS and DeepEval Evaluation Suite."""
 
-from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from src.evaluation.engine import RAGEvaluationEngine
@@ -34,7 +33,9 @@ class EvaluationResponse(BaseModel):
 
 @router.post("/evaluations/run", response_model=EvaluationResponse)
 async def run_evaluation(payload: EvaluationRequest) -> EvaluationResponse:
-    """Executes a full evaluation run on a target RAG strategy calculating Quality, Latency, and Cost."""
+    """Executes a full evaluation run on a target RAG strategy calculating
+    Quality, Latency, and Cost.
+    """
     strategy = get_rag_strategy(payload.rag_strategy)
     rag_req = RAGRequest(
         query=payload.query,
@@ -104,4 +105,46 @@ async def get_evaluation_history(
         "total_runs": len(runs),
         "history": runs,
     }
+
+
+class GenerateSyntheticRequest(BaseModel):
+    tenant_id: str = "default_tenant"
+    count: int = Field(default=5, ge=1, le=25)
+
+
+@router.post("/evaluations/generate-synthetic")
+async def generate_synthetic_dataset(payload: GenerateSyntheticRequest):
+    """Generates an autonomous synthetic QA evaluation dataset from tenant documents."""
+    from src.evaluation.synthetic_generator import SyntheticQAGenerator
+
+    gen = SyntheticQAGenerator()
+    pairs = gen.generate_for_tenant(tenant_id=payload.tenant_id, target_count=payload.count)
+    return {
+        "status": "SUCCESS",
+        "tenant_id": payload.tenant_id,
+        "total_generated": len(pairs),
+        "samples": [p.model_dump() for p in pairs],
+    }
+
+
+class TenantBenchmarkRequest(BaseModel):
+    tenant_id: str = "default_tenant"
+    strategies: list[str] = Field(default_factory=lambda: ["Basic", "Hybrid", "MMR"])
+    num_samples: int = Field(default=4, ge=1, le=10)
+
+
+@router.post("/evaluations/tenant-benchmark")
+async def run_tenant_benchmark(payload: TenantBenchmarkRequest):
+    """Executes multi-strategy benchmark against tenant documents and returns ranked leaderboard.
+    """
+    from src.evaluation.tenant_benchmark import TenantBenchmarkRunner
+
+    runner = TenantBenchmarkRunner()
+    report = await runner.run_benchmark(
+        tenant_id=payload.tenant_id,
+        strategies=payload.strategies,
+        num_samples=payload.num_samples,
+    )
+    return report.model_dump()
+
 

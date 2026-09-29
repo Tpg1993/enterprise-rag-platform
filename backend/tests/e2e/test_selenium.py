@@ -184,6 +184,32 @@ def test_selenium_ui_navigation_and_elements():
         messages = driver.find_elements(By.CLASS_NAME, "message")
         assert len(messages) >= 2
 
+        # 8. Test Evaluations Tab, Synthetic QA Generator & Tenant Self-Benchmarking (Phase 35)
+        eval_btn = next(
+            (
+                btn
+                for btn in nav_items
+                if "Evaluations" in (btn.get_attribute("textContent") or btn.text)
+            ),
+            None,
+        )
+        if eval_btn:
+            driver.execute_script("arguments[0].click();", eval_btn)
+            time.sleep(0.5)
+
+        eval_tab = driver.find_element(By.ID, "evaluations-tab")
+        assert eval_tab is not None
+        gen_btn = driver.find_element(By.ID, "btn-generate-synthetic")
+        assert gen_btn is not None
+        bench_btn = driver.find_element(By.ID, "btn-run-tenant-benchmark")
+        assert bench_btn is not None
+
+        # Trigger autonomous synthetic generation
+        driver.execute_script("arguments[0].click();", gen_btn)
+        time.sleep(1.5)
+        synth_container = driver.find_element(By.ID, "synthetic-pairs-container")
+        assert synth_container is not None
+
     finally:
         if driver:
             driver.quit()
