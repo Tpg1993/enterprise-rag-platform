@@ -26,6 +26,15 @@
             <option value="viewer@enterprise.ai">viewer@enterprise.ai (VIEWER)</option>
           </select>
         </div>
+        <!-- Live Tenant Financial Budget & Quota Bar (Phase 32) -->
+        <div id="budget-bar-container" title="Daily Financial Budget & Token Quota Consumption" style="display:flex; align-items:center; gap:0.5rem; background:#0f172a; padding:0.25rem 0.65rem; border-radius:6px; border:1px solid #334155; font-size:0.75rem;">
+          <span style="color:#38bdf8; font-weight:600">💳 Budget:</span>
+          <span id="budget-spend-text" style="color:#f8fafc">$0.00 / $5.00</span>
+          <div style="width:70px; height:8px; background:#334155; border-radius:4px; overflow:hidden; position:relative;">
+            <div id="budget-progress-fill" style="width:0%; height:100%; background:#10b981; transition:width 0.3s ease;"></div>
+          </div>
+          <span id="budget-token-pct" style="color:#94a3b8; font-family:monospace; font-weight:600">0%</span>
+        </div>
         <span class="status-indicator online"></span>
         <span id="env-tag">Development (Live Sarvam API)</span>
       </div>

@@ -3,7 +3,7 @@ import json
 import time
 import uuid
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from src.api.schemas import ChatRequest, ChatResponse
@@ -24,6 +24,40 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
     correlation_id = getattr(request.state, "correlation_id", str(uuid.uuid4()))
 
     start_time = time.perf_counter()
+
+    # Rate Limiting & Financial Budget Guardrails (Phase 32)
+    from src.security.quotas import TenantQuotaService
+
+    quota_svc = TenantQuotaService.get_instance()
+    allowed, remaining_rpm, retry_after = quota_svc.check_rate_limit(payload.tenant_id)
+    if not allowed:
+        t_limit = quota_svc.get_tenant_config(payload.tenant_id).rate_limit_rpm
+        detail_msg = (
+            f"Rate limit exceeded for tenant '{payload.tenant_id}'. "
+            f"Retry after {retry_after}s."
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=detail_msg,
+            headers={
+                "X-RateLimit-Limit": str(t_limit),
+                "X-RateLimit-Remaining": "0",
+                "Retry-After": str(int(retry_after)),
+            },
+        )
+
+    budget_ok, budget_reason, _ = quota_svc.check_budget(
+        payload.tenant_id, estimated_tokens=500
+    )
+    if not budget_ok:
+        raise HTTPException(
+            status_code=429,
+            detail=budget_reason or "Tenant budget quota exceeded.",
+            headers={
+                "X-RateLimit-Remaining": str(remaining_rpm),
+                "X-Budget-Exceeded": "true",
+            },
+        )
 
     from src.security.opa_engine import OPAEvalRequest, get_opa_engine
     from src.storage.history import get_history_store
@@ -257,6 +291,13 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         cost_usd=rag_res.estimated_cost_usd,
         ttft_seconds=(elapsed_ms * 0.25) / 1000.0,
     )
+
+    quota_svc.record_usage(
+        tenant_id=payload.tenant_id,
+        prompt_tokens=rag_res.prompt_tokens,
+        completion_tokens=rag_res.completion_tokens,
+        cost_usd=rag_res.estimated_cost_usd,
+    )
     strat_name = rag_res.rag_strategy
     agentic_keywords = (
         "ADAPTIVE", "CORRECTIVE", "SELF-RAG", "REACT", "GRAPH", "SQL", "AGENTIC"
@@ -299,6 +340,38 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
     start_time = time.perf_counter()
 
     async def event_generator():
+        # Rate Limiting & Financial Budget Guardrails (Phase 32)
+        from src.security.quotas import TenantQuotaService
+
+        quota_svc = TenantQuotaService.get_instance()
+        allowed, remaining_rpm, retry_after = quota_svc.check_rate_limit(payload.tenant_id)
+        if not allowed:
+            err_msg = (
+                f"Rate limit exceeded for tenant '{payload.tenant_id}'. "
+                f"Retry after {retry_after}s."
+            )
+            event_data = {
+                "type": "error",
+                "error": err_msg,
+                "security_verdict": "BLOCKED",
+                "done": True,
+            }
+            yield f"data: {json.dumps(event_data)}\n\n"
+            return
+
+        budget_ok, budget_reason, _ = quota_svc.check_budget(
+            payload.tenant_id, estimated_tokens=500
+        )
+        if not budget_ok:
+            event_data = {
+                "type": "error",
+                "error": budget_reason or "Tenant budget quota exceeded.",
+                "security_verdict": "BLOCKED",
+                "done": True,
+            }
+            yield f"data: {json.dumps(event_data)}\n\n"
+            return
+
         # 1. OPA Security Evaluation
         from src.security.opa_engine import OPAEvalRequest, get_opa_engine
         from src.storage.history import get_history_store
@@ -563,6 +636,13 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             completion_tokens=rag_res.completion_tokens,
             cost_usd=rag_res.estimated_cost_usd,
             ttft_seconds=ttft_ms / 1000.0,
+        )
+
+        quota_svc.record_usage(
+            tenant_id=payload.tenant_id,
+            prompt_tokens=rag_res.prompt_tokens,
+            completion_tokens=rag_res.completion_tokens,
+            cost_usd=rag_res.estimated_cost_usd,
         )
 
         strat_name = rag_res.rag_strategy

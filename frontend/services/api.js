@@ -63,6 +63,32 @@ async function deleteDocumentById(docId) {
   return await response.json();
 }
 
+async function updateTenantQuotaBar(tenantId = 'default_tenant') {
+  try {
+    const res = await fetch(`${API_BASE_URL}/tenants/${tenantId}/quota`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const spendText = document.getElementById('budget-spend-text');
+    const fill = document.getElementById('budget-progress-fill');
+    const pct = document.getElementById('budget-token-pct');
+    if (spendText && fill && pct) {
+      spendText.textContent = `$${data.daily_spend_usd.toFixed(2)} / $${data.daily_spend_limit_usd.toFixed(2)}`;
+      const percentage = Math.min(100, Math.max(data.daily_token_percent, data.daily_spend_percent));
+      fill.style.width = `${percentage}%`;
+      pct.textContent = `${percentage.toFixed(0)}%`;
+      if (percentage >= 90) {
+        fill.style.background = '#ef4444';
+      } else if (percentage >= 70) {
+        fill.style.background = '#f59e0b';
+      } else {
+        fill.style.background = '#10b981';
+      }
+    }
+  } catch (err) {
+    console.warn('Quota bar update error:', err);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Check health and update status indicator
   fetch(`${API_BASE_URL}/health`)
@@ -255,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${opaBadge}
                 `;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
+                updateTenantQuotaBar();
               }
             }
           }
@@ -325,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
           chatMessages.appendChild(aiDiv);
           chatMessages.scrollTop = chatMessages.scrollHeight;
+          updateTenantQuotaBar();
         } catch (err) {
           loadingDiv.remove();
           const errDiv = document.createElement('div');
@@ -1163,5 +1191,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadRolesTable();
   loadEvaluationHistory();
   loadAuditTable();
+  updateTenantQuotaBar();
 });
 

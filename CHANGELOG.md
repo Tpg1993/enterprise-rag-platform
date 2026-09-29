@@ -5,6 +5,28 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-09-29
+
+### Added
+- **Phase 32 Complete (Tenant Quotas, Rate Limiting & Live Financial Budget Bar)**:
+  - **Multi-Tenant Quota & Budget Configuration (`backend/config/tenants.yaml`)**:
+    - Configured per-tenant and default limits for daily tokens, monthly tokens, daily spend ($), monthly spend ($), and sliding-window rate limits (RPM).
+  - **Tenant Quota & Budget Service (`backend/src/security/quotas.py`)**:
+    - Implemented `TenantQuotaService` with sliding-window request-per-minute rate limiting, rolling daily/monthly token accumulators, and financial spend caps.
+    - Added automatic midnight/month rollover and administrator usage reset endpoints.
+  - **API Rate Limiting & Budget Interception (`backend/src/api/routes/chat.py` & `quotas.py`)**:
+    - Real-time pre-execution rate limit validation returning HTTP 429 with `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `Retry-After` headers.
+    - Real-time financial budget check rejecting requests with HTTP 429 when daily or monthly dollar budgets are exhausted.
+    - Added `GET /api/v1/tenants/{tenant_id}/quota` and `POST /api/v1/tenants/{tenant_id}/quota/reset`.
+  - **Live UI Financial Budget Bar (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added `#budget-bar-container` in top navigation bar displaying real-time `$ spend / $ budget`, dynamic progress fill bar with color grading (Green -> Amber -> Red), and percentage consumed.
+    - Integrated automatic budget bar updates upon chat and stream response completions.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_tenant_quotas.py` (6/6 passing).
+    - Integration Tests: `backend/tests/integration/test_quotas_integration.py` (4/4 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` verifying DOM budget bar elements (100% passing).
+    - Full Platform Test Suite: **176 / 176 tests passing**.
+
 ## [4.0.0] - 2026-09-28
 
 ### Added

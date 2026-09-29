@@ -1,0 +1,44 @@
+default_quota:
+  daily_token_limit: 500000
+  monthly_token_limit: 10000000
+  daily_spend_limit_usd: 5.00
+  monthly_spend_limit_usd: 50.00
+  rate_limit_rpm: 60
+  max_context_tokens: 4096
+
+tenants:
+  default_tenant:
+    name: "Default Enterprise Tenant"
+    tier: "standard"
+    daily_token_limit: 500000
+    monthly_token_limit: 10000000
+    daily_spend_limit_usd: 5.00
+    monthly_spend_limit_usd: 50.00
+    rate_limit_rpm: 60
+
+  premium_tenant:
+    name: "Premium Enterprise Tenant"
+    tier: "enterprise"
+    daily_token_limit: 2000000
+    monthly_token_limit: 50000000
+    daily_spend_limit_usd: 25.00
+    monthly_spend_limit_usd: 250.00
+    rate_limit_rpm: 180
+
+  benchmark_tenant:
+    name: "Automated Evaluation & Benchmarks"
+    tier: "benchmark"
+    daily_token_limit: 5000000
+    monthly_token_limit: 100000000
+    daily_spend_limit_usd: 50.00
+    monthly_spend_limit_usd: 500.00
+    rate_limit_rpm: 300
+
+  restricted_tenant:
+    name: "Sandbox Restricted Tenant"
+    tier: "sandbox"
+    daily_token_limit: 1000
+    monthly_token_limit: 5000
+    daily_spend_limit_usd: 0.01
+    monthly_spend_limit_usd: 0.05
+    rate_limit_rpm: 5

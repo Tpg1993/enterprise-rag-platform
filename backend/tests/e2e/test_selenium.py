@@ -79,11 +79,17 @@ def test_selenium_ui_navigation_and_elements():
         header_text = driver.find_element(By.TAG_NAME, "h1").text
         assert "Enterprise RAG & Agentic AI Platform" in header_text
 
+        # Assert Live Financial Budget & Quota Bar (Phase 32)
+        budget_bar = driver.find_element(By.ID, "budget-bar-container")
+        assert budget_bar is not None
+        spend_text = driver.find_element(By.ID, "budget-spend-text")
+        assert "$" in spend_text.text
+
         # 3. Assert Navigation Tab Buttons
         nav_items = driver.find_elements(By.CLASS_NAME, "nav-item")
         assert len(nav_items) >= 5
 
-        tabs_text = [item.text for item in nav_items]
+        tabs_text = [item.get_attribute("textContent") or item.text for item in nav_items]
         assert any("Chat" in t for t in tabs_text)
         assert any("Documents" in t for t in tabs_text)
         assert any("Strategies" in t for t in tabs_text)
@@ -137,7 +143,10 @@ def test_selenium_ui_navigation_and_elements():
         assert trace_modal is not None
 
         # 7. Test Chat query execution with streaming and live ITL tracking
-        chat_btn = next((btn for btn in nav_items if "Chat" in btn.text), None)
+        chat_btn = next(
+            (btn for btn in nav_items if "Chat" in (btn.get_attribute("textContent") or btn.text)),
+            None,
+        )
         if chat_btn:
             chat_btn.click()
             time.sleep(0.3)
