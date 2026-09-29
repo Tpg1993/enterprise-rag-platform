@@ -1,4 +1,6 @@
-"""Hybrid RAG Strategy combining Qdrant dense vector search, BM25 lexical retrieval, RRF fusion, and Sarvam-105B LLM."""
+"""Hybrid RAG Strategy combining Qdrant dense vector search, BM25 lexical retrieval,
+RRF fusion, and Sarvam-105B LLM.
+"""
 
 import asyncio
 import logging
@@ -19,7 +21,8 @@ global_bm25_retriever = BM25Retriever()
 
 
 class HybridRAGStrategy(BaseRAGStrategy):
-    """Hybrid RAG strategy executing concurrent dense vector and BM25 sparse search merged via RRF."""
+    """Hybrid RAG strategy executing concurrent dense vector and BM25 sparse search merged via RRF.
+    """
 
     def __init__(
         self,
@@ -66,9 +69,15 @@ class HybridRAGStrategy(BaseRAGStrategy):
         )
 
         # 3. Context assembly & citation formatting
-        context_str, citations = self.context_builder.build_context(
-            fused_hits, max_context_tokens=request.max_context_tokens
+        ctx_res = self.context_builder.build_context(
+            fused_hits,
+            max_context_tokens=request.max_context_tokens,
+            enable_compression=request.enable_compression,
+            compression_target_ratio=request.compression_target_ratio,
+            query=request.query,
         )
+        context_str = ctx_res.formatted_context
+        citations = ctx_res.citations
 
         # 4. Prompt building
         prompts = self.prompt_builder.build_prompt(request.query, context_str)
@@ -95,4 +104,6 @@ class HybridRAGStrategy(BaseRAGStrategy):
             model=llm_res.model_name,
             trace_id=trace_id,
             tenant_id=request.tenant_id,
+            compression_ratio=ctx_res.compression_ratio,
+            tokens_saved=ctx_res.tokens_saved,
         )

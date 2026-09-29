@@ -1,4 +1,4 @@
-"""ContextBuilder engine for token budgeting, text overlap deduplication, rich metadata headers, and citation formatting."""
+"""ContextBuilder engine for token budgeting, deduplication, headers, and citations."""
 
 import logging
 import re
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def estimate_tokens(text: str) -> int:
-    """Estimates token count for text using standard word-to-token ratio (approx 1.3 tokens per word)."""
+    """Estimates token count for text using standard word-to-token ratio (approx 1.3/word)."""
     if not text:
         return 0
     words = len(text.split())
@@ -39,6 +39,9 @@ class ContextBuildResult(BaseModel):
     total_tokens: int = 0
     deduplicated_count: int = 0
     trimmed_count: int = 0
+    compression_ratio: float = 1.0
+    tokens_saved: int = 0
+    is_compressed: bool = False
 
     def __iter__(self):
         """Allows backwards compatible tuple unpacking (formatted_context, citations)."""
@@ -57,9 +60,17 @@ class ContextBuilder:
         self.overlap_threshold = overlap_threshold
 
     def build_context(
-        self, search_hits: list[dict[str, Any]], max_context_tokens: int | None = None
+        self,
+        search_hits: list[dict[str, Any]],
+        max_context_tokens: int | None = None,
+        enable_compression: bool = False,
+        compression_target_ratio: float = 0.6,
+        query: str = "",
     ) -> ContextBuildResult:
-        """Deduplicates hits, enforces token limits, extracts citations, and builds formatted context."""
+        """Deduplicates hits, enforces token limits, extracts citations,
+
+        and builds formatted context.
+        """
         effective_max_tokens = max_context_tokens or self.max_context_tokens
         if not search_hits:
             return ContextBuildResult(
@@ -68,6 +79,9 @@ class ContextBuilder:
                 total_tokens=7,
                 deduplicated_count=0,
                 trimmed_count=0,
+                compression_ratio=1.0,
+                tokens_saved=0,
+                is_compressed=False,
             )
 
         citations: list[Citation] = []
@@ -78,6 +92,8 @@ class ContextBuilder:
         accumulated_tokens = 0
         dedup_count = 0
         trimmed_count = 0
+        total_raw_tokens = 0
+        total_compressed_tokens = 0
 
         for idx, hit in enumerate(search_hits):
             payload = hit.get("payload", {})
@@ -100,13 +116,30 @@ class ContextBuilder:
                 dedup_count += 1
                 continue
 
-            chunk_tokens = estimate_tokens(content)
+            chunk_content = content
+            orig_toks = estimate_tokens(content)
+            comp_toks = orig_toks
+
+            if enable_compression:
+                from src.context.compression import SemanticContextCompressor
+
+                compressor = SemanticContextCompressor(
+                    default_target_ratio=compression_target_ratio
+                )
+                comp_text, _, _, c_toks = compressor.compress(
+                    content, query=query, target_ratio=compression_target_ratio
+                )
+                chunk_content = comp_text
+                comp_toks = c_toks
+
+            chunk_tokens = estimate_tokens(chunk_content)
+            total_raw_tokens += orig_toks
+            total_compressed_tokens += comp_toks
 
             # 3. Token Budgeting Check
             if accumulated_tokens + chunk_tokens > effective_max_tokens and context_blocks:
-                logger.info(
-                    f"Context token budget ({effective_max_tokens}) reached at hit {idx}. Truncating."
-                )
+                msg = f"Context token budget ({effective_max_tokens}) reached at hit {idx}."
+                logger.info(msg)
                 trimmed_count += len(search_hits) - idx
                 break
 
@@ -137,9 +170,11 @@ class ContextBuilder:
                 header_parts.append(f"Page {page}")
             header_parts.append(f"Class: {security_class}")
             header_parts.append(f"Relevance: {round(score, 4)}")
+            if enable_compression:
+                header_parts.append("Compressed: 🗜️")
 
             block_header = f"--- [ {' | '.join(header_parts)} ] ---"
-            context_blocks.append(f"{block_header}\n{content.strip()}")
+            context_blocks.append(f"{block_header}\n{chunk_content.strip()}")
             accumulated_tokens += chunk_tokens
 
             citations.append(
@@ -156,10 +191,22 @@ class ContextBuilder:
 
         formatted_context = "\n\n".join(context_blocks)
 
+        actual_ratio = (
+            round(total_compressed_tokens / max(1, total_raw_tokens), 3)
+            if enable_compression and total_raw_tokens > 0
+            else 1.0
+        )
+        tokens_saved = (
+            max(0, total_raw_tokens - total_compressed_tokens) if enable_compression else 0
+        )
+
         return ContextBuildResult(
             formatted_context=formatted_context,
             citations=citations,
             total_tokens=estimate_tokens(formatted_context),
             deduplicated_count=dedup_count,
             trimmed_count=trimmed_count,
+            compression_ratio=actual_ratio,
+            tokens_saved=tokens_saved,
+            is_compressed=enable_compression,
         )

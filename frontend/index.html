@@ -122,9 +122,13 @@
                   <option value="4096">4,096 Tokens</option>
                 </select>
                 <div style="display:flex; align-items:center; gap:0.5rem">
-                  <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.75rem; color:#94a3b8; user-select:none; white-space:nowrap">
+                  <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.75rem; color:#38bdf8; user-select:none; white-space:nowrap">
                     <input type="checkbox" id="stream-toggle" checked style="accent-color:#38bdf8; cursor:pointer" />
                     <span>⚡ Stream</span>
+                  </label>
+                  <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer; font-size:0.75rem; color:#a78bfa; user-select:none; white-space:nowrap" title="Dynamic Semantic Context Compression (Entropy & Entity Pruning)">
+                    <input type="checkbox" id="compression-toggle" style="accent-color:#a78bfa; cursor:pointer" />
+                    <span>🗜️ Compress</span>
                   </label>
                   <div id="live-itl-meter" style="display:none; align-items:center; gap:0.4rem; font-family:'JetBrains Mono',monospace; font-size:0.7rem; background:#0f172a; border:1px solid #0284c7; color:#38bdf8; padding:0.25rem 0.5rem; border-radius:4px; white-space:nowrap">
                     <span id="live-itl-text">ITL: 0ms</span>

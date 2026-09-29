@@ -26,6 +26,12 @@ class ChatRequest(BaseModel):
     max_context_tokens: int = Field(
         default=2048, description="Target token budget for retrieved context"
     )
+    enable_compression: bool = Field(
+        default=False, description="Enable semantic context compression"
+    )
+    compression_target_ratio: float = Field(
+        default=0.6, description="Target compression ratio (0.2 - 0.9)"
+    )
     metadata: dict[str, str] = Field(default_factory=dict, description="Custom request metadata")
 
 
@@ -48,6 +54,8 @@ class ChatResponse(BaseModel):
     pii_redacted: bool = False
     pii_count: int = 0
     security_verdict: str = "ALLOWED"
+    compression_ratio: float | None = None
+    tokens_saved: int | None = None
 
 
 class HealthResponse(BaseModel):

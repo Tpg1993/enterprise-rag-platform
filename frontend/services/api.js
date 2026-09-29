@@ -6,8 +6,9 @@ const API_BASE_URL = typeof window !== 'undefined' && window.location.origin && 
 
 let currentSessionId = 'sess_multimodal_fin';
 
-async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048, sessionId = null) {
+async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048, sessionId = null, enableCompression = null) {
   try {
+    const isCompressed = enableCompression !== null ? enableCompression : (document.getElementById('compression-toggle')?.checked ?? false);
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: {
@@ -19,6 +20,8 @@ async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048
         max_context_tokens: parseInt(maxContextTokens) || 2048,
         tenant_id: 'default_tenant',
         session_id: sessionId || currentSessionId,
+        enable_compression: isCompressed,
+        compression_target_ratio: 0.6,
       }),
     });
     if (!response.ok) {
@@ -194,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const tokenBudgetElem = document.getElementById('token-budget-select');
           const tokenBudget = tokenBudgetElem ? tokenBudgetElem.value : 2048;
+          const isCompressed = document.getElementById('compression-toggle')?.checked ?? false;
 
           const streamResponse = await fetch(`${API_BASE_URL}/chat/stream`, {
             method: 'POST',
@@ -204,6 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
               max_context_tokens: parseInt(tokenBudget) || 2048,
               tenant_id: 'default_tenant',
               session_id: currentSessionId,
+              enable_compression: isCompressed,
+              compression_target_ratio: 0.6,
             }),
           });
 
@@ -274,11 +280,16 @@ document.addEventListener('DOMContentLoaded', () => {
                   ? `<span style="background:#7f1d1d; border:1px solid #ef4444; color:#fca5a5; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">⚠️ OPA Intercepted</span>`
                   : `<span style="background:#064e3b; border:1px solid #059669; color:#6ee7b7; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; margin-left:0.4rem">OPA Passed</span>`;
 
+                const compressionBadge = (eventData.tokens_saved && eventData.tokens_saved > 0)
+                  ? `<span style="background:#2e1065; border:1px solid #a855f7; color:#e9d5ff; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">🗜️ ${Math.round((1 - (eventData.compression_ratio || 0.6)) * 100)}% Compressed (-${eventData.tokens_saved} tokens)</span>`
+                  : '';
+
                 metaElem.innerHTML = `
                   <span>Strategy: <strong>${eventData.rag_strategy}</strong>${topScore} | Latency: <strong>${eventData.latency_ms.toFixed(1)}ms</strong> | TTFT: <strong>${(eventData.ttft_ms || 0).toFixed(1)}ms</strong> | Cost: <strong>$${(eventData.estimated_cost_usd || 0).toFixed(4)}</strong></span>
                   ${cacheBadge}
                   ${piiBadge}
                   ${opaBadge}
+                  ${compressionBadge}
                 `;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 updateTenantQuotaBar();
@@ -335,6 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<span style="background:#7f1d1d; border:1px solid #ef4444; color:#fca5a5; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">⚠️ OPA Intercepted</span>`
             : `<span style="background:#064e3b; border:1px solid #059669; color:#6ee7b7; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; margin-left:0.4rem">OPA Passed</span>`;
 
+          const compressionBadge = (res.tokens_saved && res.tokens_saved > 0)
+            ? `<span style="background:#2e1065; border:1px solid #a855f7; color:#e9d5ff; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">🗜️ ${Math.round((1 - (res.compression_ratio || 0.6)) * 100)}% Compressed (-${res.tokens_saved} tokens)</span>`
+            : '';
+
           const aiDiv = document.createElement('div');
           aiDiv.className = 'message assistant';
           aiDiv.innerHTML = `
@@ -347,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${cacheBadge}
                 ${piiBadge}
                 ${opaBadge}
+                ${compressionBadge}
               </div>
             </div>
           `;

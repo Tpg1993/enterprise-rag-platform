@@ -197,6 +197,8 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         tenant_id=payload.tenant_id,
         rag_strategy=payload.rag_strategy,
         max_context_tokens=payload.max_context_tokens,
+        enable_compression=payload.enable_compression,
+        compression_target_ratio=payload.compression_target_ratio,
     )
     rag_res = await strategy.execute(rag_req)
 
@@ -327,6 +329,8 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         pii_redacted=pii_redacted,
         pii_count=pii_count,
         security_verdict="ALLOWED",
+        compression_ratio=rag_res.compression_ratio,
+        tokens_saved=rag_res.tokens_saved,
     )
 
 
@@ -525,6 +529,8 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             tenant_id=payload.tenant_id,
             rag_strategy=payload.rag_strategy,
             max_context_tokens=payload.max_context_tokens,
+            enable_compression=payload.enable_compression,
+            compression_target_ratio=payload.compression_target_ratio,
         )
         rag_res = await strategy.execute(rag_req)
 
@@ -687,6 +693,8 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             "pii_redacted": pii_redacted,
             "pii_count": pii_count,
             "security_verdict": "ALLOWED",
+            "compression_ratio": rag_res.compression_ratio,
+            "tokens_saved": rag_res.tokens_saved,
             "done": True,
         }
         yield f"data: {json.dumps(done_data)}\n\n"

@@ -116,6 +116,8 @@ Executes a query against any of the 14 RAG strategies. Automatically persists co
   "max_context_tokens": 2048,
   "tenant_id": "default_tenant",
   "session_id": "sess_multimodal_fin",
+  "enable_compression": true,
+  "compression_target_ratio": 0.6,
   "temperature": 0.1,
   "top_k": 5
 }
@@ -139,12 +141,14 @@ Executes a query against any of the 14 RAG strategies. Automatically persists co
   "latency_ms": 535.4,
   "ttft_ms": 133.8,
   "token_usage": {
-    "prompt_tokens": 412,
+    "prompt_tokens": 268,
     "completion_tokens": 198,
-    "total_tokens": 610
+    "total_tokens": 466
   },
-  "estimated_cost_usd": 0.0027,
+  "estimated_cost_usd": 0.0021,
   "retrieval_count": 4,
+  "compression_ratio": 0.612,
+  "tokens_saved": 144,
   "trace_id": "trace_b94e82f1"
 }
 ```

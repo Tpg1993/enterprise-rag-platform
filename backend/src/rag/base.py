@@ -24,6 +24,8 @@ class RAGRequest(BaseModel):
     temperature: float = 0.1
     max_tokens: int = 1024
     max_context_tokens: int = 2048
+    enable_compression: bool = False
+    compression_target_ratio: float = 0.6
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -39,6 +41,8 @@ class RAGResponse(BaseModel):
     model: str = "sarvam-105b"
     trace_id: str = ""
     tenant_id: str = "default_tenant"
+    compression_ratio: float | None = None
+    tokens_saved: int | None = None
 
 
 class BaseRAGStrategy(ABC):

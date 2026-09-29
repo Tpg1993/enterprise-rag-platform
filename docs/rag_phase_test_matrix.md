@@ -482,5 +482,25 @@ This matrix documents the features, architectural coverage, and exact step-by-st
     uv run pytest backend/tests/e2e/test_selenium.py -v
     ```
 
+---
+
+## Phase 33: Dynamic Semantic Context Compression (LLMLingua & Entropy Pruning)
+
+- **Features & Deliverables**: `SemanticContextCompressor` & `CompressionResult` (`backend/src/context/compression.py`), `ContextBuilder.build_context(..., enable_compression=True)` (`backend/src/context/builder.py`), Chat API compression parameters (`backend/src/api/schemas.py`, `backend/src/api/routes/chat.py`), `#compression-toggle` & purple badges (`frontend/index.html`, `frontend/services/api.js`).
+- **What It Covers**: Information-entropy token scoring, conversational filler stripping, hard preservation of critical semantic anchors (entities, numbers, currency, dates, query keywords), 30%–50% token reduction, backwards-compatible tuple unpacking.
+- **How To Test It**:
+  - **Automated Unit Tests**:
+    ```bash
+    uv run pytest backend/tests/unit/test_context_compression.py -v
+    ```
+  - **Automated Integration Tests**:
+    ```bash
+    uv run pytest backend/tests/integration/test_context_compression_integration.py -v
+    ```
+  - **Selenium WebDriver E2E Test**:
+    ```bash
+    uv run pytest backend/tests/e2e/test_selenium.py -v
+    ```
+
 
 

@@ -5,6 +5,29 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-09-29
+
+### Added
+- **Phase 33 Complete (Dynamic Semantic Context Compression - LLMLingua & Entropy Pruning)**:
+  - **Selective Semantic Compressor (`backend/src/context/compression.py`)**:
+    - Implemented `SemanticContextCompressor` and `CompressionResult` with information-entropy token scoring and conversational preamble / filler phrase stripping.
+    - Protected critical semantic anchors (named entities, numbers, percentages, currency, dates, query keywords) against accidental pruning.
+    - Enabled configurable target compression ratios (e.g. 0.5–0.7, default 0.6) yielding 30%–50% context token reduction while retaining full factual accuracy.
+  - **ContextBuilder Integration (`backend/src/context/builder.py`)**:
+    - Added `enable_compression`, `compression_target_ratio`, and `query` parameters to `ContextBuilder.build_context(...)`.
+    - Structured `ContextBuildResult` with `compression_ratio`, `tokens_saved`, and `is_compressed` properties while preserving backward-compatible tuple unpacking.
+  - **API & Strategy Pipeline Support (`backend/src/rag/`, `backend/src/api/routes/chat.py`, `backend/src/api/schemas.py`)**:
+    - Exposed `enable_compression` and `compression_target_ratio` in `ChatRequest` and `RAGRequest`.
+    - Returned `compression_ratio` and `tokens_saved` in `ChatResponse` and SSE streaming `done` event.
+  - **Interactive Frontend UI Toggle & Badges (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added `#compression-toggle` checkbox with purple styling in chat controls.
+    - Added dynamic compression badge (e.g. `🗜️ 40% Compressed (-312 tokens)`) in message meta for both streaming and non-streaming responses.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_context_compression.py` (4/4 passing).
+    - Integration Tests: `backend/tests/integration/test_context_compression_integration.py` (2/2 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` updated and verified (100% passing).
+    - Full Platform Test Suite: **178 / 178 tests passing**.
+
 ## [4.1.0] - 2026-09-29
 
 ### Added
