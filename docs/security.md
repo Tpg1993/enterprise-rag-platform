@@ -142,3 +142,22 @@ Zero Trust query enforcement is managed by the OPA Policy Engine (`backend/src/s
   - In containerized deployments (`profiles: ["security"]`), optionally connects to live `rag_opa` daemon at `http://opa:8181/v1/data/rag/security`.
 - **Diagnostic API**: Exposes `POST /api/v1/security/inspect` and `GET /api/v1/security/status` for real-time security auditing.
 
+---
+
+## 10. Tenant Quotas, Sliding-Window Rate Limiting & Financial Budget Guardrails (Phase 32)
+
+Multi-tenant economic protection is enforced by `TenantQuotaService` (`backend/src/security/quotas.py`) and configured in `backend/config/tenants.yaml`:
+- **Sliding-Window Rate Limiting**:
+  - Tracks individual query timestamps within a sliding 60-second window.
+  - Exceeding the tenant's configured `rate_limit_rpm` instantly rejects queries with **HTTP 429 Too Many Requests**, providing `X-RateLimit-Limit`, `X-RateLimit-Remaining: 0`, and `Retry-After: <seconds>` headers.
+- **Financial Spend & Token Caps**:
+  - Accumulates prompt and completion token counts and dynamic API dollar spend ($) per tenant.
+  - Automatically compares against `daily_spend_limit_usd`, `monthly_spend_limit_usd`, and `daily_token_limit`.
+  - Rejects queries with **HTTP 429** and header `X-Budget-Exceeded: true` if limits are exhausted, preventing runaway LLM billing.
+- **Automatic Rollover & Resets**:
+  - Daily metrics automatically roll over at 00:00 UTC; monthly metrics roll over on the 1st of each month.
+  - Administrators can inspect status via `GET /api/v1/tenants/{tenant_id}/quota` and manually reset usage via `POST /api/v1/tenants/{tenant_id}/quota/reset`.
+- **Live UI Financial Telemetry**:
+  - The Web UI top navigation bar displays a live `#budget-bar-container` showing `$ spent / $ budget` with dynamic color transitions (Green $\to$ Amber $\to$ Red).
+
+

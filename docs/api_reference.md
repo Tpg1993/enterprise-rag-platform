@@ -403,3 +403,73 @@ Returns live subsystem status across Qdrant, Redis, PostgreSQL, and Sarvam AI.
   }
 }
 ```
+
+---
+
+## 7. Strategy Catalog & Versions Manifest
+
+### `GET /rag/strategies`
+Returns full catalog metadata, category, features, version, and agentic framework for all 15 production RAG architectures.
+
+### `GET /rag/versions`
+Returns active platform version manifest from `backend/config/version.yaml`.
+
+---
+
+## 8. Document Re-indexing Pipeline
+
+### `POST /documents/{document_id}/reindex`
+Dynamically invalidates obsolete vector embeddings, re-chunks document with custom chunking strategy/size/overlap, re-embeds with BGE-M3, and logs an audit trail event.
+
+---
+
+## 9. Real-Time Chat SSE Streaming
+
+### `POST /chat/stream`
+Server-Sent Events endpoint streaming tokens with live Inter-Token Latency (ITL) and Time-to-First-Token (TTFT) metrics, Zero Trust OPA evaluation, and Presidio PII redaction.
+
+---
+
+## 10. Security & Audit Trail Explorer
+
+### `GET /audit`
+Returns tamper-evident security audit log entries with multi-tenant and event-type filtering (`SECURITY_BLOCK`, `PII_DETECTED`, `DOCUMENT_INGEST`, `DOCUMENT_REINDEX`, `DOCUMENT_DELETE`).
+
+---
+
+## 11. Tenant Quota, Rate Limiting & Financial Budget (Phase 32)
+
+### `GET /tenants/{tenant_id}/quota`
+Returns real-time token consumption, RPM rate limit, daily/monthly spend ($), and quota percentage.
+
+**Response (`200 OK`)**:
+```json
+{
+  "tenant_id": "default_tenant",
+  "rate_limit_rpm": 60,
+  "current_rpm": 4,
+  "rpm_remaining": 56,
+  "daily_tokens_used": 1250,
+  "daily_token_limit": 500000,
+  "daily_token_percent": 0.25,
+  "monthly_tokens_used": 1250,
+  "monthly_token_limit": 10000000,
+  "daily_spend_usd": 0.00185,
+  "daily_spend_limit_usd": 5.0,
+  "daily_spend_percent": 0.04,
+  "monthly_spend_usd": 0.00185,
+  "monthly_spend_limit_usd": 50.0,
+  "is_budget_exceeded": false,
+  "rejection_reason": null
+}
+```
+
+### `POST /tenants/{tenant_id}/quota/reset`
+Resets daily and monthly token and dollar budget counters for the specified tenant.
+
+**Rate Limit & Budget Response Headers (HTTP 429)**:
+- `X-RateLimit-Limit`: Maximum requests permitted per minute.
+- `X-RateLimit-Remaining`: Remaining request capacity in sliding window.
+- `Retry-After`: Seconds to wait before submitting requests.
+- `X-Budget-Exceeded`: `"true"` if daily/monthly token or dollar budget is exhausted.
+

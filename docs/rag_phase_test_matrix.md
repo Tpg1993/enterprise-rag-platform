@@ -417,9 +417,70 @@ This matrix documents the features, architectural coverage, and exact step-by-st
     ```
   - **Chat API Execution**:
     ```bash
-    curl -X POST http://localhost:8000/api/v1/chat \
-      -H "Content-Type: application/json" \
-      -d '{"query": "Explain Sarvam AI and sarvam-105b language support", "rag_strategy": "Hybrid-Graph-Agentic"}'
+---
+
+## Phase 28: Enterprise UI Integrations & Real-Time Telemetry
+
+- **Features & Deliverables**: Real-Time SSE Streaming Chat with live ITL gauge, tamper-evident security & audit trail explorer, interactive document re-indexing modal, execution trace inspector modal.
+- **What It Covers**: Token-by-token typewriter rendering, TTFT and ITL telemetry, multi-tenant audit events, dynamic re-chunking and re-embedding.
+- **How To Test It**:
+  ```bash
+  uv run pytest backend/tests/e2e/test_selenium.py -v
+  ```
+
+---
+
+## Phase 29: Automated Multi-Strategy Golden QA Evaluation & Benchmarking Suite
+
+- **Features & Deliverables**: 50-item curated Golden QA evaluation dataset (`backend/data/evaluation/golden_qa.json`), CLI benchmark runner (`backend/src/evaluation/run_benchmarks.py`), Markdown comparison matrix report (`docs/evaluation_report.md`).
+- **What It Covers**: RAGAS quality metrics (Faithfulness, Relevancy, Precision, Recall), latency percentiles (P50, P95), token usage, and dynamic cost calculation across all 15 architectures.
+- **How To Test It**:
+  ```bash
+  uv run pytest backend/tests/unit/test_evaluation_runner.py -v
+  uv run python backend/src/evaluation/run_benchmarks.py --limit 3
+  ```
+
+---
+
+## Phase 30: Production Containerization, Docker Compose Profiles & CI/CD Pipeline
+
+- **Features & Deliverables**: Hardened multi-stage `Dockerfile` (non-root `appuser` UID 10001, native `/api/v1/health` healthchecks), 5 Docker Compose profiles (`core`, `graph`, `search`, `observability`, `security`), GitHub Actions workflow (`.github/workflows/ci.yml`).
+- **What It Covers**: Multi-stage builds, zero secrets in layers, profile-driven container orchestration, automated CI test suites.
+- **How To Test It**:
+  ```bash
+  uv run pytest backend/tests/unit/test_containerization.py -v
+  ```
+
+---
+
+## Phase 31: Documentation, Master Spec Synchronization & Final Release Sign-Off
+
+- **Features & Deliverables**: Master Specification Section 91 phase sign-off matrix, comprehensive `README.md`, `CHANGELOG.md` v4.0.0 release notes, synchronized version manifest.
+- **What It Covers**: Full architectural consistency across documentation, runbooks, and 100% passing test suites.
+- **How To Test It**:
+  ```bash
+  uv run pytest backend/tests/ -q
+  ```
+
+---
+
+## Phase 32: Tenant Quotas, Rate Limiting & Live Financial Budget Bar
+
+- **Features & Deliverables**: `backend/config/tenants.yaml`, `TenantQuotaService` (`backend/src/security/quotas.py`), quota router (`GET /api/v1/tenants/{id}/quota`, `POST /api/v1/tenants/{id}/quota/reset`), pre-execution rate limit & budget validation in `chat.py`, live UI financial budget bar (`frontend/index.html`, `frontend/services/api.js`).
+- **What It Covers**: Sliding-window RPM rate limiting, rolling daily/monthly token accumulators, financial spend caps, HTTP 429 status with `X-RateLimit-*` headers, dynamic color-coded UI budget gauge.
+- **How To Test It**:
+  - **Automated Unit Tests**:
+    ```bash
+    uv run pytest backend/tests/unit/test_tenant_quotas.py -v
     ```
+  - **Automated Integration Tests**:
+    ```bash
+    uv run pytest backend/tests/integration/test_quotas_integration.py -v
+    ```
+  - **Selenium WebDriver E2E Test**:
+    ```bash
+    uv run pytest backend/tests/e2e/test_selenium.py -v
+    ```
+
 
 
