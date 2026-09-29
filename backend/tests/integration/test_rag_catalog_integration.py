@@ -13,12 +13,13 @@ async def test_get_rag_strategies_endpoint():
         res = await client.get("/api/v1/rag/strategies")
         assert res.status_code == 200
         data = res.json()
-        assert data["total_strategies"] == 15
-        assert len(data["strategies"]) == 15
+        assert data["total_strategies"] == 16
+        assert len(data["strategies"]) == 16
 
         strategy_ids = [s["id"] for s in data["strategies"]]
         assert "Basic" in strategy_ids
         assert "Hybrid-Graph-Agentic" in strategy_ids
+        assert "Hierarchical-Multi-Agent" in strategy_ids
         assert "GraphRAG" in strategy_ids
         assert "SQL-RAG" in strategy_ids
         assert "Multimodal" in strategy_ids

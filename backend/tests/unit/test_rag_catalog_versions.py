@@ -10,14 +10,15 @@ async def test_get_rag_strategies_catalog():
     """Verifies that strategy catalog returns all 15 production RAG strategies."""
     res = await get_rag_strategies()
     assert isinstance(res, RAGStrategiesResponse)
-    assert res.total_strategies == 15
-    assert len(res.strategies) == 15
+    assert res.total_strategies == 16
+    assert len(res.strategies) == 16
 
     strategy_ids = [s.id for s in res.strategies]
     expected_ids = [
         "Basic", "Hybrid", "MMR", "Reranked", "Parent-Child",
         "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG",
-        "ReAct", "GraphRAG", "SQL-RAG", "Multimodal", "Hybrid-Graph-Agentic"
+        "ReAct", "GraphRAG", "SQL-RAG", "Multimodal", "Hybrid-Graph-Agentic",
+        "Hierarchical-Multi-Agent",
     ]
     for exp in expected_ids:
         assert exp in strategy_ids

@@ -45,6 +45,7 @@ class RAGResponse(BaseModel):
     tenant_id: str = "default_tenant"
     compression_ratio: float | None = None
     tokens_saved: int | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class BaseRAGStrategy(ABC):

@@ -82,6 +82,16 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.hybrid_graph_agentic.strategy import HybridGraphAgenticRAGStrategy
 
             _strategies[s_clean] = HybridGraphAgenticRAGStrategy()
+        elif s_upper in (
+            "HIERARCHICAL-MULTI-AGENT",
+            "HIERARCHICAL_MULTI_AGENT",
+            "HIERARCHICAL",
+            "MULTI-AGENT",
+            "SUPERVISOR",
+        ):
+            from src.rag.hierarchical_agentic.strategy import HierarchicalMultiAgentStrategy
+
+            _strategies[s_clean] = HierarchicalMultiAgentStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

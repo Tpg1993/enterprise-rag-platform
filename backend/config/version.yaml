@@ -63,6 +63,9 @@ rag:
   hybrid_graph_agentic:
     version: "1.0.0"
     framework: "langgraph"
+  hierarchical_multi_agent:
+    version: "1.0.0"
+    framework: "langgraph"
 
 security:
   opa_guardrails:

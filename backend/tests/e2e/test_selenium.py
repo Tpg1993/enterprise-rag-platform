@@ -169,6 +169,8 @@ def test_selenium_ui_navigation_and_elements():
         assert itl_meter is not None
 
         select_elem = Select(strategy_dropdown)
+        options = [o.get_attribute("value") for o in select_elem.options]
+        assert "Hierarchical-Multi-Agent" in options
         select_elem.select_by_value("Basic")
 
         query_input = driver.find_element(By.ID, "query-input")

@@ -196,6 +196,23 @@ STRATEGIES_CATALOG: list[RAGStrategyMetadata] = [
         version="1.0.0",
         features=["Dense + Lexical + Graph", "BGE Reranking", "LangGraph ReAct Agent"],
     ),
+    RAGStrategyMetadata(
+        id="Hierarchical-Multi-Agent",
+        name="Hierarchical Multi-Agent RAG",
+        description=(
+            "Orchestrates a specialized LangGraph multi-agent team under a central Supervisor "
+            "coordinating Research, SQL, Compliance & Critique, and Synthesis specialists."
+        ),
+        framework="langgraph",
+        category="Multi-Agent Orchestration",
+        version="1.0.0",
+        features=[
+            "Supervisor Router",
+            "Specialist Team Delegation",
+            "Multi-Perspective Synthesis",
+            "Audit Trail",
+        ],
+    ),
 ]
 
 

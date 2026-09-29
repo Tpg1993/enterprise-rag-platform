@@ -5,6 +5,32 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.0] - 2026-09-29
+
+### Added
+- **Phase 37 Complete (Hierarchical Multi-Agent Supervisor Team in LangGraph)**:
+  - **Stateful Multi-Agent Schema (`backend/src/agents/hierarchical/state.py`)**:
+    - Created `HierarchicalTeamState` TypedDict maintaining shared execution state across specialized sub-agents: query, multi-step plan, research results, SQL results, compliance critique notes, citations, agent traces, and iteration counts.
+  - **Supervisor Router Node (`backend/src/agents/hierarchical/supervisor.py`)**:
+    - Implemented `SupervisorAgent` dynamically decomposing complex user queries into ordered execution phases.
+    - Routes sequentially across specialist nodes (`RESEARCH` -> `SQL` -> `CRITIQUE` -> `SYNTHESIS`) with safety guardrail bounds preventing infinite execution cycles.
+  - **Specialist Worker Sub-Agents (`backend/src/agents/hierarchical/specialists.py`)**:
+    - `ResearchAgent`: Executes hybrid knowledge retrieval (dense vector + lexical BM25) with dynamic feedback boost multipliers.
+    - `SQLAnalyticsAgent`: Gathers operational telemetry, CSAT scores, and relational database records.
+    - `ComplianceCritiqueAgent`: Zero-trust security audit verifying PII redaction and context grounding.
+    - `SynthesisAgent`: Compiles final multi-perspective executive assessment with granular citations and timeline trace.
+  - **LangGraph StateGraph Workflow (`backend/src/agents/hierarchical/graph.py`)**:
+    - Compiles full stateful directed graph with conditional routing and specialist feedback loops.
+  - **RAG Strategy 16 Registration (`backend/src/rag/hierarchical_agentic/`, `backend/src/rag/router.py`, `backend/src/api/routes/rag.py`, `backend/config/version.yaml`)**:
+    - Added Strategy 16 `Hierarchical-Multi-Agent` across strategy catalog, factory router, and version manifest.
+  - **Interactive Frontend UI (`frontend/index.html`)**:
+    - Added option 16 `Hierarchical Multi-Agent (Supervisor Team)` to `#strategy-select` dropdown.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_hierarchical_multi_agent.py` (4/4 passing).
+    - Integration Tests: `backend/tests/integration/test_hierarchical_multi_agent_integration.py` (3/3 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing).
+    - Full Platform Test Suite: **205 / 205 tests passing**.
+
 ## [4.5.0] - 2026-09-29
 
 ### Added
