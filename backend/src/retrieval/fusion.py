@@ -1,4 +1,6 @@
-"""Reciprocal Rank Fusion (RRF) engine for merging dense vector and sparse lexical retrieval results."""
+"""Reciprocal Rank Fusion (RRF) engine for merging dense vector
+and sparse lexical retrieval results.
+"""
 
 import logging
 from typing import Any
@@ -17,13 +19,17 @@ class ReciprocalRankFusion:
         retrieval_runs: list[list[dict[str, Any]]],
         top_k: int = 5,
         weights: list[float] | None = None,
+        tenant_id: str | None = None,
+        apply_feedback_boost: bool = True,
     ) -> list[dict[str, Any]]:
-        """Fuses multiple ordered hit lists using RRF algorithm.
+        """Fuses multiple ordered hit lists using RRF algorithm with feedback adjustments.
 
         Args:
-            retrieval_runs: List of hit lists from different retrievers (e.g. [dense_hits, bm25_hits]).
+            retrieval_runs: List of hit lists from different retrievers.
             top_k: Final top-K hits to return.
             weights: Optional per-retriever weight multipliers.
+            tenant_id: Optional tenant identifier for retrieving feedback multipliers.
+            apply_feedback_boost: Whether to apply user feedback boost factors.
 
         Returns:
             Combined and re-ranked list of hits sorted by fused RRF score.
@@ -57,7 +63,22 @@ class ReciprocalRankFusion:
         fused_hits = []
         for cid, score in rrf_scores.items():
             base_hit = chunk_map[cid].copy()
-            base_hit["score"] = float(score)
+            final_score = float(score)
+
+            # Continuous Retrieval Tuning: Apply user feedback multiplier (Phase 36)
+            if apply_feedback_boost and tenant_id:
+                try:
+                    from src.storage.history import get_history_store
+
+                    boost = get_history_store().get_chunk_boost_factor(
+                        chunk_id=cid, tenant_id=tenant_id
+                    )
+                    final_score = final_score * boost
+                    base_hit["feedback_boost"] = boost
+                except Exception as e:
+                    logger.debug(f"Failed to apply feedback boost to chunk {cid}: {e}")
+
+            base_hit["score"] = final_score
             base_hit["rrf_score"] = float(score)
             fused_hits.append(base_hit)
 

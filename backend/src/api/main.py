@@ -1,7 +1,9 @@
 """FastAPI Main Application Entrypoint."""
+# ruff: noqa: E402
 
 import logging
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load .env file from project root (without overriding explicitly set environment variables)
@@ -11,12 +13,24 @@ if env_path.exists():
 else:
     load_dotenv(override=False)
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from src.api.middleware import RequestContextMiddleware
+from src.api.routes.audit import router as audit_router
+from src.api.routes.auth import router as auth_router
+from src.api.routes.cache import router as cache_router
 from src.api.routes.chat import router as chat_router
 from src.api.routes.documents import router as documents_router
+from src.api.routes.evaluations import router as evaluations_router
+from src.api.routes.feedback import router as feedback_router
 from src.api.routes.health import router as health_router
+from src.api.routes.metrics import router as metrics_router
+from src.api.routes.quotas import router as quotas_router
+from src.api.routes.rag import router as rag_router
+from src.api.routes.security import router as security_router
 from src.api.routes.traces import router as traces_router
 from src.config.loader import load_settings
 
@@ -48,18 +62,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-import os
-from fastapi.staticfiles import StaticFiles
-
-from src.api.routes.audit import router as audit_router
-from src.api.routes.auth import router as auth_router
-from src.api.routes.cache import router as cache_router
-from src.api.routes.evaluations import router as evaluations_router
-from src.api.routes.metrics import router as metrics_router
-from src.api.routes.quotas import router as quotas_router
-from src.api.routes.rag import router as rag_router
-from src.api.routes.security import router as security_router
-
 # API v1 Routers
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router)
@@ -74,6 +76,7 @@ app.include_router(traces_router)
 app.include_router(metrics_router)
 app.include_router(metrics_router, prefix="/api/v1")
 app.include_router(quotas_router, prefix="/api/v1")
+app.include_router(feedback_router, prefix="/api/v1")
 
 frontend_dir = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend")

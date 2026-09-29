@@ -5,6 +5,30 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.0] - 2026-09-29
+
+### Added
+- **Phase 36 Complete (Active User Feedback & Continuous Retrieval Fine-Tuning Loop)**:
+  - **Relational Feedback Store & Schema (`backend/src/storage/history.py`)**:
+    - Created `chat_feedback` persistent table with tenant and message indexing.
+    - Added `record_feedback`, `list_feedback`, `get_feedback_analytics`, and `get_chunk_boost_factor` methods.
+    - Implemented mathematical boost scoring: positive multiplier up to 1.5x for frequently validated chunks and penalty factor down to 0.5x for hallucinated/flagged chunks.
+  - **Continuous Retrieval Fine-Tuning Integration (`backend/src/retrieval/fusion.py`, `backend/src/retrieval/vector_store.py`)**:
+    - Enhanced `ReciprocalRankFusion.fuse` and `QdrantVectorStore.search` to apply dynamic chunk feedback boost multipliers during candidate retrieval and RRF rank fusion.
+  - **Feedback & Fine-Tuning REST API (`backend/src/api/routes/feedback.py`, `backend/src/api/main.py`)**:
+    - `POST /api/v1/chat/feedback`: Records 👍 / 👎 ratings with category tags, comments, and cited chunk IDs.
+    - `GET /api/v1/chat/feedback/analytics`: Aggregated CSAT %, rating volume, category breakdown, top praised chunks, and top flagged chunks.
+    - `GET /api/v1/chat/feedback/history`: Paginated feedback logs with tenant bounds.
+    - `GET /api/v1/chat/feedback/boost/{chunk_id}`: Live chunk multiplier inspector.
+  - **Interactive Frontend Chat UI & Analytics Telemetry (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Embedded interactive 👍 Helpful and 👎 Issues buttons on every assistant message bubble with animated feedback confirmation pills.
+    - Integrated Continuous Retrieval Fine-Tuning Telemetry card in `#evaluations-tab` with CSAT gauge, submission counter, praised chunk leaderboard, and flagged chunk watchlist.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_feedback_loop.py` (4/4 passing).
+    - Integration Tests: `backend/tests/integration/test_feedback_api.py` (3/3 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing).
+    - Full Platform Test Suite: **198 / 198 tests passing**.
+
 ## [4.4.0] - 2026-09-29
 
 ### Added

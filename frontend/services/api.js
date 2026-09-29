@@ -294,6 +294,24 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${opaBadge}
                   ${compressionBadge}
                 `;
+
+                const fbDiv = document.createElement('div');
+                fbDiv.className = 'feedback-actions';
+                fbDiv.style = 'margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; padding-top:0.35rem; border-top:1px solid #1e293b';
+                fbDiv.innerHTML = `
+                  <button class="feedback-btn thumbs-up" title="Helpful & accurate response (Boost retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👍 Helpful</button>
+                  <button class="feedback-btn thumbs-down" title="Incorrect or hallucinated (Penalize retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👎 Issues</button>
+                  <span class="feedback-status-pill" style="font-size:0.7rem; color:#94a3b8"></span>
+                `;
+                streamDiv.querySelector('.bubble').appendChild(fbDiv);
+                if (typeof window.bindFeedbackEvents === 'function') {
+                  window.bindFeedbackEvents(fbDiv, {
+                    query: text,
+                    responseSnippet: eventData.answer.substring(0, 150),
+                    chunkIds: (eventData.citations || []).map(c => c.chunk_id || c.source),
+                  });
+                }
+
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 updateTenantQuotaBar();
               }
@@ -367,12 +385,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${opaBadge}
                 ${compressionBadge}
               </div>
+              <div class="feedback-actions" style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; padding-top:0.35rem; border-top:1px solid #1e293b">
+                <button class="feedback-btn thumbs-up" title="Helpful & accurate response (Boost retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👍 Helpful</button>
+                <button class="feedback-btn thumbs-down" title="Incorrect or hallucinated (Penalize retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👎 Issues</button>
+                <span class="feedback-status-pill" style="font-size:0.7rem; color:#94a3b8"></span>
+              </div>
             </div>
           `;
           chatMessages.appendChild(aiDiv);
           aiDiv.querySelectorAll('.citation-pill').forEach((pill, idx) => {
             pill.addEventListener('click', () => openCitationPdfModal(res.citations[idx]));
           });
+          const fbDiv = aiDiv.querySelector('.feedback-actions');
+          if (fbDiv && typeof window.bindFeedbackEvents === 'function') {
+            window.bindFeedbackEvents(fbDiv, {
+              query: text,
+              responseSnippet: res.answer.substring(0, 150),
+              chunkIds: (res.citations || []).map(c => c.chunk_id || c.source),
+            });
+          }
           chatMessages.scrollTop = chatMessages.scrollHeight;
           updateTenantQuotaBar();
         } catch (err) {
@@ -1420,12 +1451,107 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('refresh-eval-history-btn')?.addEventListener('click', loadEvaluationHistory);
+  // --- Phase 36: Active User Feedback & Continuous Retrieval Fine-Tuning ---
+  window.bindFeedbackEvents = function(bar, meta) {
+    const upBtn = bar.querySelector('.thumbs-up');
+    const downBtn = bar.querySelector('.thumbs-down');
+    const statusPill = bar.querySelector('.feedback-status-pill');
+
+    async function submit(rating, category = 'general') {
+      if (upBtn) upBtn.disabled = true;
+      if (downBtn) downBtn.disabled = true;
+      try {
+        const resp = await fetch(`${API_BASE_URL}/chat/feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: rating,
+            query: meta.query || '',
+            response_snippet: meta.responseSnippet || '',
+            category: category,
+            chunk_ids: meta.chunkIds || [],
+            tenant_id: 'default_tenant',
+          }),
+        });
+        if (resp.ok) {
+          if (rating > 0) {
+            if (upBtn) { upBtn.style.borderColor = '#10b981'; upBtn.style.color = '#10b981'; }
+            if (statusPill) statusPill.innerHTML = '<span style="color:#34d399">✨ Feedback recorded (+15% retrieval boost applied)</span>';
+          } else {
+            if (downBtn) { downBtn.style.borderColor = '#ef4444'; downBtn.style.color = '#ef4444'; }
+            if (statusPill) statusPill.innerHTML = '<span style="color:#f87171">⚠️ Feedback recorded (retrieval penalty applied)</span>';
+          }
+          if (typeof window.loadFeedbackAnalytics === 'function') {
+            window.loadFeedbackAnalytics();
+          }
+        }
+      } catch (e) {
+        if (statusPill) statusPill.innerText = 'Feedback failed';
+      }
+    }
+
+    if (upBtn) upBtn.addEventListener('click', () => submit(1));
+    if (downBtn) downBtn.addEventListener('click', () => submit(-1, 'hallucination'));
+  };
+
+  window.loadFeedbackAnalytics = async function(tenantId = 'default_tenant') {
+    try {
+      const res = await fetch(`${API_BASE_URL}/chat/feedback/analytics?tenant_id=${tenantId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const csatElem = document.getElementById('feedback-csat-value');
+      const totalElem = document.getElementById('feedback-total-count');
+      const posElem = document.getElementById('feedback-positive-count');
+      const negElem = document.getElementById('feedback-negative-count');
+      const praisedElem = document.getElementById('top-praised-chunks-list');
+      const flaggedElem = document.getElementById('top-flagged-chunks-list');
+
+      if (csatElem) csatElem.innerText = `${data.satisfaction_rate || 100}%`;
+      if (totalElem) totalElem.innerText = data.total_ratings || 0;
+      if (posElem) posElem.innerText = data.positive_ratings || 0;
+      if (negElem) negElem.innerText = data.negative_ratings || 0;
+
+      if (praisedElem) {
+        const praised = data.top_praised_chunks || [];
+        if (praised.length === 0) {
+          praisedElem.innerHTML = '<div style="color:#64748b">No boosted chunks yet.</div>';
+        } else {
+          praisedElem.innerHTML = praised.map(c => `
+            <div style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px solid #1e293b">
+              <span style="font-family:monospace; color:#cbd5e1">${c.chunk_id.substring(0, 24)}...</span>
+              <span style="color:#34d399; font-weight:bold">+${c.count} 👍 (Boosted)</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      if (flaggedElem) {
+        const flagged = data.top_flagged_chunks || [];
+        if (flagged.length === 0) {
+          flaggedElem.innerHTML = '<div style="color:#64748b">No flagged chunks yet.</div>';
+        } else {
+          flaggedElem.innerHTML = flagged.map(c => `
+            <div style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px solid #1e293b">
+              <span style="font-family:monospace; color:#cbd5e1">${c.chunk_id.substring(0, 24)}...</span>
+              <span style="color:#f87171; font-weight:bold">-${c.count} 👎 (Penalized)</span>
+            </div>
+          `).join('');
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load feedback analytics:', e);
+    }
+  };
+
+  document.getElementById('btn-refresh-feedback-analytics')?.addEventListener('click', () => {
+    window.loadFeedbackAnalytics();
+  });
 
   // Initial loads
   loadUsersTable();
   loadRolesTable();
   loadEvaluationHistory();
+  loadFeedbackAnalytics();
   loadAuditTable();
   updateTenantQuotaBar();
 });

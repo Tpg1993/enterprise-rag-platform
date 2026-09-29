@@ -100,7 +100,9 @@ class QdrantVectorStore:
                 self.client.upsert(collection_name=self.collection_name, points=points)
                 return True
             except Exception as e:
-                logger.error(f"Failed to upsert points to Qdrant ({e}). Storing in memory fallback.")
+                logger.error(
+                    f"Failed to upsert points to Qdrant ({e}). Storing in memory fallback."
+                )
                 self.client = None
 
         # Fallback in-memory indexing
@@ -112,7 +114,11 @@ class QdrantVectorStore:
         return True
 
     def search(
-        self, query_vector: list[float], tenant_id: str = "default_tenant", top_k: int = 5
+        self,
+        query_vector: list[float],
+        tenant_id: str = "default_tenant",
+        top_k: int = 5,
+        apply_feedback_boost: bool = True,
     ) -> list[dict[str, Any]]:
         """Executes dense vector search with query-level tenant filtering."""
         results = []
@@ -181,6 +187,21 @@ class QdrantVectorStore:
                         },
                     }
                 )
+
+        # Continuous Retrieval Tuning: Apply user feedback boost multiplier (Phase 36)
+        if apply_feedback_boost and tenant_id:
+            try:
+                from src.storage.history import get_history_store
+
+                store = get_history_store()
+                for r in results:
+                    cid = r.get("chunk_id")
+                    if cid:
+                        boost = store.get_chunk_boost_factor(chunk_id=cid, tenant_id=tenant_id)
+                        r["score"] = float(r["score"] * boost)
+                        r["feedback_boost"] = boost
+            except Exception as e:
+                logger.debug(f"Failed to apply feedback boost in vector search: {e}")
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]

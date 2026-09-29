@@ -184,7 +184,13 @@ def test_selenium_ui_navigation_and_elements():
         messages = driver.find_elements(By.CLASS_NAME, "message")
         assert len(messages) >= 2
 
-        # 8. Test Evaluations Tab, Synthetic QA Generator & Tenant Self-Benchmarking (Phase 35)
+        # 8. Test Active User Feedback on Assistant Bubble (Phase 36)
+        thumbs_up = driver.find_elements(By.CLASS_NAME, "thumbs-up")
+        if thumbs_up:
+            driver.execute_script("arguments[0].click();", thumbs_up[0])
+            time.sleep(0.5)
+
+        # 9. Test Evaluations Tab, Synthetic QA & Feedback Analytics (Phase 35 & 36)
         eval_btn = next(
             (
                 btn
@@ -209,6 +215,12 @@ def test_selenium_ui_navigation_and_elements():
         time.sleep(1.5)
         synth_container = driver.find_element(By.ID, "synthetic-pairs-container")
         assert synth_container is not None
+
+        # Continuous retrieval telemetry checks (Phase 36)
+        refresh_fb_btn = driver.find_element(By.ID, "btn-refresh-feedback-analytics")
+        assert refresh_fb_btn is not None
+        csat_elem = driver.find_element(By.ID, "feedback-csat-value")
+        assert csat_elem is not None
 
     finally:
         if driver:

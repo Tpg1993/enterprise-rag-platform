@@ -576,6 +576,53 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- Continuous Retrieval Fine-Tuning & Feedback Analytics (Phase 36) -->
+            <div style="margin-top:2rem; background:#1e293b; border:1px solid #38bdf8; border-radius:8px; padding:1.2rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem">
+                <div>
+                  <h3 style="color:#38bdf8; margin:0; display:flex; align-items:center; gap:0.4rem">
+                    <span>🔄</span> Continuous Retrieval Fine-Tuning & Feedback Loop
+                  </h3>
+                  <p style="font-size:0.8rem; color:#94a3b8; margin:0.25rem 0 0 0">
+                    Live telemetry tracking explicit user 👍/👎 ratings and adaptive retrieval score adjustments across cited chunks.
+                  </p>
+                </div>
+                <button id="btn-refresh-feedback-analytics" class="secondary-btn" style="padding:0.35rem 0.75rem; font-size:0.75rem; background:#0f172a; border:1px solid #38bdf8; color:#38bdf8; border-radius:4px; cursor:pointer">
+                  🔄 Refresh Telemetry
+                </button>
+              </div>
+
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.2rem">
+                <div style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.9rem; text-align:center">
+                  <div style="font-size:0.75rem; color:#94a3b8">User Satisfaction (CSAT)</div>
+                  <div id="feedback-csat-value" style="font-size:1.5rem; font-weight:bold; color:#10b981; margin-top:0.25rem">100%</div>
+                </div>
+                <div style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.9rem; text-align:center">
+                  <div style="font-size:0.75rem; color:#94a3b8">Total Feedback Submissions</div>
+                  <div id="feedback-total-count" style="font-size:1.5rem; font-weight:bold; color:#f8fafc; margin-top:0.25rem">0</div>
+                </div>
+                <div style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.9rem; text-align:center">
+                  <div style="font-size:0.75rem; color:#94a3b8">Validated Answers (👍)</div>
+                  <div id="feedback-positive-count" style="font-size:1.5rem; font-weight:bold; color:#34d399; margin-top:0.25rem">0</div>
+                </div>
+                <div style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.9rem; text-align:center">
+                  <div style="font-size:0.75rem; color:#94a3b8">Penalized / Flagged (👎)</div>
+                  <div id="feedback-negative-count" style="font-size:1.5rem; font-weight:bold; color:#f87171; margin-top:0.25rem">0</div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem">
+                <div style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.9rem">
+                  <h4 style="color:#34d399; margin:0 0 0.5rem 0; font-size:0.85rem">🌟 Top Praised Chunks (Boost Multiplier)</h4>
+                  <div id="top-praised-chunks-list" style="font-size:0.75rem; color:#94a3b8">No chunks boosted yet.</div>
+                </div>
+                <div style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:0.9rem">
+                  <h4 style="color:#f87171; margin:0 0 0.5rem 0; font-size:0.85rem">⚠️ Top Flagged Chunks (Penalized Multiplier)</h4>
+                  <div id="top-flagged-chunks-list" style="font-size:0.75rem; color:#94a3b8">No chunks flagged yet.</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
