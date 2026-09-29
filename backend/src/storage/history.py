@@ -136,6 +136,24 @@ class PersistentHistoryStore:
                 )
                 """
             )
+            # 6. Document Comparisons (Phase 40)
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS document_comparisons (
+                    comparison_id TEXT PRIMARY KEY,
+                    tenant_id TEXT NOT NULL,
+                    query TEXT NOT NULL,
+                    document_ids_json TEXT NOT NULL,
+                    document_titles_json TEXT NOT NULL,
+                    overall_summary TEXT NOT NULL,
+                    matrix_markdown TEXT NOT NULL,
+                    risk_assessment TEXT NOT NULL,
+                    dimensions_json TEXT NOT NULL,
+                    created_at REAL NOT NULL,
+                    latency_ms REAL NOT NULL
+                )
+                """
+            )
             # Indices for rapid querying with tenant bounds
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_sessions_tenant ON chat_sessions(tenant_id)"
@@ -154,6 +172,12 @@ class PersistentHistoryStore:
             )
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_feedback_msg ON chat_feedback(message_id)"
+            )
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_comparisons_tenant
+                ON document_comparisons(tenant_id)
+                """
             )
             conn.commit()
 
@@ -677,6 +701,116 @@ class PersistentHistoryStore:
         neg_penalty = min(0.5, 0.20 * neg)
         multiplier = 1.0 + pos_boost - neg_penalty
         return round(max(0.5, min(1.5, multiplier)), 3)
+
+    # --- Phase 40: Document Comparison History ---
+
+    def save_document_comparison(self, comp: Any) -> None:
+        if hasattr(comp, "model_dump"):
+            data = comp.model_dump()
+        elif isinstance(comp, dict):
+            data = comp
+        else:
+            data = dict(comp)
+        with self._lock, self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO document_comparisons (
+                    comparison_id, tenant_id, query, document_ids_json,
+                    document_titles_json, overall_summary, matrix_markdown,
+                    risk_assessment, dimensions_json, created_at, latency_ms
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    data["comparison_id"],
+                    data.get("tenant_id", "default_tenant"),
+                    data["query"],
+                    json.dumps(data["document_ids"]),
+                    json.dumps(data.get("document_titles", {})),
+                    data["overall_summary"],
+                    data["matrix_markdown"],
+                    data["risk_assessment"],
+                    json.dumps([
+                        d.model_dump() if hasattr(d, "model_dump") else d
+                        for d in data.get("dimensions", [])
+                    ]),
+                    data.get("created_at", time.time()),
+                    data.get("latency_ms", 0.0),
+                ),
+            )
+            conn.commit()
+
+    def list_document_comparisons(
+        self, tenant_id: str = "default_tenant", limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """Returns recent document comparisons within tenant bounds."""
+        with self._lock, self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT comparison_id, tenant_id, query, document_ids_json,
+                       document_titles_json, overall_summary, matrix_markdown,
+                       risk_assessment, dimensions_json, created_at, latency_ms
+                FROM document_comparisons
+                WHERE tenant_id = ?
+                ORDER BY created_at DESC, rowid DESC
+                LIMIT ?
+                """,
+                (tenant_id, limit),
+            )
+            rows = cursor.fetchall()
+
+        results = []
+        for r in rows:
+            results.append(
+                {
+                    "comparison_id": r["comparison_id"],
+                    "tenant_id": r["tenant_id"],
+                    "query": r["query"],
+                    "document_ids": json.loads(r["document_ids_json"]),
+                    "document_titles": json.loads(r["document_titles_json"]),
+                    "overall_summary": r["overall_summary"],
+                    "matrix_markdown": r["matrix_markdown"],
+                    "risk_assessment": r["risk_assessment"],
+                    "dimensions": json.loads(r["dimensions_json"]),
+                    "created_at": r["created_at"],
+                    "latency_ms": r["latency_ms"],
+                }
+            )
+        return results
+
+    def get_document_comparison_by_id(self, comparison_id: str) -> dict[str, Any] | None:
+        """Retrieves a single comparison result by comparison_id."""
+        with self._lock, self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT comparison_id, tenant_id, query, document_ids_json,
+                       document_titles_json, overall_summary, matrix_markdown,
+                       risk_assessment, dimensions_json, created_at, latency_ms
+                FROM document_comparisons
+                WHERE comparison_id = ?
+                """,
+                (comparison_id,),
+            )
+            r = cursor.fetchone()
+
+        if not r:
+            return None
+
+        return {
+            "comparison_id": r["comparison_id"],
+            "tenant_id": r["tenant_id"],
+            "query": r["query"],
+            "document_ids": json.loads(r["document_ids_json"]),
+            "document_titles": json.loads(r["document_titles_json"]),
+            "overall_summary": r["overall_summary"],
+            "matrix_markdown": r["matrix_markdown"],
+            "risk_assessment": r["risk_assessment"],
+            "dimensions": json.loads(r["dimensions_json"]),
+            "created_at": r["created_at"],
+            "latency_ms": r["latency_ms"],
+        }
 
 
 _history_store: PersistentHistoryStore | None = None

@@ -230,6 +230,44 @@ def test_selenium_ui_navigation_and_elements():
         csat_elem = driver.find_element(By.ID, "feedback-csat-value")
         assert csat_elem is not None
 
+        # 10. Test Multi-Document Comparative Matrix Modal & Execution (Phase 40)
+        docs_btn = next(
+            (
+                btn
+                for btn in nav_items
+                if "Documents" in (btn.get_attribute("textContent") or btn.text)
+            ),
+            None,
+        )
+        if docs_btn:
+            driver.execute_script("arguments[0].click();", docs_btn)
+            time.sleep(0.5)
+
+        open_compare_btn = driver.find_element(By.ID, "open-compare-btn")
+        assert open_compare_btn is not None
+        driver.execute_script("arguments[0].click();", open_compare_btn)
+        time.sleep(0.5)
+
+        compare_modal = driver.find_element(By.ID, "doc-compare-modal")
+        assert compare_modal.is_displayed()
+
+        run_compare_btn = driver.find_element(By.ID, "run-doc-compare-btn")
+        assert run_compare_btn is not None
+        driver.execute_script("arguments[0].click();", run_compare_btn)
+        time.sleep(2.0)
+
+        results_card = driver.find_element(By.ID, "compare-results-card")
+        assert results_card.is_displayed()
+        summary_text = driver.find_element(By.ID, "compare-overall-summary").text
+        assert len(summary_text) > 0
+        risk_badge = driver.find_element(By.ID, "compare-risk-badge")
+        assert risk_badge is not None
+
+        close_compare_btn = driver.find_element(By.ID, "close-compare-modal-btn")
+        driver.execute_script("arguments[0].click();", close_compare_btn)
+        time.sleep(0.3)
+        assert not compare_modal.is_displayed()
+
     finally:
         if driver:
             driver.quit()

@@ -138,3 +138,31 @@ class AuditEventsResponse(BaseModel):
     events: list[AuditEvent]
 
 
+class DocumentCompareRequest(BaseModel):
+    document_ids: list[str] = Field(
+        ..., min_length=2, description="List of at least 2 document IDs to compare"
+    )
+    query: str | None = Field(
+        default=None, description="Optional focus query or topic for delta synthesis"
+    )
+    tenant_id: str = Field(default="default_tenant", description="Tenant identifier")
+    focus_areas: list[str] | None = Field(
+        default=None, description="Specific comparative dimensions to prioritize"
+    )
+
+
+class DocumentCompareResponse(BaseModel):
+    comparison_id: str
+    tenant_id: str
+    document_ids: list[str]
+    document_titles: dict[str, str]
+    query: str
+    overall_summary: str
+    matrix_markdown: str
+    risk_assessment: str
+    dimensions: list[dict[str, Any]]
+    created_at: float
+    latency_ms: float
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+

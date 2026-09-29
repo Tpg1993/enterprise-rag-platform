@@ -23,6 +23,7 @@ from src.api.routes.audit import router as audit_router
 from src.api.routes.auth import router as auth_router
 from src.api.routes.cache import router as cache_router
 from src.api.routes.chat import router as chat_router
+from src.api.routes.comparisons import router as comparisons_router
 from src.api.routes.documents import router as documents_router
 from src.api.routes.evaluations import router as evaluations_router
 from src.api.routes.feedback import router as feedback_router
@@ -67,6 +68,7 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router)
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
+app.include_router(comparisons_router, prefix="/api/v1")
 app.include_router(evaluations_router, prefix="/api/v1")
 app.include_router(cache_router, prefix="/api/v1")
 app.include_router(security_router, prefix="/api/v1")

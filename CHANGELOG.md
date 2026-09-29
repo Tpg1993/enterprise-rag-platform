@@ -5,6 +5,38 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.9.0] - 2026-09-29
+
+### Added
+- **Phase 40 Complete (Multi-Document Comparative Matrix & Delta Synthesis Engine)**:
+  - **Comparative Core Engine (`backend/src/rag/comparative/models.py`, `backend/src/rag/comparative/comparator.py`, `backend/src/rag/comparative/__init__.py`)**:
+    - Created `ComparisonDimension` model capturing dimension name, description, per-document extracted values, granular delta summaries, and categorical impact (`LOW`, `MEDIUM`, `HIGH`).
+    - Created `ComparisonMatrixResult` model encapsulating multi-document synthesis outcomes, executive summaries, risk assessments, and Markdown matrix tables.
+    - Implemented `MultiDocumentComparator`:
+      - Partitioned vector retrieval across distinct document boundaries.
+      - Automated dimension alignment across Scope & Architectural Coverage, SLA & Performance Guarantees, Security, Governance & Compliance, Financial & Resource Consumption, and Risk & Liability Allocation.
+      - User-prioritized custom focus areas injection.
+      - Rule-based variance delta analysis and contractual risk impact scoring.
+      - Dynamic Markdown comparison matrix table generation.
+  - **Persistent Relational Storage (`backend/src/storage/history.py`)**:
+    - Added `document_comparisons` SQLite/PostgreSQL table with tenant isolation and indexed retrieval.
+    - Implemented `save_document_comparison`, `list_document_comparisons`, and `get_document_comparison_by_id`.
+  - **REST API Endpoints & Schemas (`backend/src/api/routes/comparisons.py`, `backend/src/api/schemas.py`, `backend/src/api/main.py`)**:
+    - `POST /api/v1/documents/compare`: Executes multi-document synthesis and persists results.
+    - `GET /api/v1/documents/compare/history`: Lists comparison records for a given tenant.
+    - `GET /api/v1/documents/compare/{comparison_id}`: Retrieves details of an existing comparison.
+    - Mounted `comparisons_router` under `/api/v1` in `FastAPI`.
+  - **Interactive Frontend UI (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added "⚖️ Compare Documents & Delta Synthesis" action button in Documents section.
+    - Created modal `#doc-compare-modal` with document multi-selection checklist, focal query input, and prioritized focus areas.
+    - Real-time rendering of executive summary, risk assessment badge, and responsive comparative matrix table with alternating rows and impact chips.
+    - "Copy Markdown Matrix" button with clipboard integration.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_document_comparator.py` (6/6 passing).
+    - Integration Tests: `backend/tests/integration/test_document_compare_api.py` (3/3 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing).
+    - Full Platform Test Suite: **236 / 236 tests passing**.
+
 ## [4.8.0] - 2026-09-29
 
 ### Added

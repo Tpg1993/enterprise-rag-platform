@@ -1583,6 +1583,213 @@ document.addEventListener('DOMContentLoaded', () => {
     window.loadFeedbackAnalytics();
   });
 
+  // Multi-Document Comparative Matrix Modal & Logic (Phase 40)
+  const openCompareBtn = document.getElementById('open-compare-btn');
+  const compareModal = document.getElementById('doc-compare-modal');
+  const closeCompareBtn = document.getElementById('close-compare-modal-btn');
+  const runCompareBtn = document.getElementById('run-doc-compare-btn');
+  const compareChecklist = document.getElementById('compare-docs-checklist');
+  const compareStatus = document.getElementById('compare-status');
+  const compareResultsCard = document.getElementById('compare-results-card');
+  const copyMarkdownBtn = document.getElementById('copy-markdown-btn');
+  let latestComparisonMarkdown = '';
+
+  const openCompareModal = async () => {
+    if (!compareModal || !compareChecklist) return;
+    compareModal.style.display = 'flex';
+    if (compareStatus) compareStatus.innerText = '';
+    if (compareResultsCard) compareResultsCard.style.display = 'none';
+
+    try {
+      const docs = await fetchDocumentsList();
+      if (!docs || docs.length === 0) {
+        compareChecklist.innerHTML = `
+          <div style="padding:0.4rem; color:#94a3b8; font-size:0.8rem">
+            No uploaded documents found. Using synthetic benchmarks:
+          </div>
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; color:#f8fafc; padding:0.2rem 0.4rem">
+            <input type="checkbox" class="compare-doc-cb" value="doc_sample_sla_2025" checked>
+            <span>📄 Master_Service_Agreement_v1.0.pdf (Enterprise SLA 2025)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; color:#f8fafc; padding:0.2rem 0.4rem">
+            <input type="checkbox" class="compare-doc-cb" value="doc_sample_sla_2026" checked>
+            <span>📄 Master_Service_Agreement_v2.0.pdf (Updated SLA & Liability 2026)</span>
+          </label>
+        `;
+        return;
+      }
+
+      compareChecklist.innerHTML = docs.map((d, i) => `
+        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; color:#f8fafc; padding:0.25rem 0.4rem; border-radius:4px">
+          <input type="checkbox" class="compare-doc-cb" value="${d.document_id}" ${i < 2 ? 'checked' : ''}>
+          <span>📄 <strong>${d.filename}</strong> <code style="color:#94a3b8; font-size:0.75rem">(${d.document_id})</code> - ${d.file_type.toUpperCase()}</span>
+        </label>
+      `).join('');
+    } catch (err) {
+      compareChecklist.innerHTML = `<span style="color:#ef4444">Failed to load documents: ${err.message}</span>`;
+    }
+  };
+
+  if (openCompareBtn) {
+    openCompareBtn.addEventListener('click', openCompareModal);
+  }
+
+  if (closeCompareBtn) {
+    closeCompareBtn.addEventListener('click', () => {
+      if (compareModal) compareModal.style.display = 'none';
+    });
+  }
+
+  document.getElementById('compare-select-all-btn')?.addEventListener('click', () => {
+    const checkboxes = document.querySelectorAll('.compare-doc-cb');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => { cb.checked = !allChecked; });
+  });
+
+  if (runCompareBtn) {
+    runCompareBtn.addEventListener('click', async () => {
+      const selectedIds = Array.from(document.querySelectorAll('.compare-doc-cb:checked')).map(cb => cb.value);
+      if (selectedIds.length < 2) {
+        if (compareStatus) {
+          compareStatus.innerHTML = '<span style="color:#f87171">⚠️ Please select at least 2 documents to compare.</span>';
+        }
+        return;
+      }
+
+      const queryInput = document.getElementById('compare-query-input')?.value.trim() || null;
+      const focusAreasInput = document.getElementById('compare-focus-areas-input')?.value.trim();
+      const focusAreas = focusAreasInput ? focusAreasInput.split(',').map(s => s.trim()).filter(Boolean) : null;
+
+      runCompareBtn.disabled = true;
+      runCompareBtn.innerText = 'Analyzing & Synthesizing...';
+      if (compareStatus) {
+        compareStatus.innerHTML = '<span style="color:#38bdf8">⚡ Running partitioned retrieval and delta alignment across documents...</span>';
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/documents/compare`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            document_ids: selectedIds,
+            query: queryInput,
+            tenant_id: 'default_tenant',
+            focus_areas: focusAreas,
+          }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Server error: ${res.status}`);
+        }
+
+        const data = await res.json();
+        latestComparisonMarkdown = data.matrix_markdown;
+
+        if (compareStatus) compareStatus.innerText = '';
+        if (compareResultsCard) compareResultsCard.style.display = 'block';
+
+        const summaryElem = document.getElementById('compare-overall-summary');
+        const riskElem = document.getElementById('compare-risk-assessment');
+        const riskBadge = document.getElementById('compare-risk-badge');
+        const latencyElem = document.getElementById('compare-latency-text');
+        const tableContainer = document.getElementById('compare-matrix-table-container');
+
+        if (summaryElem) summaryElem.innerText = data.overall_summary;
+        if (riskElem) riskElem.innerText = data.risk_assessment;
+        if (latencyElem) latencyElem.innerText = `${data.latency_ms.toFixed(1)}ms | ${data.dimensions.length} Dimensions`;
+
+        const isHighRisk = data.risk_assessment.includes('HIGH');
+        const isMedRisk = data.risk_assessment.includes('MEDIUM');
+        if (riskBadge) {
+          if (isHighRisk) {
+            riskBadge.style.background = '#dc2626';
+            riskBadge.innerText = 'HIGH RISK';
+          } else if (isMedRisk) {
+            riskBadge.style.background = '#ea580c';
+            riskBadge.innerText = 'MEDIUM RISK';
+          } else {
+            riskBadge.style.background = '#16a34a';
+            riskBadge.innerText = 'LOW RISK';
+          }
+        }
+
+        // Render Matrix Table
+        if (tableContainer && data.dimensions) {
+          const docIds = data.document_ids;
+          const titles = data.document_titles || {};
+
+          let html = `
+            <table class="doc-table" style="width:100%; border-collapse:collapse; font-size:0.8rem">
+              <thead>
+                <tr style="border-bottom:2px solid #475569; text-align:left; background:#0f172a">
+                  <th style="padding:0.6rem; color:#cbd5e1; width:22%">Comparative Dimension</th>
+          `;
+          docIds.forEach(did => {
+            const title = titles[did] || did;
+            html += `<th style="padding:0.6rem; color:#cbd5e1">${title}</th>`;
+          });
+          html += `
+                  <th style="padding:0.6rem; color:#cbd5e1; width:25%">Key Differences / Delta</th>
+                  <th style="padding:0.6rem; color:#cbd5e1; text-align:center; width:10%">Impact</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          data.dimensions.forEach((dim, idx) => {
+            const bg = idx % 2 === 0 ? '#1e293b' : '#141e30';
+            const chipBg = dim.impact_level === 'HIGH' ? '#dc2626' : (dim.impact_level === 'MEDIUM' ? '#ea580c' : '#059669');
+            html += `
+              <tr style="background:${bg}; border-bottom:1px solid #334155">
+                <td style="padding:0.6rem; vertical-align:top">
+                  <strong style="color:#f8fafc">${dim.name}</strong>
+                  <div style="font-size:0.7rem; color:#94a3b8; margin-top:0.2rem">${dim.description || ''}</div>
+                </td>
+            `;
+            docIds.forEach(did => {
+              const val = dim.document_values ? (dim.document_values[did] || 'Not specified') : 'Not specified';
+              html += `<td style="padding:0.6rem; vertical-align:top; color:#e2e8f0; line-height:1.4">${val}</td>`;
+            });
+            html += `
+                <td style="padding:0.6rem; vertical-align:top; color:#cbd5e1; line-height:1.4">
+                  ${dim.delta_summary}
+                </td>
+                <td style="padding:0.6rem; vertical-align:top; text-align:center">
+                  <span style="background:${chipBg}; color:#fff; padding:0.2rem 0.5rem; border-radius:4px; font-weight:bold; font-size:0.7rem">
+                    ${dim.impact_level}
+                  </span>
+                </td>
+              </tr>
+            `;
+          });
+
+          html += `</tbody></table>`;
+          tableContainer.innerHTML = html;
+        }
+      } catch (err) {
+        if (compareStatus) {
+          compareStatus.innerHTML = `<span style="color:#ef4444">Error: ${err.message}</span>`;
+        }
+      } finally {
+        runCompareBtn.disabled = false;
+        runCompareBtn.innerText = '⚡ Run Delta Comparison';
+      }
+    });
+  }
+
+  if (copyMarkdownBtn) {
+    copyMarkdownBtn.addEventListener('click', () => {
+      if (latestComparisonMarkdown && navigator.clipboard) {
+        navigator.clipboard.writeText(latestComparisonMarkdown).then(() => {
+          const originalText = copyMarkdownBtn.innerText;
+          copyMarkdownBtn.innerText = '✓ Copied to Clipboard!';
+          setTimeout(() => { copyMarkdownBtn.innerText = originalText; }, 2000);
+        });
+      }
+    });
+  }
+
   // Initial loads
   loadUsersTable();
   loadRolesTable();
