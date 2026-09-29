@@ -237,6 +237,9 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             relevance_score=c.relevance_score,
             bbox=c.bbox,
             page_dimensions=c.page_dimensions,
+            is_web=getattr(c, "is_web", False),
+            url=getattr(c, "url", None),
+            domain=getattr(c, "domain", None),
         )
         for c in rag_res.citations
     ]
@@ -547,6 +550,9 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
                 relevance_score=c.relevance_score,
                 bbox=c.bbox,
                 page_dimensions=c.page_dimensions,
+                is_web=getattr(c, "is_web", False),
+                url=getattr(c, "url", None),
+                domain=getattr(c, "domain", None),
             )
             for c in rag_res.citations
         ]

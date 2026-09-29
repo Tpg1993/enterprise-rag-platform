@@ -260,9 +260,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (eventData.citations && eventData.citations.length > 0) {
                   citElem.innerHTML = `<div style="margin-top:0.5rem; display:flex; gap:0.4rem; flex-wrap:wrap">` +
-                    eventData.citations.map((c, i) => `<span class="citation-pill" data-cit-idx="${i}" title="Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1}) 🔍</span>`).join('') +
+                    eventData.citations.map((c, i) => {
+                      if (c.is_web || c.url) {
+                        return `<a href="${c.url || '#'}" target="_blank" rel="noopener noreferrer" class="citation-pill web-citation" style="background:#0f172a; border:1px solid #0284c7; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem" title="${(c.snippet || '').replace(/"/g, '&quot;')}">🌐 ${c.domain || c.source || 'Web'} ↗</a>`;
+                      }
+                      return `<span class="citation-pill" data-cit-idx="${i}" title="Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1}) 🔍</span>`;
+                    }).join('') +
                     `</div>`;
-                  citElem.querySelectorAll('.citation-pill').forEach((pill, idx) => {
+                  citElem.querySelectorAll('.citation-pill:not(.web-citation)').forEach((pill) => {
+                    const idx = parseInt(pill.getAttribute('data-cit-idx'), 10);
                     pill.addEventListener('click', () => openCitationPdfModal(eventData.citations[idx]));
                   });
                 }
@@ -287,12 +293,17 @@ document.addEventListener('DOMContentLoaded', () => {
                   ? `<span style="background:#2e1065; border:1px solid #a855f7; color:#e9d5ff; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">🗜️ ${Math.round((1 - (eventData.compression_ratio || 0.6)) * 100)}% Compressed (-${eventData.tokens_saved} tokens)</span>`
                   : '';
 
+                const webBadge = (eventData.rag_strategy === 'Agentic-Web-RAG' || (eventData.citations && eventData.citations.some(c => c.is_web)))
+                  ? `<span style="background:#0c4a6e; border:1px solid #0284c7; color:#7dd3fc; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">🌐 Live Web Grounded</span>`
+                  : '';
+
                 metaElem.innerHTML = `
                   <span>Strategy: <strong>${eventData.rag_strategy}</strong>${topScore} | Latency: <strong>${eventData.latency_ms.toFixed(1)}ms</strong> | TTFT: <strong>${(eventData.ttft_ms || 0).toFixed(1)}ms</strong> | Cost: <strong>$${(eventData.estimated_cost_usd || 0).toFixed(4)}</strong></span>
                   ${cacheBadge}
                   ${piiBadge}
                   ${opaBadge}
                   ${compressionBadge}
+                  ${webBadge}
                 `;
 
                 const fbDiv = document.createElement('div');
@@ -347,7 +358,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const citationsHtml = (res.citations && res.citations.length > 0)
             ? `<div class="citations-container" style="margin-top:0.5rem; display:flex; gap:0.4rem; flex-wrap:wrap">` +
-              res.citations.map((c, i) => `<span class="citation-pill" data-cit-idx="${i}" title="Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1}) 🔍</span>`).join('') +
+              res.citations.map((c, i) => {
+                if (c.is_web || c.url) {
+                  return `<a href="${c.url || '#'}" target="_blank" rel="noopener noreferrer" class="citation-pill web-citation" style="background:#0f172a; border:1px solid #0284c7; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem" title="${(c.snippet || '').replace(/"/g, '&quot;')}">🌐 ${c.domain || c.source || 'Web'} ↗</a>`;
+                }
+                return `<span class="citation-pill" data-cit-idx="${i}" title="Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1}) 🔍</span>`;
+              }).join('') +
               `</div>`
             : '';
 
@@ -371,6 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<span style="background:#2e1065; border:1px solid #a855f7; color:#e9d5ff; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">🗜️ ${Math.round((1 - (res.compression_ratio || 0.6)) * 100)}% Compressed (-${res.tokens_saved} tokens)</span>`
             : '';
 
+          const webBadge = (res.rag_strategy === 'Agentic-Web-RAG' || (res.citations && res.citations.some(c => c.is_web)))
+            ? `<span style="background:#0c4a6e; border:1px solid #0284c7; color:#7dd3fc; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem">🌐 Live Web Grounded</span>`
+            : '';
+
           const aiDiv = document.createElement('div');
           aiDiv.className = 'message assistant';
           aiDiv.innerHTML = `
@@ -384,6 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${piiBadge}
                 ${opaBadge}
                 ${compressionBadge}
+                ${webBadge}
               </div>
               <div class="feedback-actions" style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; padding-top:0.35rem; border-top:1px solid #1e293b">
                 <button class="feedback-btn thumbs-up" title="Helpful & accurate response (Boost retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👍 Helpful</button>
@@ -393,7 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           `;
           chatMessages.appendChild(aiDiv);
-          aiDiv.querySelectorAll('.citation-pill').forEach((pill, idx) => {
+          aiDiv.querySelectorAll('.citation-pill:not(.web-citation)').forEach((pill) => {
+            const idx = parseInt(pill.getAttribute('data-cit-idx'), 10);
             pill.addEventListener('click', () => openCitationPdfModal(res.citations[idx]));
           });
           const fbDiv = aiDiv.querySelector('.feedback-actions');

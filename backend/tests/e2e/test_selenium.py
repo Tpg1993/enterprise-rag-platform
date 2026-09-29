@@ -117,6 +117,8 @@ def test_selenium_ui_navigation_and_elements():
         assert "SQL-RAG" in option_values
         assert "Multimodal" in option_values
         assert "Hybrid-Graph-Agentic" in option_values
+        assert "Hierarchical-Multi-Agent" in option_values
+        assert "Agentic-Web-RAG" in option_values
 
         # 5. Assert Governance & Security Inspector Elements and Audit Trail (Phase 26 & 28)
         gov_btn = next(
@@ -171,6 +173,7 @@ def test_selenium_ui_navigation_and_elements():
         select_elem = Select(strategy_dropdown)
         options = [o.get_attribute("value") for o in select_elem.options]
         assert "Hierarchical-Multi-Agent" in options
+        assert "Agentic-Web-RAG" in options
         select_elem.select_by_value("Basic")
 
         query_input = driver.find_element(By.ID, "query-input")

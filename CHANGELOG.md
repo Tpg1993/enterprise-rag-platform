@@ -5,6 +5,33 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.7.0] - 2026-09-29
+
+### Added
+- **Phase 38 Complete (Real-Time Web Search & Grounded Live Verification Strategy — Strategy 17: `Agentic-Web-RAG`)**:
+  - **Pluggable Web Search Subsystem (`backend/src/retrieval/web_search.py`)**:
+    - Created `WebSearchResult` schema with automatic domain extraction, ranking scores, and published date metadata.
+    - Implemented `BaseSearchProvider` abstract interface.
+    - Implemented `DuckDuckGoSearchProvider` utilizing asynchronous HTTP requests with safe timeouts and instant-answer extraction.
+    - Implemented `MockSearchProvider` delivering deterministic, hermetic financial, regulatory, meteorological, and technological intelligence for offline CI/CD and unit testing.
+    - Added domain-level allowlisting and filtering.
+  - **Strategy 17 Implementation (`backend/src/rag/web_agentic/strategy.py`)**:
+    - Evaluates query temporal/real-time triggers ("latest", "current", "stock", "weather", "2026", "news") and internal document confidence thresholds (< 0.65).
+    - Unifies internal vector store chunks with live web search findings.
+    - Formats web findings with domain citations and source links.
+  - **Platform Registration & Schemas (`backend/src/rag/router.py`, `backend/src/api/routes/rag.py`, `backend/src/rag/base.py`, `backend/src/api/schemas.py`, `backend/config/version.yaml`)**:
+    - Registered Strategy 17 `Agentic-Web-RAG` in factory router, OpenAPI catalog (total 17 strategies), and version manifest.
+    - Extended `Citation` schema with `is_web: bool = False`, `url: str | None = None`, and `domain: str | None = None`.
+  - **Interactive Frontend UI (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added option 17 `Agentic Web RAG (Live Search)` to `#strategy-select` dropdown.
+    - Added clickable external web citation pills with globe icon (`🌐 example.com ↗`).
+    - Added `🌐 Live Web Grounded` badge in streaming and non-streaming message telemetry.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_web_search.py` (6/6 passing) and `backend/tests/unit/test_agentic_web_rag.py` (3/3 passing).
+    - Integration Tests: `backend/tests/integration/test_web_rag_integration.py` (3/3 passing) and catalog tests (4/4 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing).
+    - Full Platform Test Suite: **217 / 217 tests passing**.
+
 ## [4.6.0] - 2026-09-29
 
 ### Added

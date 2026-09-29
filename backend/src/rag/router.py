@@ -92,6 +92,18 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.hierarchical_agentic.strategy import HierarchicalMultiAgentStrategy
 
             _strategies[s_clean] = HierarchicalMultiAgentStrategy()
+        elif s_upper in (
+            "AGENTIC-WEB-RAG",
+            "AGENTIC_WEB_RAG",
+            "AGENTIC-WEB",
+            "AGENTIC_WEB",
+            "WEB-RAG",
+            "WEB_RAG",
+            "WEB",
+        ):
+            from src.rag.web_agentic.strategy import AgenticWebRAGStrategy
+
+            _strategies[s_clean] = AgenticWebRAGStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

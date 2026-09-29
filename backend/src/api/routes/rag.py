@@ -213,6 +213,23 @@ STRATEGIES_CATALOG: list[RAGStrategyMetadata] = [
             "Audit Trail",
         ],
     ),
+    RAGStrategyMetadata(
+        id="Agentic-Web-RAG",
+        name="Agentic Web RAG (Live Search)",
+        description=(
+            "Dynamic hybrid retrieval combining internal enterprise documents with real-time "
+            "external web search grounding when internal confidence is low or fresh facts are needed."
+        ),
+        framework="langgraph",
+        category="External Live Grounding",
+        version="1.0.0",
+        features=[
+            "Real-Time Web Search",
+            "DuckDuckGo / Hermetic Search Provider",
+            "Confidence-Triggered Fallback",
+            "Domain-Level Web Citations",
+        ],
+    ),
 ]
 
 

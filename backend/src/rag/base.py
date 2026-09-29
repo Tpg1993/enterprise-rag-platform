@@ -16,6 +16,9 @@ class Citation(BaseModel):
     relevance_score: float = 0.0
     bbox: list[float] | None = None
     page_dimensions: dict[str, float] | None = None
+    is_web: bool = False
+    url: str | None = None
+    domain: str | None = None
 
 
 class RAGRequest(BaseModel):

@@ -66,6 +66,9 @@ rag:
   hierarchical_multi_agent:
     version: "1.0.0"
     framework: "langgraph"
+  agentic_web_rag:
+    version: "1.0.0"
+    framework: "langgraph"
 
 security:
   opa_guardrails:
