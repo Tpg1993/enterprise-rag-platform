@@ -218,7 +218,8 @@ STRATEGIES_CATALOG: list[RAGStrategyMetadata] = [
         name="Agentic Web RAG (Live Search)",
         description=(
             "Dynamic hybrid retrieval combining internal enterprise documents with real-time "
-            "external web search grounding when internal confidence is low or fresh facts are needed."
+            "external web search grounding when internal confidence is low or fresh facts "
+            "are needed."
         ),
         framework="langgraph",
         category="External Live Grounding",
@@ -228,6 +229,24 @@ STRATEGIES_CATALOG: list[RAGStrategyMetadata] = [
             "DuckDuckGo / Hermetic Search Provider",
             "Confidence-Triggered Fallback",
             "Domain-Level Web Citations",
+        ],
+    ),
+    RAGStrategyMetadata(
+        id="Speculative-Draft-Verify",
+        name="Speculative Draft-and-Verify RAG",
+        description=(
+            "Dual-path speculative retrieval pipeline executing rapid lightweight drafting "
+            "concurrently with dense vector search, cross-encoder reranking, and "
+            "semantic drift detection."
+        ),
+        framework="langgraph",
+        category="Low-Latency Acceleration",
+        version="1.0.0",
+        features=[
+            "Speculative Dual-Path",
+            "Ultra-Low TTFT (<150ms)",
+            "Cross-Encoder Verification",
+            "Semantic Drift Detection",
         ],
     ),
 ]

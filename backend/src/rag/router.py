@@ -104,6 +104,17 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.web_agentic.strategy import AgenticWebRAGStrategy
 
             _strategies[s_clean] = AgenticWebRAGStrategy()
+        elif s_upper in (
+            "SPECULATIVE-DRAFT-VERIFY",
+            "SPECULATIVE_DRAFT_VERIFY",
+            "SPECULATIVE-RAG",
+            "SPECULATIVE",
+            "DRAFT-VERIFY",
+            "DRAFT_VERIFY",
+        ):
+            from src.rag.speculative.strategy import SpeculativeDraftVerifyRAGStrategy
+
+            _strategies[s_clean] = SpeculativeDraftVerifyRAGStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

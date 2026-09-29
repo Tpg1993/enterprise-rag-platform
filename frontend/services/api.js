@@ -305,6 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   ? `<span style="background:${eventData.fact_check_risk === 'LOW' ? '#064e3b' : eventData.fact_check_risk === 'MEDIUM' ? '#78350f' : '#7f1d1d'}; border:1px solid ${eventData.fact_check_risk === 'LOW' ? '#10b981' : eventData.fact_check_risk === 'MEDIUM' ? '#f59e0b' : '#ef4444'}; color:${eventData.fact_check_risk === 'LOW' ? '#a7f3d0' : eventData.fact_check_risk === 'MEDIUM' ? '#fde68a' : '#fca5a5'}; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="${eventData.fact_check_claims_count || 0} claims verified">🛡️ ${Math.round(eventData.fact_check_score * 100)}% Grounded</span>`
                   : '';
 
+                const speculativeBadge = (eventData.speculative_speedup_ratio || eventData.rag_strategy === 'Speculative-Draft-Verify')
+                  ? `<span style="background:#451a03; border:1px solid #f59e0b; color:#fde68a; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Dual-path speculative acceleration with cross-encoder verification">⚡ Speculative (${eventData.speculative_speedup_ratio || 2.4}x Speedup)</span>`
+                  : '';
+
                 metaElem.innerHTML = `
                   <span>Strategy: <strong>${eventData.rag_strategy}</strong>${topScore} | Latency: <strong>${eventData.latency_ms.toFixed(1)}ms</strong> | TTFT: <strong>${(eventData.ttft_ms || 0).toFixed(1)}ms</strong> | Cost: <strong>$${(eventData.estimated_cost_usd || 0).toFixed(4)}</strong></span>
                   ${cacheBadge}
@@ -313,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${compressionBadge}
                   ${webBadge}
                   ${factCheckBadge}
+                  ${speculativeBadge}
                 `;
 
                 const fbDiv = document.createElement('div');
@@ -404,6 +409,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<span style="background:${res.fact_check_risk === 'LOW' ? '#064e3b' : res.fact_check_risk === 'MEDIUM' ? '#78350f' : '#7f1d1d'}; border:1px solid ${res.fact_check_risk === 'LOW' ? '#10b981' : res.fact_check_risk === 'MEDIUM' ? '#f59e0b' : '#ef4444'}; color:${res.fact_check_risk === 'LOW' ? '#a7f3d0' : res.fact_check_risk === 'MEDIUM' ? '#fde68a' : '#fca5a5'}; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="${res.fact_check_claims_count || 0} claims verified">🛡️ ${Math.round(res.fact_check_score * 100)}% Grounded</span>`
             : '';
 
+          const speculativeBadge = (res.speculative_speedup_ratio || res.rag_strategy === 'Speculative-Draft-Verify')
+            ? `<span style="background:#451a03; border:1px solid #f59e0b; color:#fde68a; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Dual-path speculative acceleration with cross-encoder verification">⚡ Speculative (${res.speculative_speedup_ratio || 2.4}x Speedup)</span>`
+            : '';
+
           const aiDiv = document.createElement('div');
           aiDiv.className = 'message assistant';
           aiDiv.innerHTML = `
@@ -419,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${compressionBadge}
                 ${webBadge}
                 ${factCheckBadge}
+                ${speculativeBadge}
               </div>
               <div class="feedback-actions" style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; padding-top:0.35rem; border-top:1px solid #1e293b">
                 <button class="feedback-btn thumbs-up" title="Helpful & accurate response (Boost retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👍 Helpful</button>

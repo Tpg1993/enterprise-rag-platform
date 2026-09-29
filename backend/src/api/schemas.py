@@ -67,6 +67,8 @@ class ChatResponse(BaseModel):
     fact_check_score: float | None = None
     fact_check_risk: str | None = None
     fact_check_claims_count: int | None = None
+    speculative_speedup_ratio: float | None = None
+    drift_score: float | None = None
 
 
 class FactCheckRequest(BaseModel):

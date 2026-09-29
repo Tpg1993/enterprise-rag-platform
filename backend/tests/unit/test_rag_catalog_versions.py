@@ -10,15 +10,15 @@ async def test_get_rag_strategies_catalog():
     """Verifies that strategy catalog returns all 15 production RAG strategies."""
     res = await get_rag_strategies()
     assert isinstance(res, RAGStrategiesResponse)
-    assert res.total_strategies == 17
-    assert len(res.strategies) == 17
+    assert res.total_strategies == 18
+    assert len(res.strategies) == 18
 
     strategy_ids = [s.id for s in res.strategies]
     expected_ids = [
         "Basic", "Hybrid", "MMR", "Reranked", "Parent-Child",
         "Multi-Query", "HyDE", "Adaptive", "Corrective", "Self-RAG",
         "ReAct", "GraphRAG", "SQL-RAG", "Multimodal", "Hybrid-Graph-Agentic",
-        "Hierarchical-Multi-Agent", "Agentic-Web-RAG",
+        "Hierarchical-Multi-Agent", "Agentic-Web-RAG", "Speculative-Draft-Verify",
     ]
     for exp in expected_ids:
         assert exp in strategy_ids
@@ -53,6 +53,8 @@ async def test_get_rag_versions_manifest():
     assert res.rag["hybrid_graph_agentic"]["framework"] == "langgraph"
     assert "agentic_web_rag" in res.rag
     assert res.rag["agentic_web_rag"]["framework"] == "langgraph"
+    assert "speculative_draft_verify" in res.rag
+    assert res.rag["speculative_draft_verify"]["framework"] == "langgraph"
 
     # Validate security guardrail versions
     assert "opa_guardrails" in res.security

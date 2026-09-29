@@ -357,6 +357,12 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         fact_check_score=fact_check_score,
         fact_check_risk=fact_check_risk,
         fact_check_claims_count=fact_check_claims_count,
+        speculative_speedup_ratio=rag_res.metadata.get("speedup_ratio")
+        if hasattr(rag_res, "metadata")
+        else None,
+        drift_score=rag_res.metadata.get("drift_score")
+        if hasattr(rag_res, "metadata")
+        else None,
     )
 
 
@@ -747,6 +753,16 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             "fact_check_score": fact_check_score,
             "fact_check_risk": fact_check_risk,
             "fact_check_claims_count": fact_check_claims_count,
+            "speculative_speedup_ratio": (
+                rag_res.metadata.get("speedup_ratio")
+                if hasattr(rag_res, "metadata")
+                else None
+            ),
+            "drift_score": (
+                rag_res.metadata.get("drift_score")
+                if hasattr(rag_res, "metadata")
+                else None
+            ),
             "done": True,
         }
         yield f"data: {json.dumps(done_data)}\n\n"

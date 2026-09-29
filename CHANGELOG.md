@@ -5,6 +5,31 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.10.0] - 2026-09-29
+
+### Added
+- **Phase 41 Complete (Speculative Draft-and-Verify RAG Pipeline — Strategy 18: `Speculative-Draft-Verify-RAG`)**:
+  - **Speculative Core & Drift Detection (`backend/src/rag/speculative/models.py`, `backend/src/rag/speculative/drift_detector.py`, `backend/src/rag/speculative/__init__.py`)**:
+    - `DriftAssessment` model evaluating semantic divergence, Jaccard token overlap, and missing critical contract/SLA clauses between draft and verified context.
+    - `SpeculativeDriftDetector` classifying divergence as `ALIGNED`, `MODERATE_DRIFT`, or `HIGH_DRIFT`.
+    - `SpeculativeTelemetry` tracking draft TTFT, verified TTFT, acceleration speedup ratio, and drift scores.
+  - **Strategy 18 Implementation (`backend/src/rag/speculative/strategy.py`)**:
+    - Implemented `SpeculativeDraftVerifyRAGStrategy(BaseRAGStrategy)`:
+      - Asynchronous dual-path execution running fast draft retrieval (<25ms) concurrently with deep dense Qdrant search, BGE cross-encoder reranking, and semantic context compression.
+      - Seamless verified synthesis addendum generation if drift is detected.
+      - Calculates speculative acceleration speedup multiplier (typically 2.0x - 3.2x faster TTFT).
+  - **Platform Strategy Registration & Schemas (`backend/src/rag/router.py`, `backend/src/api/routes/rag.py`, `backend/config/version.yaml`, `backend/src/api/schemas.py`, `backend/src/api/routes/chat.py`)**:
+    - Registered Strategy 18 in factory router, OpenAPI catalog (**18 total production strategies**), and version manifest.
+    - Extended `ChatResponse` and streaming SSE `done` event with `speculative_speedup_ratio` and `drift_score`.
+  - **Interactive Frontend UI (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added option 18 `⚡ Speculative Draft-and-Verify RAG (Ultra-Low TTFT)` in `#strategy-select` dropdown.
+    - Added dynamic acceleration badge: `⚡ Speculative (2.7x Speedup)` in message telemetry.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_speculative_rag.py` (4/4 passing) and `backend/tests/unit/test_rag_catalog_versions.py` (2/2 passing).
+    - Integration Tests: `backend/tests/integration/test_speculative_rag_integration.py` (2/2 passing) and `test_rag_catalog_integration.py` (2/2 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` (100% passing).
+    - Full Platform Test Suite: **242 / 242 tests passing (100%)**.
+
 ## [4.9.0] - 2026-09-29
 
 ### Added

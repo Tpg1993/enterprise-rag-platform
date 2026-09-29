@@ -177,6 +177,7 @@ def test_selenium_ui_navigation_and_elements():
         options = [o.get_attribute("value") for o in select_elem.options]
         assert "Hierarchical-Multi-Agent" in options
         assert "Agentic-Web-RAG" in options
+        assert "Speculative-Draft-Verify" in options
         select_elem.select_by_value("Basic")
 
         query_input = driver.find_element(By.ID, "query-input")
