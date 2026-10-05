@@ -33,6 +33,7 @@ from src.api.routes.metrics import router as metrics_router
 from src.api.routes.quotas import router as quotas_router
 from src.api.routes.rag import router as rag_router
 from src.api.routes.security import router as security_router
+from src.api.routes.temporal import router as temporal_router
 from src.api.routes.tools import router as tools_router
 from src.api.routes.traces import router as traces_router
 from src.config.loader import load_settings
@@ -83,6 +84,7 @@ app.include_router(quotas_router, prefix="/api/v1")
 app.include_router(feedback_router, prefix="/api/v1")
 app.include_router(graph_router, prefix="/api/v1")
 app.include_router(tools_router, prefix="/api/v1")
+app.include_router(temporal_router, prefix="/api/v1")
 
 frontend_dir = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend")

@@ -191,6 +191,16 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         )
 
     # Route query through strategy (defaults to BasicRAGStrategy)
+    from src.retrieval.temporal import get_temporal_parser
+    temporal_parser = get_temporal_parser()
+    _, parsed_temporal = temporal_parser.parse(
+        query=payload.query,
+        default_as_of=payload.as_of_date,
+        default_mode=payload.temporal_mode,
+    )
+    eff_as_of = parsed_temporal.as_of_date
+    eff_temporal_mode = parsed_temporal.temporal_mode
+
     strategy = get_rag_strategy(payload.rag_strategy)
     rag_req = RAGRequest(
         query=effective_query,
@@ -200,6 +210,8 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         max_context_tokens=payload.max_context_tokens,
         enable_compression=payload.enable_compression,
         compression_target_ratio=payload.compression_target_ratio,
+        as_of_date=eff_as_of,
+        temporal_mode=eff_temporal_mode,
     )
     rag_res = await strategy.execute(rag_req)
 
@@ -222,6 +234,8 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             "estimated_cost_usd": rag_res.estimated_cost_usd,
             "model": rag_res.model,
             "citations_count": len(rag_res.citations),
+            "as_of_date": eff_as_of,
+            "temporal_mode": eff_temporal_mode,
         },
     )
 
@@ -243,9 +257,13 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             domain=getattr(c, "domain", None),
             is_redacted=getattr(c, "is_redacted", False),
             redaction_level=getattr(c, "redaction_level", None),
+            effective_from=getattr(c, "effective_from", None),
+            effective_until=getattr(c, "effective_until", None),
+            temporal_status=getattr(c, "temporal_status", None),
         )
         for c in rag_res.citations
     ]
+
     from src.storage.history import get_history_store
 
     store = get_history_store()
@@ -561,6 +579,16 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             return
 
         # 4. Execute RAG Strategy
+        from src.retrieval.temporal import get_temporal_parser
+        temporal_parser = get_temporal_parser()
+        _, stream_temporal = temporal_parser.parse(
+            query=payload.query,
+            default_as_of=payload.as_of_date,
+            default_mode=payload.temporal_mode,
+        )
+        stream_as_of = stream_temporal.as_of_date
+        stream_temporal_mode = stream_temporal.temporal_mode
+
         strategy = get_rag_strategy(payload.rag_strategy)
         rag_req = RAGRequest(
             query=effective_query,
@@ -570,6 +598,8 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             max_context_tokens=payload.max_context_tokens,
             enable_compression=payload.enable_compression,
             compression_target_ratio=payload.compression_target_ratio,
+            as_of_date=stream_as_of,
+            temporal_mode=stream_temporal_mode,
         )
         rag_res = await strategy.execute(rag_req)
 
@@ -589,9 +619,13 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
                 domain=getattr(c, "domain", None),
                 is_redacted=getattr(c, "is_redacted", False),
                 redaction_level=getattr(c, "redaction_level", None),
+                effective_from=getattr(c, "effective_from", None),
+                effective_until=getattr(c, "effective_until", None),
+                temporal_status=getattr(c, "temporal_status", None),
             )
             for c in rag_res.citations
         ]
+
 
         words = rag_res.answer.split(" ")
         last_time = time.perf_counter()

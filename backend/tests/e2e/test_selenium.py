@@ -327,7 +327,47 @@ def test_selenium_ui_navigation_and_elements():
             abac_preview = driver.find_element(By.ID, "abac-masked-preview").text
             assert "[REDACTED:" in abac_preview
 
+        # 14. Test Temporal Time-Travel & Version Diff Modal (Phase 45)
+        chat_nav = next((btn for btn in nav_items if "Chat" in btn.text), None)
+        if chat_nav:
+            driver.execute_script("arguments[0].click();", chat_nav)
+            time.sleep(0.3)
+
+        temporal_select = driver.find_element(By.ID, "temporal-snapshot-select")
+        assert temporal_select is not None
+        driver.execute_script(
+            "document.getElementById('temporal-snapshot-select').value = '2024-06-01';"
+        )
+        selected_as_of = driver.execute_script(
+            "return document.getElementById('temporal-snapshot-select').value;"
+        )
+        assert selected_as_of == "2024-06-01"
+
+        open_temporal_btn = driver.find_element(By.ID, "open-temporal-diff-btn")
+        assert open_temporal_btn is not None
+        driver.execute_script("arguments[0].click();", open_temporal_btn)
+        time.sleep(0.5)
+
+        temporal_modal = driver.find_element(By.ID, "temporal-diff-modal")
+        assert temporal_modal.is_displayed()
+
+        run_diff_btn = driver.find_element(By.ID, "run-diff-btn")
+        assert run_diff_btn is not None
+        driver.execute_script("arguments[0].click();", run_diff_btn)
+        time.sleep(0.8)
+
+        diff_summary = driver.find_element(By.ID, "diff-summary-card").text
+        assert len(diff_summary) > 0
+        diff_output = driver.find_element(By.ID, "diff-unified-output").text
+        assert len(diff_output) > 0
+
+        close_temporal_btn = driver.find_element(By.ID, "close-temporal-modal-btn")
+        driver.execute_script("arguments[0].click();", close_temporal_btn)
+        time.sleep(0.3)
+        assert not temporal_modal.is_displayed()
+
     finally:
         if driver:
             driver.quit()
+
 

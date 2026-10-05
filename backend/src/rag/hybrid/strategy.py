@@ -68,6 +68,21 @@ class HybridRAGStrategy(BaseRAGStrategy):
             weights=[1.0, 1.0],
         )
 
+        # Temporal filtering (Phase 45 Time-Travel RAG)
+        if request.as_of_date or request.temporal_mode:
+            from src.retrieval.temporal import TemporalFilter, TemporalPayloadValidator
+
+            t_filter = TemporalFilter(
+                as_of_date=request.as_of_date,
+                temporal_mode=request.temporal_mode or "point_in_time",
+            )
+            filtered_fused = [
+                h for h in fused_hits
+                if TemporalPayloadValidator.evaluate_chunk(h.get("payload", {}), t_filter)[0]
+            ]
+            if filtered_fused:
+                fused_hits = filtered_fused
+
         # 3. Context assembly & citation formatting
         ctx_res = self.context_builder.build_context(
             fused_hits,
@@ -75,6 +90,9 @@ class HybridRAGStrategy(BaseRAGStrategy):
             enable_compression=request.enable_compression,
             compression_target_ratio=request.compression_target_ratio,
             query=request.query,
+            user_role=request.user_role,
+            as_of_date=request.as_of_date,
+            temporal_mode=request.temporal_mode,
         )
         context_str = ctx_res.formatted_context
         citations = ctx_res.citations

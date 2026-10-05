@@ -138,12 +138,23 @@
                     <input type="checkbox" id="fact-check-toggle" checked style="accent-color:#34d399; cursor:pointer" />
                     <span>🛡️ Fact-Check</span>
                   </label>
+                  <div style="display:flex; align-items:center; gap:0.35rem; margin-left:0.4rem">
+                    <label for="temporal-snapshot-select" style="font-size:0.75rem; color:#f59e0b; user-select:none; white-space:nowrap" title="Point-in-Time State Lock (Time-Travel RAG)">⏳ As-Of:</label>
+                    <select id="temporal-snapshot-select" class="strategy-dropdown" style="padding:0.2rem 0.4rem; font-size:0.75rem; background:#0f172a; border:1px solid #f59e0b; color:#fbbf24; border-radius:4px">
+                      <option value="" selected>Current (Live)</option>
+                      <option value="2025-01-01">2025 Active</option>
+                      <option value="2024-06-01">2024 Mid-Year</option>
+                      <option value="2023-06-01">2023 Legacy</option>
+                    </select>
+                    <button id="open-temporal-diff-btn" type="button" class="secondary-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem; border:1px solid #f59e0b; color:#f59e0b; background:transparent; border-radius:4px; cursor:pointer" title="Open Version Timeline & Revision Diff Modal">📜 Timeline & Diff</button>
+                  </div>
                   <div id="live-itl-meter" style="display:none; align-items:center; gap:0.4rem; font-family:'JetBrains Mono',monospace; font-size:0.7rem; background:#0f172a; border:1px solid #0284c7; color:#38bdf8; padding:0.25rem 0.5rem; border-radius:4px; white-space:nowrap">
                     <span id="live-itl-text">ITL: 0ms</span>
                     <span style="color:#64748b">|</span>
                     <span id="live-ttft-text">TTFT: 0ms</span>
                   </div>
                 </div>
+
                 <input type="text" id="query-input" placeholder="Ask a complex enterprise question..." />
                 <button id="send-btn" class="primary-btn">Send</button>
               </div>
@@ -1128,6 +1139,75 @@
     </div>
   </div>
 
+  <!-- Modal: Temporal Version Timeline & Document Revision Diff (Phase 45) -->
+  <div id="temporal-diff-modal" class="modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.85); backdrop-filter:blur(4px)">
+    <div class="modal-content" style="background:#0f172a; border:1px solid #f59e0b; margin:3% auto; padding:1.5rem; border-radius:8px; width:88%; max-width:1150px; color:#f8fafc; box-shadow:0 10px 25px rgba(0,0,0,0.7); max-height:90vh; display:flex; flex-direction:column">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:0.75rem">
+        <h3 style="margin:0; color:#fbbf24; display:flex; align-items:center; gap:0.5rem">
+          <span>⏳ Temporal Version Timeline & Document Revision Diff</span>
+          <span style="font-size:0.75rem; background:#451a03; color:#fde68a; border:1px solid #f59e0b; padding:0.15rem 0.5rem; border-radius:4px; font-weight:normal">Phase 45</span>
+        </h3>
+        <button id="close-temporal-modal-btn" style="background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer">&times;</button>
+      </div>
+
+      <!-- Controls row -->
+      <div style="display:flex; gap:1rem; align-items:center; margin:1rem 0; flex-wrap:wrap; background:#1e293b; padding:0.75rem; border-radius:6px; border:1px solid #334155">
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8; display:block">Target Document:</label>
+          <select id="diff-doc-select" class="strategy-dropdown" style="padding:0.35rem 0.6rem; font-size:0.8rem; min-width:200px">
+            <option value="doc_msa_v1" selected>Master Services Agreement (MSA)</option>
+            <option value="doc_sec_2023">Information Security Policy</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8; display:block">Revision A (Base):</label>
+          <select id="diff-ver-a-select" class="strategy-dropdown" style="padding:0.35rem 0.6rem; font-size:0.8rem; min-width:130px">
+            <option value="1.0" selected>Version 1.0 (2023)</option>
+            <option value="2.0">Version 2.0 (2024)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem; color:#94a3b8; display:block">Revision B (Target):</label>
+          <select id="diff-ver-b-select" class="strategy-dropdown" style="padding:0.35rem 0.6rem; font-size:0.8rem; min-width:130px">
+            <option value="2.0" selected>Version 2.0 (2024)</option>
+            <option value="3.0">Version 3.0 (2025 Current)</option>
+          </select>
+        </div>
+        <button id="run-diff-btn" class="primary-btn" style="background:#d97706; padding:0.45rem 1rem; font-size:0.85rem; cursor:pointer; align-self:flex-end">⚖️ Compare Revisions</button>
+        <button id="refresh-timeline-btn" class="secondary-btn" style="padding:0.45rem 1rem; font-size:0.85rem; cursor:pointer; align-self:flex-end">🔄 Refresh Timelines</button>
+      </div>
+
+      <!-- Diff & Timeline container -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; flex:1; overflow:hidden; min-height:380px">
+        <!-- Chronological Timeline List -->
+        <div style="background:#030712; border:1px solid #334155; border-radius:6px; padding:0.8rem; display:flex; flex-direction:column; overflow:hidden">
+          <div style="font-weight:600; font-size:0.85rem; color:#f8fafc; margin-bottom:0.6rem; display:flex; justify-content:space-between">
+            <span>📜 Version History Timeline</span>
+            <span id="timeline-count-badge" style="color:#fbbf24; font-size:0.75rem">Loading...</span>
+          </div>
+          <div id="timeline-items-container" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.6rem; padding-right:0.3rem">
+            <!-- Timeline items rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Synthesized Diff View -->
+        <div style="background:#030712; border:1px solid #334155; border-radius:6px; padding:0.8rem; display:flex; flex-direction:column; overflow:hidden">
+          <div style="font-weight:600; font-size:0.85rem; color:#f8fafc; margin-bottom:0.6rem; display:flex; justify-content:space-between">
+            <span>🔬 Revision Diff Analysis</span>
+            <span id="diff-similarity-badge" style="color:#10b981; font-size:0.75rem">Similarity: --</span>
+          </div>
+          <div id="diff-summary-card" style="background:#1e293b; border:1px solid #475569; border-radius:4px; padding:0.5rem 0.75rem; font-size:0.75rem; color:#cbd5e1; margin-bottom:0.5rem">
+            Select revisions above and click "Compare Revisions" to synthesize line-level clause modifications and additions.
+          </div>
+          <div id="diff-unified-output" style="flex:1; overflow-y:auto; font-family:'JetBrains Mono',monospace; font-size:0.72rem; background:#020617; border:1px solid #1e293b; border-radius:4px; padding:0.6rem; color:#e2e8f0; white-space:pre-wrap">
+            No active diff generated yet.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="services/api.js"></script>
+
 </body>
 </html>

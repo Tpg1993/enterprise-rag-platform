@@ -21,6 +21,9 @@ class Citation(BaseModel):
     domain: str | None = None
     is_redacted: bool = False
     redaction_level: str | None = None
+    effective_from: str | None = None
+    effective_until: str | None = None
+    temporal_status: str | None = None
 
 
 class RAGRequest(BaseModel):
@@ -34,6 +37,8 @@ class RAGRequest(BaseModel):
     max_context_tokens: int = 2048
     enable_compression: bool = False
     compression_target_ratio: float = 0.6
+    as_of_date: str | None = None
+    temporal_mode: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

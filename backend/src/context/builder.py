@@ -68,10 +68,12 @@ class ContextBuilder:
         compression_target_ratio: float = 0.6,
         query: str = "",
         user_role: str = "USER",
+        as_of_date: str | None = None,
+        temporal_mode: str | None = None,
     ) -> ContextBuildResult:
         """Deduplicates hits, enforces token limits, extracts citations,
 
-        and builds formatted context.
+        annotates temporal validity, and builds formatted context.
         """
         effective_max_tokens = max_context_tokens or self.max_context_tokens
         if not search_hits:
@@ -174,6 +176,25 @@ class ContextBuilder:
                 chunk_classification=security_class,
             )
 
+            # Temporal validity evaluation
+            eff_from = (
+                payload.get("effective_from")
+                or payload.get("metadata", {}).get("effective_from")
+            )
+            eff_until = (
+                payload.get("effective_until")
+                or payload.get("metadata", {}).get("effective_until")
+            )
+            temporal_status: str | None = None
+            if eff_from or eff_until or as_of_date:
+                eff_f = str(eff_from or "1900-01-01")
+                eff_u = str(eff_until or "9999-12-31")
+                from src.retrieval.temporal import TemporalPayloadValidator
+
+                temporal_status = TemporalPayloadValidator.determine_status(
+                    eff_f, eff_u, as_of_date
+                )
+
             # 4. Rich Metadata Header Assembly
             header_parts = [f"SOURCE {len(context_blocks) + 1}: {filename}"]
             if section:
@@ -183,6 +204,9 @@ class ContextBuilder:
             header_parts.append(f"Class: {security_class}")
             if was_redacted:
                 header_parts.append("ABAC: 🛡️ REDACTED")
+            if temporal_status:
+                icon = "⏳" if temporal_status == "active" else "⌛"
+                header_parts.append(f"Temporal: {icon} {temporal_status.upper()}")
             header_parts.append(f"Relevance: {round(score, 4)}")
             if enable_compression:
                 header_parts.append("Compressed: 🗜️")
@@ -220,8 +244,12 @@ class ContextBuilder:
                     page_dimensions=page_dims,
                     is_redacted=is_cit_redacted,
                     redaction_level=security_class if is_cit_redacted else None,
+                    effective_from=str(eff_from) if eff_from else None,
+                    effective_until=str(eff_until) if eff_until else None,
+                    temporal_status=temporal_status,
                 )
             )
+
 
         formatted_context = "\n\n".join(context_blocks)
 

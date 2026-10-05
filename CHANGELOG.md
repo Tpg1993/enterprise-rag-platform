@@ -5,6 +5,35 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.14.0] - 2026-10-05
+
+### Added
+- **Phase 45 Complete (Temporal-Aware Time-Travel RAG & Version Diff Retrieval)**:
+  - **Temporal Retrieval Engine (`backend/src/retrieval/temporal.py`, `backend/src/retrieval/__init__.py`)**:
+    - `TemporalFilter`: Models `as_of_date`, `start_date`, `end_date`, `temporal_mode` (`point_in_time`, `range`, `latest_active`, `all`), `target_version`, and extracted expressions.
+    - `TemporalQueryParser`: Extracts natural language temporal expressions (quarters e.g. `Q2 2024`, calendar years e.g. `in 2023`, exact snapshot dates e.g. `as of 2024-05-01`, relative bounds e.g. `before 2024`, and document revisions e.g. `version 2`).
+    - `TemporalPayloadValidator`: Evaluates chunk payloads against temporal constraints and assigns lifecycle status (`active`, `deprecated`, or `future`).
+    - `DocumentVersionTimelineRegistry`: Tracks version timelines, effective dates, author, and change descriptions with benchmark MSA and Security Policy history.
+    - `VersionDiffSynthesizer`: Synthesizes unified diffs, line-level clause additions/removals/modifications, and semantic similarity scoring between revisions.
+  - **ContextBuilder & RAG Strategy Integration (`backend/src/context/builder.py`, `backend/src/rag/base.py`, `backend/src/rag/basic/strategy.py`, `backend/src/rag/hybrid/strategy.py`)**:
+    - `build_context` annotates context headers with `Temporal: ⏳ ACTIVE` or `Temporal: ⌛ DEPRECATED` and populates `Citation` with `effective_from`, `effective_until`, and `temporal_status`.
+    - `RAGRequest` and `Citation` extended with temporal fields across all strategies.
+    - Strategies filter retrieved vector hits temporally before prompt assembly when time-travel snapshots are specified.
+  - **REST API Endpoints (`backend/src/api/routes/temporal.py`, `backend/src/api/main.py`, `backend/src/api/schemas.py`, `backend/src/api/routes/chat.py`)**:
+    - `POST /api/v1/temporal/parse`: Parse natural language temporal query intent and date bounds.
+    - `GET /api/v1/temporal/timeline`: List chronological version timeline of documents and policies.
+    - `POST /api/v1/temporal/diff`: Compare revisions by document version, raw text, or point-in-time states.
+    - `ChatRequest` and streaming/non-streaming chat endpoints pass `as_of_date` and render temporal status.
+  - **Interactive Frontend UI (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added "⏳ As-Of:" point-in-time state lock dropdown in Chat panel toolbar.
+    - Added "📜 Timeline & Diff" button and modal with version history timelines and syntax-highlighted revision diff analyzer.
+    - Added `⏳ Active` and `⌛ Deprecated` badges on chat citation pills.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_temporal_rag.py` (14/14 passing).
+    - Integration Tests: `backend/tests/integration/test_temporal_api.py` (8/8 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` Step 14 verifying time-travel snapshot selection and timeline diff modal (1/1 passing).
+    - Full Platform Test Suite: **298 / 298 tests passing (100%)**.
+
 ## [4.13.0] - 2026-10-05
 
 ### Added

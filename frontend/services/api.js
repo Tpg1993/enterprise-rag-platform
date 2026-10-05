@@ -6,10 +6,11 @@ const API_BASE_URL = typeof window !== 'undefined' && window.location.origin && 
 
 let currentSessionId = 'sess_multimodal_fin';
 
-async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048, sessionId = null, enableCompression = null, enableFactCheck = null) {
+async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048, sessionId = null, enableCompression = null, enableFactCheck = null, asOfDate = null) {
   try {
     const isCompressed = enableCompression !== null ? enableCompression : (document.getElementById('compression-toggle')?.checked ?? false);
     const isFactCheck = enableFactCheck !== null ? enableFactCheck : (document.getElementById('fact-check-toggle')?.checked ?? false);
+    const effectiveAsOf = asOfDate !== null ? asOfDate : (document.getElementById('temporal-snapshot-select')?.value || null);
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: {
@@ -24,8 +25,10 @@ async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048
         enable_compression: isCompressed,
         compression_target_ratio: 0.6,
         enable_fact_check: isFactCheck,
+        as_of_date: effectiveAsOf,
       }),
     });
+
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
     }
@@ -202,6 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const tokenBudget = tokenBudgetElem ? tokenBudgetElem.value : 2048;
           const isCompressed = document.getElementById('compression-toggle')?.checked ?? false;
           const isFactCheck = document.getElementById('fact-check-toggle')?.checked ?? false;
+          const temporalSelect = document.getElementById('temporal-snapshot-select');
+          const temporalAsOf = temporalSelect && temporalSelect.value ? temporalSelect.value : null;
 
           const streamResponse = await fetch(`${API_BASE_URL}/chat/stream`, {
             method: 'POST',
@@ -215,8 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
               enable_compression: isCompressed,
               compression_target_ratio: 0.6,
               enable_fact_check: isFactCheck,
+              as_of_date: temporalAsOf,
             }),
           });
+
 
           if (!streamResponse.ok) {
             throw new Error(`Stream error: ${streamResponse.status}`);
@@ -270,9 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         return `<a href="${c.url || '#'}" target="_blank" rel="noopener noreferrer" class="citation-pill web-citation" style="background:#0f172a; border:1px solid #0284c7; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem" title="${(c.snippet || '').replace(/"/g, '&quot;')}">🌐 ${c.domain || c.source || 'Web'} ↗</a>`;
                       }
                       const abacTag = c.is_redacted ? ` <span style="background:#7c3aed; color:#fff; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:3px; font-weight:600">🛡️ ABAC</span>` : '';
-                      return `<span class="citation-pill" data-cit-idx="${i}" title="${c.is_redacted ? '[ABAC Redacted: ' + (c.redaction_level || 'Classified') + '] ' : ''}Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1})${abacTag} 🔍</span>`;
+                      const temporalTag = c.temporal_status ? ` <span style="background:${c.temporal_status === 'active' ? '#065f46' : '#78350f'}; color:#fff; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:3px; font-weight:600">${c.temporal_status === 'active' ? '⏳ Active' : '⌛ Deprecated'}</span>` : '';
+                      return `<span class="citation-pill" data-cit-idx="${i}" title="${c.is_redacted ? '[ABAC Redacted: ' + (c.redaction_level || 'Classified') + '] ' : ''}${c.temporal_status ? '[Temporal: ' + c.temporal_status + '] ' : ''}Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1})${abacTag}${temporalTag} 🔍</span>`;
                     }).join('') +
                     `</div>`;
+
                   citElem.querySelectorAll('.citation-pill:not(.web-citation)').forEach((pill) => {
                     const idx = parseInt(pill.getAttribute('data-cit-idx'), 10);
                     pill.addEventListener('click', () => openCitationPdfModal(eventData.citations[idx]));
@@ -401,9 +410,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   return `<a href="${c.url || '#'}" target="_blank" rel="noopener noreferrer" class="citation-pill web-citation" style="background:#0f172a; border:1px solid #0284c7; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem" title="${(c.snippet || '').replace(/"/g, '&quot;')}">🌐 ${c.domain || c.source || 'Web'} ↗</a>`;
                 }
                 const abacTag = c.is_redacted ? ` <span style="background:#7c3aed; color:#fff; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:3px; font-weight:600">🛡️ ABAC</span>` : '';
-                return `<span class="citation-pill" data-cit-idx="${i}" title="${c.is_redacted ? '[ABAC Redacted: ' + (c.redaction_level || 'Classified') + '] ' : ''}Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1})${abacTag} 🔍</span>`;
+                const temporalTag = c.temporal_status ? ` <span style="background:${c.temporal_status === 'active' ? '#065f46' : '#78350f'}; color:#fff; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:3px; font-weight:600">${c.temporal_status === 'active' ? '⏳ Active' : '⌛ Deprecated'}</span>` : '';
+                return `<span class="citation-pill" data-cit-idx="${i}" title="${c.is_redacted ? '[ABAC Redacted: ' + (c.redaction_level || 'Classified') + '] ' : ''}${c.temporal_status ? '[Temporal: ' + c.temporal_status + '] ' : ''}Click to inspect PDF visual bounding box" style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.75rem; color:#cbd5e1; cursor:pointer; user-select:none" onmouseover="this.style.borderColor='#38bdf8'; this.style.color='#38bdf8'" onmouseout="this.style.borderColor='#334155'; this.style.color='#cbd5e1'">📌 ${c.source || 'Doc'} (Page ${c.page || 1})${abacTag}${temporalTag} 🔍</span>`;
               }).join('') +
               `</div>`
+
             : '';
 
           const topScore = (res.citations && res.citations.length > 0 && res.citations[0].relevance_score)
@@ -2213,6 +2224,134 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Phase 45: Temporal Version Timeline & Revision Diff Handlers ---
+  const temporalModal = document.getElementById('temporal-diff-modal');
+  const openTemporalBtn = document.getElementById('open-temporal-diff-btn');
+  const closeTemporalBtn = document.getElementById('close-temporal-modal-btn');
+  const refreshTimelineBtn = document.getElementById('refresh-timeline-btn');
+  const runDiffBtn = document.getElementById('run-diff-btn');
+
+  function escapeHtmlSafe(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  async function loadTemporalTimelines() {
+    const timelineContainer = document.getElementById('timeline-items-container');
+    const badge = document.getElementById('timeline-count-badge');
+    if (!timelineContainer) return;
+    try {
+      if (badge) badge.innerText = 'Fetching...';
+      const res = await fetch(`${API_BASE_URL}/temporal/timeline`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (badge) badge.innerText = `${data.length} versions tracked`;
+
+      if (data.length === 0) {
+        timelineContainer.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center; padding:1rem">No version timelines found.</div>';
+        return;
+      }
+
+      timelineContainer.innerHTML = data.map(item => `
+        <div class="timeline-card" style="background:#0f172a; border:1px solid #334155; border-left:3px solid ${item.status === 'active' ? '#10b981' : '#f59e0b'}; border-radius:4px; padding:0.6rem; font-size:0.75rem">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem">
+            <strong style="color:#f8fafc">${escapeHtmlSafe(item.filename)}</strong>
+            <span style="background:${item.status === 'active' ? '#064e3b' : '#451a03'}; color:${item.status === 'active' ? '#a7f3d0' : '#fde68a'}; border:1px solid ${item.status === 'active' ? '#10b981' : '#d97706'}; padding:0.1rem 0.35rem; border-radius:3px; font-size:0.65rem; font-weight:bold">v${escapeHtmlSafe(item.version)} | ${item.status.toUpperCase()}</span>
+          </div>
+          <div style="color:#94a3b8; font-size:0.7rem; margin-bottom:0.3rem">
+            ⏳ Effective: <code>${item.effective_from}</code> to <code>${item.effective_until}</code> | Author: ${escapeHtmlSafe(item.author)}
+          </div>
+          <div style="color:#cbd5e1; font-size:0.75rem">${escapeHtmlSafe(item.summary)}</div>
+          <div style="color:#38bdf8; font-size:0.7rem; margin-top:0.25rem"><em>Changes: ${escapeHtmlSafe(item.change_description)}</em></div>
+        </div>
+      `).join('');
+    } catch (e) {
+      if (badge) badge.innerText = 'Error loading';
+      timelineContainer.innerHTML = `<div style="color:#ef4444; font-size:0.75rem">Failed to load timelines: ${escapeHtmlSafe(e.message)}</div>`;
+    }
+  }
+
+  async function executeRevisionDiff() {
+    const docSelect = document.getElementById('diff-doc-select');
+    const verASelect = document.getElementById('diff-ver-a-select');
+    const verBSelect = document.getElementById('diff-ver-b-select');
+    const simBadge = document.getElementById('diff-similarity-badge');
+    const summaryCard = document.getElementById('diff-summary-card');
+    const unifiedOutput = document.getElementById('diff-unified-output');
+
+    if (!docSelect || !verASelect || !verBSelect || !unifiedOutput) return;
+
+    try {
+      if (simBadge) simBadge.innerText = 'Computing...';
+      if (summaryCard) summaryCard.innerText = 'Synthesizing diff across revision clauses...';
+      unifiedOutput.innerText = 'Comparing document provisions...';
+
+      const payload = {
+        document_id: docSelect.value,
+        version_a: verASelect.value,
+        version_b: verBSelect.value,
+        tenant_id: 'default_tenant',
+      };
+
+      const res = await fetch(`${API_BASE_URL}/temporal/diff`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (simBadge) {
+        simBadge.innerText = `Similarity: ${Math.round(data.similarity_ratio * 100)}% (${data.added_count} added, ${data.removed_count} removed, ${data.modified_count} mod)`;
+      }
+
+      if (summaryCard) {
+        summaryCard.innerHTML = `<strong>${escapeHtmlSafe(data.summary)}</strong>`;
+      }
+
+      if (data.unified_diff) {
+        const coloredLines = data.unified_diff.split('\n').map(line => {
+          if (line.startsWith('+') && !line.startsWith('+++')) {
+            return `<span style="color:#4ade80; background:rgba(34,197,94,0.1); display:block">${escapeHtmlSafe(line)}</span>`;
+          } else if (line.startsWith('-') && !line.startsWith('---')) {
+            return `<span style="color:#f87171; background:rgba(239,68,68,0.1); display:block">${escapeHtmlSafe(line)}</span>`;
+          } else if (line.startsWith('@@')) {
+            return `<span style="color:#38bdf8; font-weight:bold; display:block">${escapeHtmlSafe(line)}</span>`;
+          }
+          return `<span style="display:block">${escapeHtmlSafe(line)}</span>`;
+        }).join('');
+        unifiedOutput.innerHTML = coloredLines;
+      } else {
+        unifiedOutput.innerText = 'No textual differences detected between the selected revisions.';
+      }
+    } catch (e) {
+      if (simBadge) simBadge.innerText = 'Diff Error';
+      unifiedOutput.innerHTML = `<span style="color:#ef4444">Error computing revision diff: ${escapeHtmlSafe(e.message)}</span>`;
+    }
+  }
+
+  if (openTemporalBtn) {
+    openTemporalBtn.addEventListener('click', () => {
+      if (temporalModal) temporalModal.style.display = 'block';
+      loadTemporalTimelines();
+    });
+  }
+
+  if (closeTemporalBtn) {
+    closeTemporalBtn.addEventListener('click', () => {
+      if (temporalModal) temporalModal.style.display = 'none';
+    });
+  }
+
+  if (refreshTimelineBtn) {
+    refreshTimelineBtn.addEventListener('click', loadTemporalTimelines);
+  }
+
+  if (runDiffBtn) {
+    runDiffBtn.addEventListener('click', executeRevisionDiff);
+  }
+
   // Initial loads
   loadUsersTable();
   loadRolesTable();
@@ -2221,5 +2360,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAuditTable();
   updateTenantQuotaBar();
 });
+
 
 

@@ -18,6 +18,9 @@ class Citation(BaseModel):
     domain: str | None = None
     is_redacted: bool = False
     redaction_level: str | None = None
+    effective_from: str | None = None
+    effective_until: str | None = None
+    temporal_status: str | None = None
 
 
 class ChatRequest(BaseModel):
@@ -45,7 +48,16 @@ class ChatRequest(BaseModel):
     enable_fact_check: bool = Field(
         default=False, description="Enable automated claim-level hallucination fact-checking"
     )
+    as_of_date: str | None = Field(
+        default=None,
+        description="Temporal snapshot date (YYYY-MM-DD) for time-travel point-in-time retrieval",
+    )
+    temporal_mode: str | None = Field(
+        default=None,
+        description="Temporal retrieval mode: point_in_time, range, latest_active, or all",
+    )
     metadata: dict[str, str] = Field(default_factory=dict, description="Custom request metadata")
+
 
 
 class ChatResponse(BaseModel):

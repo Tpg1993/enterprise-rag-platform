@@ -43,6 +43,21 @@ class BasicRAGStrategy(BaseRAGStrategy):
             top_k=request.top_k,
         )
 
+        # Temporal filtering (Phase 45 Time-Travel RAG)
+        if request.as_of_date or request.temporal_mode:
+            from src.retrieval.temporal import TemporalFilter, TemporalPayloadValidator
+
+            t_filter = TemporalFilter(
+                as_of_date=request.as_of_date,
+                temporal_mode=request.temporal_mode or "point_in_time",
+            )
+            filtered_hits = [
+                h for h in search_hits
+                if TemporalPayloadValidator.evaluate_chunk(h.get("payload", {}), t_filter)[0]
+            ]
+            if filtered_hits:
+                search_hits = filtered_hits
+
         # 3. Context assembly & citation extraction
         ctx_res = self.context_builder.build_context(
             search_hits,
@@ -50,6 +65,9 @@ class BasicRAGStrategy(BaseRAGStrategy):
             enable_compression=request.enable_compression,
             compression_target_ratio=request.compression_target_ratio,
             query=request.query,
+            user_role=request.user_role,
+            as_of_date=request.as_of_date,
+            temporal_mode=request.temporal_mode,
         )
         context_str = ctx_res.formatted_context
         citations = ctx_res.citations
