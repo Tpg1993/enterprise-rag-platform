@@ -6,6 +6,12 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from src.api.schemas import FactCheckRequest, FactCheckResponse
+from src.security.abac_masker import (
+    ABACPolicyMatrix,
+    ABACSimulationRequest,
+    ABACSimulationResponse,
+    get_abac_masker,
+)
 from src.security.opa_engine import OPAEvalRequest, OPAEvalResponse, get_opa_engine
 from src.security.pii import PIIDetectionReport, get_pii_redactor
 
@@ -112,4 +118,22 @@ async def fact_check_payload(payload: FactCheckRequest) -> FactCheckResponse:
         risk_level=report.risk_level,
         claims=[c.model_dump() for c in report.claims],
         corrected_answer=report.corrected_answer,
+    )
+
+
+@router.get("/abac-policies", response_model=ABACPolicyMatrix)
+async def get_abac_policies() -> ABACPolicyMatrix:
+    """Returns active Attribute-Based Access Control clearance matrix and rules."""
+    masker = get_abac_masker()
+    return masker.get_policy_matrix()
+
+
+@router.post("/simulate-abac", response_model=ABACSimulationResponse)
+async def simulate_abac_redaction(payload: ABACSimulationRequest) -> ABACSimulationResponse:
+    """Simulates ABAC chunk masking and differential privacy redaction across user roles."""
+    masker = get_abac_masker()
+    return masker.simulate(
+        text=payload.text,
+        user_role=payload.user_role,
+        classification=payload.classification,
     )

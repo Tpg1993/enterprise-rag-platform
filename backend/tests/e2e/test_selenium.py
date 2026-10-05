@@ -311,6 +311,22 @@ def test_selenium_ui_navigation_and_elements():
         )
         assert selected_strat == "Tool-Calling-Agentic"
 
+        # 13. Test Multi-Level ABAC Clearance Simulator (Phase 44)
+        gov_nav = next(
+            (btn for btn in nav_items if "Governance" in btn.text or "RBAC" in btn.text), None
+        )
+        if gov_nav:
+            driver.execute_script("arguments[0].click();", gov_nav)
+            time.sleep(0.3)
+            btn_run_abac = driver.find_element(By.ID, "btn-run-abac-sim")
+            assert btn_run_abac is not None
+            driver.execute_script("arguments[0].click();", btn_run_abac)
+            time.sleep(1.0)
+            abac_results = driver.find_element(By.ID, "abac-sim-results")
+            assert abac_results.is_displayed()
+            abac_preview = driver.find_element(By.ID, "abac-masked-preview").text
+            assert "[REDACTED:" in abac_preview
+
     finally:
         if driver:
             driver.quit()

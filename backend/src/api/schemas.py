@@ -16,6 +16,8 @@ class Citation(BaseModel):
     is_web: bool = False
     url: str | None = None
     domain: str | None = None
+    is_redacted: bool = False
+    redaction_level: str | None = None
 
 
 class ChatRequest(BaseModel):
@@ -23,6 +25,9 @@ class ChatRequest(BaseModel):
     rag_strategy: str = Field(default="AUTO", description="Target RAG strategy name or AUTO")
     tenant_id: str = Field(
         default="default_tenant", description="Tenant identifier for multi-tenancy filtering"
+    )
+    user_role: str = Field(
+        default="USER", description="Requesting user role/clearance (ADMIN, ANALYST, USER, VIEWER)"
     )
     user_id: str = Field(default="user_default", description="User identifier")
     session_id: str | None = Field(default=None, description="Optional session identifier")

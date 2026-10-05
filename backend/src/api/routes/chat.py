@@ -196,6 +196,7 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         query=effective_query,
         tenant_id=payload.tenant_id,
         rag_strategy=payload.rag_strategy,
+        user_role=getattr(payload, "user_role", "USER"),
         max_context_tokens=payload.max_context_tokens,
         enable_compression=payload.enable_compression,
         compression_target_ratio=payload.compression_target_ratio,
@@ -240,6 +241,8 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
             is_web=getattr(c, "is_web", False),
             url=getattr(c, "url", None),
             domain=getattr(c, "domain", None),
+            is_redacted=getattr(c, "is_redacted", False),
+            redaction_level=getattr(c, "redaction_level", None),
         )
         for c in rag_res.citations
     ]
@@ -563,6 +566,7 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             query=effective_query,
             tenant_id=payload.tenant_id,
             rag_strategy=payload.rag_strategy,
+            user_role=getattr(payload, "user_role", "USER"),
             max_context_tokens=payload.max_context_tokens,
             enable_compression=payload.enable_compression,
             compression_target_ratio=payload.compression_target_ratio,
@@ -583,6 +587,8 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
                 is_web=getattr(c, "is_web", False),
                 url=getattr(c, "url", None),
                 domain=getattr(c, "domain", None),
+                is_redacted=getattr(c, "is_redacted", False),
+                redaction_level=getattr(c, "redaction_level", None),
             )
             for c in rag_res.citations
         ]

@@ -5,6 +5,32 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.13.0] - 2026-10-05
+
+### Added
+- **Phase 44 Complete (Multi-Level ABAC Chunk Masking & Differential Privacy Redaction)**:
+  - **Zero-Trust ABAC Masking Engine (`backend/src/security/abac_masker.py`, `backend/src/security/__init__.py`)**:
+    - Clearance hierarchy: `VIEWER` (Level 1) < `USER` (Level 2) < `ANALYST` (Level 3) < `ADMIN` (Level 4).
+    - Standardized classification tags: `PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED_LEGAL`, `SECRET`.
+    - Granular differential privacy redactions for in-line sensitive credentials (`sk-...`, Bearer tokens, private keys), executive salaries/bonuses, and contractual maximum liability clauses.
+    - Tiered redaction: complete chunk replacement if clearance deficit is >= 2 levels, and sentence-level redaction if clearance deficit is 1 level.
+    - `ADMIN` bypass for unrestricted audit and security inspection fidelity.
+  - **ContextBuilder & Citation Protection (`backend/src/context/builder.py`, `backend/src/rag/base.py`)**:
+    - `ContextBuilder.build_context` now accepts `user_role` (default `"USER"`) and applies dynamic ABAC chunk masking to prompt context blocks.
+    - Citations sanitized with `is_redacted: bool` and `redaction_level: str | None`, ensuring zero data leakage in user-facing snippets.
+  - **REST API Endpoints (`backend/src/api/routes/security.py`, `backend/src/api/schemas.py`, `backend/src/api/routes/chat.py`)**:
+    - `GET /api/v1/security/abac-policies`: Returns active role clearance matrix, classification mappings, and privacy rules.
+    - `POST /api/v1/security/simulate-abac`: Diagnostic endpoint to test masking behavior across roles (`ADMIN`, `ANALYST`, `USER`, `VIEWER`).
+    - `ChatRequest` extended with `user_role` for authenticated role propagation.
+  - **Frontend UI Integration (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added "🛡️ Multi-Level ABAC Clearance Simulator" card in Governance & Security tab with role selector, classification selector, sample inputs, and live sanitized preview.
+    - Added `🛡️ ABAC` badge on chat citation pills when differential privacy redactions are applied.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_abac_chunk_masking.py` (8/8 passing).
+    - Integration Tests: `backend/tests/integration/test_abac_api.py` (4/4 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` Step 13 testing the ABAC Simulator (1/1 passing).
+    - Full Platform Test Suite: **273 / 273 tests passing (100%)**.
+
 ## [4.12.0] - 2026-10-05
 
 ### Added

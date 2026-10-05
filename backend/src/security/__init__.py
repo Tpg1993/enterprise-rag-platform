@@ -1,5 +1,12 @@
-"""Security package initialization with OPA and Presidio Guardrails."""
-
+from src.security.abac_masker import (
+    ABACChunkMasker,
+    ABACPolicyMatrix,
+    ABACSimulationRequest,
+    ABACSimulationResponse,
+    ClassificationTag,
+    ClearanceLevel,
+    get_abac_masker,
+)
 from src.security.fact_checker import (
     ClaimItem,
     FactCheckReport,
@@ -24,4 +31,11 @@ __all__ = [
     "FactCheckReport",
     "ClaimItem",
     "get_fact_checker",
+    "ABACChunkMasker",
+    "get_abac_masker",
+    "ClearanceLevel",
+    "ClassificationTag",
+    "ABACPolicyMatrix",
+    "ABACSimulationRequest",
+    "ABACSimulationResponse",
 ]

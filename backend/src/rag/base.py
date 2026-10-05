@@ -19,12 +19,15 @@ class Citation(BaseModel):
     is_web: bool = False
     url: str | None = None
     domain: str | None = None
+    is_redacted: bool = False
+    redaction_level: str | None = None
 
 
 class RAGRequest(BaseModel):
     query: str
     tenant_id: str = "default_tenant"
     rag_strategy: str = "Basic"
+    user_role: str = "USER"
     top_k: int = 5
     temperature: float = 0.1
     max_tokens: int = 1024

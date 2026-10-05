@@ -718,6 +718,59 @@
               </div>
             </div>
 
+            <!-- Phase 44: Multi-Level ABAC Clearance Simulator -->
+            <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:1.2rem; margin-top:1.5rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem">
+                <div>
+                  <h4 style="margin:0; font-size:1rem; color:#f8fafc">🛡️ Multi-Level ABAC Chunk Masking & Privacy Redaction</h4>
+                  <div style="font-size:0.8rem; color:#94a3b8">Zero-Trust sub-document clearance enforcement (ADMIN, ANALYST, USER, VIEWER)</div>
+                </div>
+                <button id="btn-refresh-abac-policies" class="secondary-btn" style="padding:0.4rem 0.8rem; font-size:0.75rem; background:#334155; color:#f8fafc; border:none; border-radius:4px; cursor:pointer">📋 View Policies</button>
+              </div>
+
+              <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.8rem">
+                <div style="flex:1; min-width:180px">
+                  <label style="display:block; font-size:0.75rem; color:#94a3b8; margin-bottom:0.25rem">Clearance Role</label>
+                  <select id="abac-sim-role" style="width:100%; background:#0f172a; border:1px solid #475569; color:#f8fafc; border-radius:6px; padding:0.5rem; font-size:0.85rem">
+                    <option value="USER">USER (Level 2 - General Staff)</option>
+                    <option value="VIEWER">VIEWER (Level 1 - Public Guest)</option>
+                    <option value="ANALYST">ANALYST (Level 3 - Business Analyst)</option>
+                    <option value="ADMIN">ADMIN (Level 4 - Full Clearance)</option>
+                  </select>
+                </div>
+                <div style="flex:1; min-width:180px">
+                  <label style="display:block; font-size:0.75rem; color:#94a3b8; margin-bottom:0.25rem">Chunk Classification</label>
+                  <select id="abac-sim-class" style="width:100%; background:#0f172a; border:1px solid #475569; color:#f8fafc; border-radius:6px; padding:0.5rem; font-size:0.85rem">
+                    <option value="CONFIDENTIAL">CONFIDENTIAL (Financials / Compensation)</option>
+                    <option value="RESTRICTED_LEGAL">RESTRICTED_LEGAL (Legal / Liability / Patents)</option>
+                    <option value="SECRET">SECRET (API Keys / Passwords / Critical Tokens)</option>
+                    <option value="INTERNAL">INTERNAL (Internal Operations)</option>
+                    <option value="PUBLIC">PUBLIC (Public Documentation)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-bottom:0.8rem">
+                <textarea id="abac-sim-text" rows="3" placeholder="Input sample text..." style="width:100%; background:#0f172a; border:1px solid #475569; color:#f8fafc; border-radius:6px; padding:0.6rem; font-size:0.85rem; font-family:monospace; resize:vertical">Master Service Agreement: The executive compensation is $450,000 annually. In the event of system breach, the maximum liability is $5,000,000. Production secret token sk-prod-live-992817263541 must not be committed.</textarea>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem">
+                <button id="btn-run-abac-sim" class="primary-btn" style="padding:0.5rem 1.2rem; font-size:0.85rem; background:#8b5cf6; border:none; color:white; border-radius:6px; font-weight:600; cursor:pointer">⚡ Simulate ABAC Redaction</button>
+                <div id="abac-sim-status" style="font-size:0.8rem; color:#94a3b8"></div>
+              </div>
+
+              <div id="abac-sim-results" style="display:none; margin-top:1rem; background:#0f172a; border:1px solid #334155; border-radius:6px; padding:1rem; font-size:0.85rem">
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:0.6rem">
+                  <div>Status: <span id="abac-result-status" style="font-weight:bold; padding:0.2rem 0.5rem; border-radius:4px"></span></div>
+                  <div>User Level: <span id="abac-user-level" style="color:#a855f7; font-weight:600"></span></div>
+                  <div>Required: <span id="abac-req-level" style="color:#38bdf8; font-weight:600"></span></div>
+                  <div>Tokens Masked: <span id="abac-masked-count" style="color:#f59e0b; font-weight:600"></span></div>
+                </div>
+                <div style="color:#94a3b8; font-size:0.75rem; margin-bottom:0.25rem">Sanitized Sub-Document / Chunk Output:</div>
+                <pre id="abac-masked-preview" style="background:#1e293b; padding:0.75rem; border-radius:4px; color:#c4b5fd; font-family:monospace; font-size:0.8rem; white-space:pre-wrap; margin:0"></pre>
+              </div>
+            </div>
+
             <div style="margin-top:2rem">
               <h3>👥 Enterprise User Directory (JWT Authenticated)</h3>
               <table class="doc-table" style="width:100%; border-collapse:collapse; margin-top:1rem">

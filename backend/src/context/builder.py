@@ -6,6 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 from src.rag.base import Citation
+from src.security.abac_masker import get_abac_masker
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,7 @@ class ContextBuilder:
         enable_compression: bool = False,
         compression_target_ratio: float = 0.6,
         query: str = "",
+        user_role: str = "USER",
     ) -> ContextBuildResult:
         """Deduplicates hits, enforces token limits, extracts citations,
 
@@ -157,10 +159,20 @@ class ContextBuilder:
                 payload.get("metadata", {}).get("section_title")
                 or payload.get("section_title")
             )
-            security_class = payload.get("metadata", {}).get(
-                "security_classification", "Internal"
+            security_class = (
+                payload.get("metadata", {}).get("security_classification")
+                or payload.get("security_classification")
+                or "Internal"
             )
             score = float(hit.get("score", 0.0))
+
+            # Apply Zero-Trust ABAC Chunk Masking
+            abac_masker = get_abac_masker()
+            chunk_content, was_redacted, _ = abac_masker.mask_text(
+                chunk_content,
+                user_role=user_role,
+                chunk_classification=security_class,
+            )
 
             # 4. Rich Metadata Header Assembly
             header_parts = [f"SOURCE {len(context_blocks) + 1}: {filename}"]
@@ -169,6 +181,8 @@ class ContextBuilder:
             if page:
                 header_parts.append(f"Page {page}")
             header_parts.append(f"Class: {security_class}")
+            if was_redacted:
+                header_parts.append("ABAC: 🛡️ REDACTED")
             header_parts.append(f"Relevance: {round(score, 4)}")
             if enable_compression:
                 header_parts.append("Compressed: 🗜️")
@@ -184,17 +198,28 @@ class ContextBuilder:
                 or hit.get("page_dimensions")
             )
 
+            # Sanitize citation content snippet
+            snippet_raw = content[:150]
+            masked_snippet, snippet_redacted, _ = abac_masker.mask_text(
+                snippet_raw,
+                user_role=user_role,
+                chunk_classification=security_class,
+            )
+            is_cit_redacted = was_redacted or snippet_redacted
+
             citations.append(
                 Citation(
                     document_id=doc_id,
                     filename=filename,
                     chunk_id=chunk_id,
-                    content_snippet=content[:150] + ("..." if len(content) > 150 else ""),
+                    content_snippet=masked_snippet + ("..." if len(content) > 150 else ""),
                     page_number=page,
                     section_title=section,
                     relevance_score=round(score, 4),
                     bbox=bbox,
                     page_dimensions=page_dims,
+                    is_redacted=is_cit_redacted,
+                    redaction_level=security_class if is_cit_redacted else None,
                 )
             )
 
