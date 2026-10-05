@@ -6,11 +6,12 @@ const API_BASE_URL = typeof window !== 'undefined' && window.location.origin && 
 
 let currentSessionId = 'sess_multimodal_fin';
 
-async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048, sessionId = null, enableCompression = null, enableFactCheck = null, asOfDate = null) {
+async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048, sessionId = null, enableCompression = null, enableFactCheck = null, asOfDate = null, targetLanguage = null) {
   try {
     const isCompressed = enableCompression !== null ? enableCompression : (document.getElementById('compression-toggle')?.checked ?? false);
     const isFactCheck = enableFactCheck !== null ? enableFactCheck : (document.getElementById('fact-check-toggle')?.checked ?? false);
     const effectiveAsOf = asOfDate !== null ? asOfDate : (document.getElementById('temporal-snapshot-select')?.value || null);
+    const effectiveTargetLang = targetLanguage || (document.getElementById('target-language-select')?.value || 'auto');
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: {
@@ -26,6 +27,7 @@ async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048
         compression_target_ratio: 0.6,
         enable_fact_check: isFactCheck,
         as_of_date: effectiveAsOf,
+        target_language: effectiveTargetLang,
       }),
     });
 
@@ -221,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
               compression_target_ratio: 0.6,
               enable_fact_check: isFactCheck,
               as_of_date: temporalAsOf,
+              target_language: document.getElementById('target-language-select')?.value || 'auto',
             }),
           });
 
@@ -325,6 +328,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   ? `<span style="background:#0c4a6e; border:1px solid #0284c7; color:#38bdf8; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="${toolsList.map(t => t.tool_name).join(', ') || 'Live Tools'}">🛠️ ${toolsList.length || 1} Tools Executed</span>`
                   : '';
 
+                const langBadge = (eventData.detected_language || (eventData.target_language && eventData.target_language !== 'en'))
+                  ? `<span style="background:#1e1b4b; border:1px solid #6366f1; color:#c7d2fe; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Language: ${eventData.target_language || 'auto'} (Detected: ${eventData.detected_language || 'en'})">🌐 ${(eventData.target_language && eventData.target_language !== 'auto' ? eventData.target_language : (eventData.detected_language || 'Indic')).toUpperCase()}</span>`
+                  : '';
+
                 metaElem.innerHTML = `
                   <span>Strategy: <strong>${eventData.rag_strategy}</strong>${topScore} | Latency: <strong>${eventData.latency_ms.toFixed(1)}ms</strong> | TTFT: <strong>${(eventData.ttft_ms || 0).toFixed(1)}ms</strong> | Cost: <strong>$${(eventData.estimated_cost_usd || 0).toFixed(4)}</strong></span>
                   ${cacheBadge}
@@ -335,6 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${factCheckBadge}
                   ${speculativeBadge}
                   ${toolsBadge}
+                  ${langBadge}
                 `;
 
                 if (toolsList.length > 0) {
@@ -466,6 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>`
             : '';
 
+          const langBadge = (res.detected_language || (res.target_language && res.target_language !== 'en'))
+            ? `<span style="background:#1e1b4b; border:1px solid #6366f1; color:#c7d2fe; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Language: ${res.target_language || 'auto'} (Detected: ${res.detected_language || 'en'})">🌐 ${(res.target_language && res.target_language !== 'auto' ? res.target_language : (res.detected_language || 'Indic')).toUpperCase()}</span>`
+            : '';
+
           const aiDiv = document.createElement('div');
           aiDiv.className = 'message assistant';
           aiDiv.innerHTML = `
@@ -484,6 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${factCheckBadge}
                 ${speculativeBadge}
                 ${toolsBadge}
+                ${langBadge}
               </div>
               <div class="feedback-actions" style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; padding-top:0.35rem; border-top:1px solid #1e293b">
                 <button class="feedback-btn thumbs-up" title="Helpful & accurate response (Boost retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👍 Helpful</button>

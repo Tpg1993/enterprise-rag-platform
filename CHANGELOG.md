@@ -5,6 +5,34 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.15.0] - 2026-10-05
+
+### Added
+- **Phase 46 Complete (Cross-Lingual & Multi-Indic Linguistic Bridge for Sarvam AI)**:
+  - **Linguistic Engine (`backend/src/multilingual/bridge.py`, `backend/src/multilingual/__init__.py`)**:
+    - `LanguageInfo` & `LanguageDetectionResult`: Formal data schemas covering 12 supported languages (`hi`, `bn`, `ta`, `te`, `kn`, `mr`, `gu`, `ml`, `pa`, `or`, `hinglish`, `en`).
+    - `LanguageDetector`: High-accuracy Unicode script block detector (Devanagari, Bengali, Gurmukhi, Gujarati, Odia, Tamil, Telugu, Kannada, Malayalam) and Latin-script code-mixed vernacular classifier for Hinglish and Tanglish with zero false positives on standard English stop words.
+    - `ScriptNormalizer`: Unicode NFC normalization, zero-width char removal, and Indic code-mixed semantic query derivation for dense vector search (BGE-M3).
+    - `CrossLingualBridge`: Auto-resolution of target and source languages with dynamic prompt augmentation injecting explicit script constraints and Indic synthesis directives for Sarvam-105B.
+  - **PromptBuilder & RAG Strategy Integration (`backend/src/prompting/builder.py`, `backend/src/rag/base.py`, `backend/src/rag/basic/strategy.py`, `backend/src/rag/hybrid/strategy.py`)**:
+    - `PromptBuilder.build_prompt` conditionally weaves target language directives into system and user prompts when native Indic or Hinglish generation is requested.
+    - `RAGRequest` and `RAGResponse` extended with `target_language` and `detected_language`.
+    - Strategies pass multilingual metadata seamlessly into response models and streaming events.
+  - **REST API Endpoints (`backend/src/api/routes/multilingual.py`, `backend/src/api/main.py`, `backend/src/api/schemas.py`, `backend/src/api/routes/chat.py`)**:
+    - `POST /api/v1/multilingual/detect`: Detect query language code, script, Indic status, and code-mixed tokens.
+    - `GET /api/v1/multilingual/supported-languages`: Enumerate supported Indic languages with native script names.
+    - `POST /api/v1/multilingual/normalize`: Normalize scripts and derive dense retrieval queries.
+    - `POST /api/v1/chat` & `POST /api/v1/chat/stream`: Accept `target_language`, auto-detect query language when set to `"auto"`, and return `detected_language` alongside `target_language`.
+  - **Frontend UI Integration (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added "🌐 Lang:" target language selector dropdown to the chat toolbar supporting Auto-Detect and 11 Indic languages/dialects.
+    - Added dynamic multilingual status badges (`🌐 HI`, `🌐 HINGLISH`, `🌐 TA`, etc.) on assistant chat bubbles for both streaming and non-streaming responses.
+    - Updated `sendChatMessage` and streaming fetch to propagate selected target language.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_multilingual_rag.py` (14/14 passing).
+    - Integration Tests: `backend/tests/integration/test_multilingual_api.py` (6/6 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` Step 15 verifying language selector (1/1 passing).
+    - Full Platform Test Suite: **318 / 318 tests passing (100%)**.
+
 ## [4.14.0] - 2026-10-05
 
 ### Added

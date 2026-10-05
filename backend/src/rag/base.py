@@ -39,6 +39,8 @@ class RAGRequest(BaseModel):
     compression_target_ratio: float = 0.6
     as_of_date: str | None = None
     temporal_mode: str | None = None
+    target_language: str = "auto"
+    detected_language: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -56,7 +58,10 @@ class RAGResponse(BaseModel):
     tenant_id: str = "default_tenant"
     compression_ratio: float | None = None
     tokens_saved: int | None = None
+    target_language: str | None = None
+    detected_language: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+
 
 
 class BaseRAGStrategy(ABC):

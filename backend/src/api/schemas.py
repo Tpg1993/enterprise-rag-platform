@@ -56,6 +56,10 @@ class ChatRequest(BaseModel):
         default=None,
         description="Temporal retrieval mode: point_in_time, range, latest_active, or all",
     )
+    target_language: str = Field(
+        default="auto",
+        description="Target generation language (auto, hi, ta, te, kn, bn, mr, gu, ml, pa, or, en, hinglish)",
+    )
     metadata: dict[str, str] = Field(default_factory=dict, description="Custom request metadata")
 
 
@@ -87,6 +91,9 @@ class ChatResponse(BaseModel):
     speculative_speedup_ratio: float | None = None
     drift_score: float | None = None
     tool_executions: list[dict[str, Any]] = Field(default_factory=list)
+    target_language: str = "en"
+    detected_language: str = "en"
+
 
 
 class FactCheckRequest(BaseModel):

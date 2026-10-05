@@ -201,6 +201,17 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
     eff_as_of = parsed_temporal.as_of_date
     eff_temporal_mode = parsed_temporal.temporal_mode
 
+    from src.multilingual.bridge import get_language_detector
+    lang_detector = get_language_detector()
+    det_lang_res = lang_detector.detect(payload.query)
+    detected_lang_code = det_lang_res.language_code
+    req_target_lang = getattr(payload, "target_language", "auto")
+    effective_target_lang = (
+        detected_lang_code
+        if req_target_lang in ("auto", None) and det_lang_res.is_indic
+        else ("en" if req_target_lang in ("auto", None) else req_target_lang)
+    )
+
     strategy = get_rag_strategy(payload.rag_strategy)
     rag_req = RAGRequest(
         query=effective_query,
@@ -212,8 +223,11 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         compression_target_ratio=payload.compression_target_ratio,
         as_of_date=eff_as_of,
         temporal_mode=eff_temporal_mode,
+        target_language=effective_target_lang,
+        detected_language=detected_lang_code,
     )
     rag_res = await strategy.execute(rag_req)
+
 
     elapsed_ms = (time.perf_counter() - start_time) * 1000
 
@@ -387,7 +401,10 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         tool_executions=rag_res.metadata.get("tool_executions", [])
         if hasattr(rag_res, "metadata")
         else [],
+        target_language=effective_target_lang,
+        detected_language=detected_lang_code,
     )
+
 
 
 @router.post("/chat/stream")
@@ -589,6 +606,17 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
         stream_as_of = stream_temporal.as_of_date
         stream_temporal_mode = stream_temporal.temporal_mode
 
+        from src.multilingual.bridge import get_language_detector
+        lang_detector = get_language_detector()
+        stream_det_res = lang_detector.detect(payload.query)
+        stream_det_code = stream_det_res.language_code
+        stream_req_lang = getattr(payload, "target_language", "auto")
+        stream_target_lang = (
+            stream_det_code
+            if stream_req_lang in ("auto", None) and stream_det_res.is_indic
+            else ("en" if stream_req_lang in ("auto", None) else stream_req_lang)
+        )
+
         strategy = get_rag_strategy(payload.rag_strategy)
         rag_req = RAGRequest(
             query=effective_query,
@@ -600,8 +628,11 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
             compression_target_ratio=payload.compression_target_ratio,
             as_of_date=stream_as_of,
             temporal_mode=stream_temporal_mode,
+            target_language=stream_target_lang,
+            detected_language=stream_det_code,
         )
         rag_res = await strategy.execute(rag_req)
+
 
         citations = [
             Citation(
@@ -811,8 +842,11 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
                 if hasattr(rag_res, "metadata")
                 else []
             ),
+            "target_language": stream_target_lang,
+            "detected_language": stream_det_code,
             "done": True,
         }
+
         yield f"data: {json.dumps(done_data)}\n\n"
 
     return StreamingResponse(

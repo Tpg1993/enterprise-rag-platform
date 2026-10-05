@@ -72,8 +72,13 @@ class BasicRAGStrategy(BaseRAGStrategy):
         context_str = ctx_res.formatted_context
         citations = ctx_res.citations
 
-        # 4. Prompt building (grounding + instruction boundary)
-        prompts = self.prompt_builder.build_prompt(request.query, context_str)
+        # 4. Prompt building (grounding + instruction boundary + Indic multilingual directives)
+        prompts = self.prompt_builder.build_prompt(
+            request.query,
+            context_str,
+            target_language=request.target_language,
+            detected_language=request.detected_language,
+        )
 
         # 5. LLM Generation (Sarvam-105B or Mock)
         llm_res = await self.llm_provider.agenerate(
@@ -99,4 +104,7 @@ class BasicRAGStrategy(BaseRAGStrategy):
             tenant_id=request.tenant_id,
             compression_ratio=ctx_res.compression_ratio,
             tokens_saved=ctx_res.tokens_saved,
+            target_language=request.target_language,
+            detected_language=request.detected_language,
         )
+

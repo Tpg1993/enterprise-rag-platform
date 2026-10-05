@@ -30,6 +30,7 @@ from src.api.routes.feedback import router as feedback_router
 from src.api.routes.graph import router as graph_router
 from src.api.routes.health import router as health_router
 from src.api.routes.metrics import router as metrics_router
+from src.api.routes.multilingual import router as multilingual_router
 from src.api.routes.quotas import router as quotas_router
 from src.api.routes.rag import router as rag_router
 from src.api.routes.security import router as security_router
@@ -85,6 +86,7 @@ app.include_router(feedback_router, prefix="/api/v1")
 app.include_router(graph_router, prefix="/api/v1")
 app.include_router(tools_router, prefix="/api/v1")
 app.include_router(temporal_router, prefix="/api/v1")
+app.include_router(multilingual_router, prefix="/api/v1")
 
 frontend_dir = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend")

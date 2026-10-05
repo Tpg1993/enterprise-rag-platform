@@ -366,6 +366,31 @@ def test_selenium_ui_navigation_and_elements():
         time.sleep(0.3)
         assert not temporal_modal.is_displayed()
 
+        # 15. Test Cross-Lingual & Multi-Indic Linguistic Bridge Selector (Phase 46)
+        lang_select = driver.find_element(By.ID, "target-language-select")
+        assert lang_select is not None
+        driver.execute_script(
+            "document.getElementById('target-language-select').value = 'hi';"
+        )
+        time.sleep(0.2)
+        selected_lang = driver.execute_script(
+            "return document.getElementById('target-language-select').value;"
+        )
+        assert selected_lang == "hi"
+
+        driver.execute_script(
+            "document.getElementById('target-language-select').value = 'hinglish';"
+        )
+        time.sleep(0.2)
+        selected_lang = driver.execute_script(
+            "return document.getElementById('target-language-select').value;"
+        )
+        assert selected_lang == "hinglish"
+
+        driver.execute_script(
+            "document.getElementById('target-language-select').value = 'auto';"
+        )
+
     finally:
         if driver:
             driver.quit()
