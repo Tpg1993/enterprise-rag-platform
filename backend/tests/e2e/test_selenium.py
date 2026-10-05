@@ -391,6 +391,16 @@ def test_selenium_ui_navigation_and_elements():
             "document.getElementById('target-language-select').value = 'auto';"
         )
 
+        # 16. Test Strategy 20: Self-Query RAG Selection (Phase 47 - Final Phase)
+        driver.execute_script(
+            "document.getElementById('strategy-select').value = 'Self-Query-RAG';"
+        )
+        time.sleep(0.2)
+        selected_strat = driver.execute_script(
+            "return document.getElementById('strategy-select').value;"
+        )
+        assert selected_strat == "Self-Query-RAG"
+
     finally:
         if driver:
             driver.quit()

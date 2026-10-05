@@ -332,6 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   ? `<span style="background:#1e1b4b; border:1px solid #6366f1; color:#c7d2fe; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Language: ${eventData.target_language || 'auto'} (Detected: ${eventData.detected_language || 'en'})">🌐 ${(eventData.target_language && eventData.target_language !== 'auto' ? eventData.target_language : (eventData.detected_language || 'Indic')).toUpperCase()}</span>`
                   : '';
 
+                const selfQueryBadge = (eventData.rag_strategy === 'Self-Query-RAG')
+                  ? `<span style="background:#064e3b; border:1px solid #10b981; color:#a7f3d0; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Autonomous Metadata Filter Synthesizer">🔍 Filter Synthesized</span>`
+                  : '';
+
                 metaElem.innerHTML = `
                   <span>Strategy: <strong>${eventData.rag_strategy}</strong>${topScore} | Latency: <strong>${eventData.latency_ms.toFixed(1)}ms</strong> | TTFT: <strong>${(eventData.ttft_ms || 0).toFixed(1)}ms</strong> | Cost: <strong>$${(eventData.estimated_cost_usd || 0).toFixed(4)}</strong></span>
                   ${cacheBadge}
@@ -343,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${speculativeBadge}
                   ${toolsBadge}
                   ${langBadge}
+                  ${selfQueryBadge}
                 `;
 
                 if (toolsList.length > 0) {
@@ -478,6 +483,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<span style="background:#1e1b4b; border:1px solid #6366f1; color:#c7d2fe; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Language: ${res.target_language || 'auto'} (Detected: ${res.detected_language || 'en'})">🌐 ${(res.target_language && res.target_language !== 'auto' ? res.target_language : (res.detected_language || 'Indic')).toUpperCase()}</span>`
             : '';
 
+          const selfQueryBadge = (res.rag_strategy === 'Self-Query-RAG')
+            ? `<span style="background:#064e3b; border:1px solid #10b981; color:#a7f3d0; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Autonomous Metadata Filter Synthesizer">🔍 Filter Synthesized</span>`
+            : '';
+
           const aiDiv = document.createElement('div');
           aiDiv.className = 'message assistant';
           aiDiv.innerHTML = `
@@ -497,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${speculativeBadge}
                 ${toolsBadge}
                 ${langBadge}
+                ${selfQueryBadge}
               </div>
               <div class="feedback-actions" style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; padding-top:0.35rem; border-top:1px solid #1e293b">
                 <button class="feedback-btn thumbs-up" title="Helpful & accurate response (Boost retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👍 Helpful</button>

@@ -15,6 +15,14 @@ from src.retrieval.temporal import (
     get_temporal_parser,
     get_timeline_registry,
 )
+from src.retrieval.self_query import (
+    FilterCondition,
+    FilterOperator,
+    MetadataFieldSchema,
+    ParsedSelfQuery,
+    SelfQueryCompiler,
+    get_self_query_compiler,
+)
 from src.retrieval.vector_store import QdrantVectorStore, get_vector_store
 
 __all__ = [
@@ -34,5 +42,11 @@ __all__ = [
     "VersionDiffSynthesizer",
     "get_diff_synthesizer",
     "VersionDiffResult",
+    "FilterCondition",
+    "FilterOperator",
+    "MetadataFieldSchema",
+    "ParsedSelfQuery",
+    "SelfQueryCompiler",
+    "get_self_query_compiler",
 ]
 

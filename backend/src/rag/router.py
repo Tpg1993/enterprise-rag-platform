@@ -128,6 +128,17 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.tool_calling.strategy import ToolCallingAgenticRAGStrategy
 
             _strategies[s_clean] = ToolCallingAgenticRAGStrategy()
+        elif s_upper in (
+            "SELF-QUERY-RAG",
+            "SELF_QUERY_RAG",
+            "SELF-QUERY",
+            "SELF_QUERY",
+            "SELFQUERY",
+            "METADATA-FILTER-RAG",
+        ):
+            from src.rag.self_query.strategy import SelfQueryRAGStrategy
+
+            _strategies[s_clean] = SelfQueryRAGStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 

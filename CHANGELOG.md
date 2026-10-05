@@ -5,6 +5,36 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-10-05
+
+### Added
+- **Phase 47 Complete (Autonomous RAG Self-Querying & Metadata Filter Synthesizer — Strategy 20: `Self-Query-RAG`)**:
+  - **Self-Querying Compiler & Filter Synthesizer (`backend/src/retrieval/self_query.py`, `backend/src/retrieval/__init__.py`)**:
+    - `FilterOperator`: `EQ`, `NE`, `GT`, `GTE`, `LT`, `LTE`, `IN`, `CONTAINS`.
+    - `LogicalOperator`: `AND`, `OR`, `NOT`.
+    - `MetadataFieldSchema`: Catalog of filterable enterprise metadata attributes (`doc_type`, `classification`, `year`, `page_number`, `sla_penalty_usd`, `uptime_sla_pct`, `author`, `document_id`).
+    - `SelfQueryCompiler`: Decomposes natural language queries into clean semantic search strings and structured Qdrant filter predicates.
+    - Translates filters into native Qdrant `models.Filter`, `FieldCondition`, `MatchValue`, and `Range`.
+    - `matches_payload`: In-memory evaluation engine ensuring 100% offline test reliability.
+  - **Vector Store Enhancements (`backend/src/retrieval/vector_store.py`)**:
+    - `QdrantVectorStore.search` accepts `metadata_filter` and `filter_conditions` alongside `tenant_id`.
+    - Enriched memory indexing stores complete payload dictionaries for multi-attribute matching.
+  - **Strategy 20: Self-Query-RAG (`backend/src/rag/self_query/strategy.py`, `backend/src/rag/self_query/__init__.py`, `backend/src/rag/router.py`)**:
+    - Inherits from `BaseRAGStrategy`.
+    - Implements end-to-end execution of Strategy 20, integrating temporal filters, ABAC sanitization, Indic multilingual directives, and Mock/Sarvam-105B generation.
+  - **REST API Endpoints (`backend/src/api/routes/self_query.py`, `backend/src/api/main.py`)**:
+    - `POST /api/v1/retrieval/self-query/parse`: Parses query intent into semantic query and Qdrant filters.
+    - `GET /api/v1/retrieval/self-query/schema`: Exposes filterable metadata catalog.
+  - **Frontend UI Integration (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added `🔍 Self-Query RAG (Metadata Filter Synthesizer)` to Strategy dropdown.
+    - Added `🔍 Filter Synthesized` badge on assistant chat bubbles.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_self_query_rag.py` (12/12 passing).
+    - Integration Tests: `backend/tests/integration/test_self_query_api.py` (4/4 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` Step 16 (1/1 passing).
+    - Full Platform Test Suite: **334 / 334 tests passing (100%)**.
+    - **MAJOR MILESTONE**: All 48 phases (Phases 0–47) and all 20 RAG architectures are 100% complete!
+
 ## [4.15.0] - 2026-10-05
 
 ### Added

@@ -107,9 +107,22 @@ class QdrantVectorStore:
 
         # Fallback in-memory indexing
         for idx, (chunk, vector) in enumerate(zip(chunks, vectors)):
+            payload = {
+                "document_id": chunk.document_id,
+                "chunk_id": chunk.chunk_id,
+                "tenant_id": chunk.tenant_id,
+                "parent_id": chunk.parent_id or "",
+                "chunk_index": chunk.chunk_index,
+                "content": chunk.content,
+                "page_number": chunk.page_number or 0,
+                "token_count": chunk.token_count,
+                "metadata": chunk.metadata,
+                **(chunk.metadata if isinstance(chunk.metadata, dict) else {}),
+            }
             self._memory_store[chunk.chunk_id] = {
                 "chunk": chunk,
                 "vector": vector,
+                "payload": payload,
             }
         return True
 
@@ -119,19 +132,25 @@ class QdrantVectorStore:
         tenant_id: str = "default_tenant",
         top_k: int = 5,
         apply_feedback_boost: bool = True,
+        metadata_filter: Any | None = None,
+        filter_conditions: list[Any] | None = None,
     ) -> list[dict[str, Any]]:
-        """Executes dense vector search with query-level tenant filtering."""
+        """Dense vector search with query-level tenant and structured metadata filtering."""
         results = []
         if self.client:
             try:
-                tenant_filter = qmodels.Filter(
-                    must=[
-                        qmodels.FieldCondition(
-                            key="tenant_id",
-                            match=qmodels.MatchValue(value=tenant_id),
-                        )
-                    ]
-                )
+                must_clauses: list[Any] = [
+                    qmodels.FieldCondition(
+                        key="tenant_id",
+                        match=qmodels.MatchValue(value=tenant_id),
+                    )
+                ]
+                if metadata_filter and hasattr(metadata_filter, "must") and metadata_filter.must:
+                    for cond in metadata_filter.must:
+                        if getattr(cond, "key", "") != "tenant_id":
+                            must_clauses.append(cond)
+
+                tenant_filter = qmodels.Filter(must=must_clauses)
                 if hasattr(self.client, "query_points"):
                     query_res = self.client.query_points(
                         collection_name=self.collection_name,
@@ -166,10 +185,25 @@ class QdrantVectorStore:
             except Exception as e:
                 logger.warning(f"Qdrant search error: {e}. Searching memory fallback.")
 
-        # In-memory search fallback
+        # In-memory search fallback with metadata filtering
         for cid, item in self._memory_store.items():
             c = item["chunk"]
+            payload = item.get("payload") or {
+                "document_id": c.document_id,
+                "chunk_id": c.chunk_id,
+                "content": c.content,
+                "tenant_id": c.tenant_id,
+            }
             if c.tenant_id == tenant_id:
+                if filter_conditions:
+                    from src.retrieval.self_query import get_self_query_compiler
+
+                    compiler = get_self_query_compiler()
+                    if not all(
+                        compiler.matches_payload(payload, cond) for cond in filter_conditions
+                    ):
+                        continue
+
                 # Cosine similarity simulation
                 v = item["vector"]
                 score = sum(q * r for q, r in zip(query_vector, v))
@@ -180,11 +214,7 @@ class QdrantVectorStore:
                         "content": c.content,
                         "score": score,
                         "vector": v,
-                        "payload": {
-                            "document_id": c.document_id,
-                            "chunk_id": c.chunk_id,
-                            "content": c.content,
-                        },
+                        "payload": payload,
                     }
                 )
 
