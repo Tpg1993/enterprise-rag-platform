@@ -269,6 +269,28 @@ def test_selenium_ui_navigation_and_elements():
         time.sleep(0.3)
         assert not compare_modal.is_displayed()
 
+        # 11. Test Autonomous Knowledge Graph Explorer Modal (Phase 42)
+        open_graph_btn = driver.find_element(By.ID, "open-graph-explorer-btn")
+        assert open_graph_btn is not None
+        driver.execute_script("arguments[0].click();", open_graph_btn)
+        time.sleep(0.5)
+
+        graph_modal = driver.find_element(By.ID, "graph-explorer-modal")
+        assert graph_modal.is_displayed()
+
+        kg_total_nodes = driver.find_element(By.ID, "kg-total-nodes")
+        assert kg_total_nodes is not None
+        kg_canvas = driver.find_element(By.ID, "kg-canvas-container")
+        assert kg_canvas is not None
+        kg_refresh_btn = driver.find_element(By.ID, "kg-refresh-btn")
+        assert kg_refresh_btn is not None
+
+        close_graph_btn = driver.find_element(By.ID, "close-graph-modal-btn")
+        driver.execute_script("arguments[0].click();", close_graph_btn)
+        time.sleep(0.3)
+        assert not graph_modal.is_displayed()
+
     finally:
         if driver:
             driver.quit()
+

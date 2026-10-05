@@ -5,6 +5,40 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.11.0] - 2026-10-05
+
+### Added
+- **Phase 42 Complete (Autonomous Knowledge Graph Auto-Construction on Ingestion)**:
+  - **Entity Classification & Deterministic Triples Extraction (`backend/src/graph/extractor.py`)**:
+    - `classify_entity_type` semantic classifier categorizing extracted concepts into 6 enterprise ontology domains: `TECH`, `ORG`, `METRIC`, `POLICY`, `PERSON`, and `CONCEPT`.
+    - Enhanced deterministic linguistic heuristic patterns (`CONNECTS_TO`, `DEPENDS_ON`, `ACHIEVES`, `ENFORCES`, `RUNS_ON`, `SUPPORTS`) with regex word boundary matching.
+  - **Knowledge Graph Store Metrics & Subgraph Traversal (`backend/src/graph/neo4j_store.py`)**:
+    - Implemented `get_graph_stats(tenant_id)` computing total nodes, total relationships, category type distributions, top connected entities, and network density.
+    - Implemented `get_entities(tenant_id, limit, entity_type)` with degree connectivity sorting and type filtering.
+    - Implemented `get_subgraph(entity, tenant_id, depth, limit)` providing node-link neighborhoods formatted for interactive visual graph rendering.
+    - Implemented `clear_tenant(tenant_id)` supporting full tenant isolation and cache clearing.
+  - **Document Ingestion Integration & REST API Endpoints (`backend/src/api/routes/documents.py`, `backend/src/api/routes/graph.py`, `backend/src/api/schemas.py`, `backend/src/api/main.py`)**:
+    - Added `enable_graph_extraction: bool` form parameter and `graph_nodes_count` / `graph_relationships_count` tracking in `DocumentIngestionResponse` and `DocumentSummary`.
+    - `GET /api/v1/graph/stats`: Structural metrics, node/edge counts, and density.
+    - `GET /api/v1/graph/entities`: Entity directory with connectivity degrees and type filtering.
+    - `GET /api/v1/graph/subgraph`: Multi-hop focal neighborhood traversal for interactive canvas rendering.
+    - `DELETE /api/v1/graph`: Complete tenant graph wiping and audit event recording.
+  - **Interactive Frontend UI & Visual Network Explorer (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added "🕸️ Auto-Extract Graph" toggle in Document Ingestion card.
+    - Added "🕸️ Knowledge Graph Explorer" modal launcher in Ingested Documents view.
+    - Document table now features a `Graph (Nodes / Rels)` column detailing auto-extracted triples for each document.
+    - Interactive modal `#graph-explorer-modal` featuring:
+      - 4-card metric summary bar (Total Nodes, Total Relationships, Graph Density, Engine).
+      - Focal entity seed search, hop depth selector (1-3 hops), and category filter.
+      - Full SVG network graph visualizer with glowing node circles, category color coding, and directional arrows.
+      - Interactive node click inspection card revealing adjacent relationship paths.
+      - Discovered entities sidebar catalog with degree pills and instant seed filtering.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_graph_auto_construction.py` (6/6 passing).
+    - Integration Tests: `backend/tests/integration/test_graph_api.py` (1/1 lifecycle test passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` Step 11 asserting modal controls and SVG visualization.
+    - Full Platform Test Suite: **248 / 248 tests passing (100%)**.
+
 ## [4.10.0] - 2026-09-29
 
 ### Added

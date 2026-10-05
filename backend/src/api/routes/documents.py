@@ -49,6 +49,8 @@ class DocumentIngestionResponse(BaseModel):
     has_pii: bool = False
     redacted_count: int = 0
     language: str = "en"
+    graph_nodes_count: int = 0
+    graph_relationships_count: int = 0
 
 
 class DocumentPreviewResponse(BaseModel):
@@ -79,6 +81,8 @@ class DocumentSummary(BaseModel):
     has_pii: bool = False
     redacted_count: int = 0
     language: str = "en"
+    graph_nodes_count: int = 0
+    graph_relationships_count: int = 0
 
 
 @router.post("/documents", response_model=DocumentIngestionResponse)
@@ -90,6 +94,7 @@ async def upload_document(
     chunk_overlap: int = Form(50),
     embedding_provider: str = Form("bge-m3"),
     tenant_id: str = Form("default_tenant"),
+    enable_graph_extraction: bool = Form(True),
 ) -> DocumentIngestionResponse:
     """Uploads, parses, cleans, redacts PII, extracts metadata, embeds, and indexes a document."""
     # Check query params if form values were default
@@ -104,6 +109,9 @@ async def upload_document(
         chunk_overlap = int(qp["chunk_overlap"])
     if embedding_provider == "bge-m3" and "embedding_provider" in qp:
         embedding_provider = qp["embedding_provider"]
+    if "enable_graph_extraction" in qp:
+        enable_graph_extraction = qp["enable_graph_extraction"].lower() in ("true", "1")
+
 
     start_time = time.perf_counter()
     filename = file.filename or "file.txt"
@@ -186,23 +194,32 @@ async def upload_document(
     bm25_retriever.index_chunks(chunks, tenant_id=tenant_id)
 
     # 6b. Extract & Index Knowledge Graph Triples in Neo4j Graph Store
-    try:
-        from src.graph.extractor import GraphEntityExtractor
-        from src.graph.neo4j_store import get_graph_store
+    graph_nodes_count = 0
+    graph_relationships_count = 0
+    if enable_graph_extraction:
+        try:
+            from src.graph.extractor import GraphEntityExtractor
+            from src.graph.neo4j_store import get_graph_store
 
-        graph_store = get_graph_store()
-        extractor = GraphEntityExtractor()
-        for c in chunks:
-            res = extractor.extract_sync(c.content)
-            if res.triples:
-                graph_store.upsert_triples(
-                    res.triples,
-                    tenant_id=tenant_id,
-                    doc_id=doc_id,
-                    chunk_id=c.chunk_id,
-                )
-    except Exception as e:
-        logger.warning(f"Graph extraction warning during ingestion: {e}")
+            graph_store = get_graph_store()
+            extractor = GraphEntityExtractor()
+            unique_nodes: set[str] = set()
+            for c in chunks:
+                res = extractor.extract_sync(c.content)
+                if res.triples:
+                    graph_relationships_count += len(res.triples)
+                    for t in res.triples:
+                        unique_nodes.add(t.subject.lower())
+                        unique_nodes.add(t.object.lower())
+                    graph_store.upsert_triples(
+                        res.triples,
+                        tenant_id=tenant_id,
+                        doc_id=doc_id,
+                        chunk_id=c.chunk_id,
+                    )
+            graph_nodes_count = len(unique_nodes)
+        except Exception as e:
+            logger.warning(f"Graph extraction warning during ingestion: {e}")
 
     # 7. Record CDC version (Increments version v1 -> v2 -> v3 on re-upload)
     version = cdc_engine.record_ingestion(doc_id, checksum, tenant_id=tenant_id)
@@ -233,6 +250,8 @@ async def upload_document(
         "content": cleaned_text,
         "chunk_objects": chunks,
         "total_pages": parsed_doc.total_pages or 1,
+        "graph_nodes_count": graph_nodes_count,
+        "graph_relationships_count": graph_relationships_count,
     }
 
     from src.storage.history import get_history_store
@@ -249,6 +268,8 @@ async def upload_document(
             "filename": filename,
             "version": version,
             "total_chunks": len(chunks),
+            "graph_nodes_count": graph_nodes_count,
+            "graph_relationships_count": graph_relationships_count,
         },
     )
 
@@ -271,6 +292,8 @@ async def upload_document(
         has_pii=meta_info.has_pii,
         redacted_count=meta_info.redacted_count,
         language=meta_info.language,
+        graph_nodes_count=graph_nodes_count,
+        graph_relationships_count=graph_relationships_count,
     )
 
 
@@ -282,6 +305,7 @@ async def reindex_document(
     chunk_size: int = Query(512),
     chunk_overlap: int = Query(50),
     embedding_provider: str = Query("bge-m3"),
+    enable_graph_extraction: bool = Query(True),
 ) -> DocumentIngestionResponse:
     """Reindexes an existing document with specified chunking strategy and embedding provider."""
     start_time = time.perf_counter()
@@ -307,6 +331,36 @@ async def reindex_document(
     vector_store.upsert_chunks(chunks, vectors)
     bm25_retriever.index_chunks(chunks, tenant_id=tenant_id)
 
+    # 3b. Extract knowledge graph
+    graph_nodes_count = doc_info.get("graph_nodes_count", 0)
+    graph_relationships_count = doc_info.get("graph_relationships_count", 0)
+    if enable_graph_extraction:
+        try:
+            from src.graph.extractor import GraphEntityExtractor
+            from src.graph.neo4j_store import get_graph_store
+
+            graph_store = get_graph_store()
+            extractor = GraphEntityExtractor()
+            unique_nodes = set()
+            new_rel_count = 0
+            for c in chunks:
+                res = extractor.extract_sync(c.content)
+                if res.triples:
+                    new_rel_count += len(res.triples)
+                    for t in res.triples:
+                        unique_nodes.add(t.subject.lower())
+                        unique_nodes.add(t.object.lower())
+                    graph_store.upsert_triples(
+                        res.triples,
+                        tenant_id=tenant_id,
+                        doc_id=document_id,
+                        chunk_id=c.chunk_id,
+                    )
+            graph_nodes_count = len(unique_nodes)
+            graph_relationships_count = new_rel_count
+        except Exception as e:
+            logger.warning(f"Graph reindex extraction warning: {e}")
+
     # 4. Bump version in CDC
     version = cdc_engine.record_ingestion(document_id, doc_info["checksum"], tenant_id=tenant_id)
     total_tokens = sum(c.token_count for c in chunks)
@@ -323,6 +377,8 @@ async def reindex_document(
             "chunk_overlap": chunk_overlap,
             "embedding_provider": embedding_provider,
             "chunk_objects": chunks,
+            "graph_nodes_count": graph_nodes_count,
+            "graph_relationships_count": graph_relationships_count,
         }
     )
 
@@ -341,6 +397,8 @@ async def reindex_document(
             "version": version,
             "chunk_strategy": chunk_strategy,
             "embedding_provider": embedding_provider,
+            "graph_nodes_count": graph_nodes_count,
+            "graph_relationships_count": graph_relationships_count,
         },
     )
 
@@ -363,7 +421,10 @@ async def reindex_document(
         has_pii=doc_info.get("has_pii", False),
         redacted_count=doc_info.get("redacted_count", 0),
         language=doc_info.get("language", "en"),
+        graph_nodes_count=graph_nodes_count,
+        graph_relationships_count=graph_relationships_count,
     )
+
 
 
 @router.get("/documents", response_model=list[DocumentSummary])

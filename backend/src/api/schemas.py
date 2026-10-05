@@ -168,3 +168,47 @@ class DocumentCompareResponse(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class GraphStatsResponse(BaseModel):
+    tenant_id: str
+    total_nodes: int
+    total_relationships: int
+    type_counts: dict[str, int] = Field(default_factory=dict)
+    top_connected: list[dict[str, Any]] = Field(default_factory=list)
+    density: float = 0.0
+
+
+class GraphEntityItem(BaseModel):
+    name: str
+    type: str
+    degree: int = 0
+
+
+class GraphEntitiesResponse(BaseModel):
+    tenant_id: str
+    total_entities: int
+    entities: list[GraphEntityItem] = Field(default_factory=list)
+
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    type: str = "CONCEPT"
+
+
+class GraphLink(BaseModel):
+    source: str
+    target: str
+    label: str
+    confidence: float = 0.9
+
+
+class GraphSubgraphResponse(BaseModel):
+    tenant_id: str
+    seed_entity: str | None = None
+    total_nodes: int
+    total_links: int
+    nodes: list[GraphNode] = Field(default_factory=list)
+    links: list[GraphLink] = Field(default_factory=list)
+
+
+

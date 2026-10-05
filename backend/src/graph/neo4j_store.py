@@ -1,4 +1,6 @@
-"""Neo4j Graph Database client supporting multi-hop Cypher retrieval, tenant isolation, and in-memory fallback."""
+"""Neo4j Graph Database client supporting multi-hop Cypher retrieval,
+tenant isolation, and in-memory fallback.
+"""
 
 import logging
 from collections import deque
@@ -11,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class Neo4jGraphStore:
-    """Manages knowledge graph storage and multi-hop Cypher queries in Neo4j with tenant isolation."""
+    """Manages knowledge graph storage and multi-hop Cypher queries in Neo4j
+    with tenant isolation.
+    """
 
     def __init__(
         self,
@@ -32,7 +36,7 @@ class Neo4jGraphStore:
         self._connect()
 
     def _connect(self) -> None:
-        """Attempts to establish connection with Neo4j server; falls back gracefully to in-memory mode."""
+        """Attempts connection to Neo4j; falls back gracefully to in-memory mode."""
         try:
             from neo4j import GraphDatabase
 
@@ -49,7 +53,8 @@ class Neo4jGraphStore:
             logger.info(f"Connected successfully to Neo4j at {self.uri}")
         except Exception as e:
             logger.warning(
-                f"Could not connect to Neo4j at {self.uri} ({e}). Operating in resilient in-memory graph mode."
+                f"Could not connect to Neo4j at {self.uri} ({e}). "
+                "Operating in resilient in-memory graph mode."
             )
             self.driver = None
 
@@ -302,6 +307,122 @@ class Neo4jGraphStore:
                         queue.append((neighbor, curr_hop + 1))
 
         return results[:limit]
+
+    def get_graph_stats(self, tenant_id: str) -> dict[str, Any]:
+        """Calculates graph metrics, entity type distributions, and connectivity."""
+        nodes = [v for v in self._memory_nodes.values() if v["tenant_id"] == tenant_id]
+        edges = [e for e in self._memory_edges if e["tenant_id"] == tenant_id]
+
+        type_counts: dict[str, int] = {}
+        for n in nodes:
+            t = n.get("type", "CONCEPT")
+            type_counts[t] = type_counts.get(t, 0) + 1
+
+        degrees: dict[str, int] = {}
+        for e in edges:
+            src = e["source"]
+            tgt = e["target"]
+            degrees[src] = degrees.get(src, 0) + 1
+            degrees[tgt] = degrees.get(tgt, 0) + 1
+
+        sorted_connected = sorted(
+            [{"name": k, "degree": v} for k, v in degrees.items()],
+            key=lambda x: x["degree"],
+            reverse=True,
+        )
+
+        n_count = len(nodes)
+        density = (2.0 * len(edges)) / (n_count * (n_count - 1)) if n_count > 1 else 0.0
+
+        return {
+            "tenant_id": tenant_id,
+            "total_nodes": n_count,
+            "total_relationships": len(edges),
+            "type_counts": type_counts,
+            "top_connected": sorted_connected[:6],
+            "density": round(density, 4),
+        }
+
+    def get_entities(
+        self,
+        tenant_id: str,
+        limit: int = 50,
+        entity_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Returns distinct entities belonging to tenant with degrees and types."""
+        nodes = [v for v in self._memory_nodes.values() if v["tenant_id"] == tenant_id]
+        edges = [e for e in self._memory_edges if e["tenant_id"] == tenant_id]
+
+        degrees: dict[str, int] = {}
+        for e in edges:
+            degrees[e["source"]] = degrees.get(e["source"], 0) + 1
+            degrees[e["target"]] = degrees.get(e["target"], 0) + 1
+
+        results = []
+        for n in nodes:
+            t = n.get("type", "CONCEPT")
+            if entity_type and t.upper() != entity_type.upper():
+                continue
+            results.append(
+                {
+                    "name": n["name"],
+                    "type": t,
+                    "degree": degrees.get(n["name"], 0),
+                }
+            )
+
+        results.sort(key=lambda x: x["degree"], reverse=True)
+        return results[:limit]
+
+    def get_subgraph(
+        self,
+        entity: str | None,
+        tenant_id: str,
+        depth: int = 2,
+        limit: int = 40,
+    ) -> dict[str, Any]:
+        """Extracts node-link neighborhood structure formatted for visualization."""
+        if entity:
+            edges = self.search_subgraph([entity], tenant_id, max_hops=depth, limit=limit)
+        else:
+            edges = [e for e in self._memory_edges if e["tenant_id"] == tenant_id][:limit]
+
+        # Gather node references
+        node_names = set()
+        for e in edges:
+            node_names.add(e["source"])
+            node_names.add(e["target"])
+
+        nodes_data = []
+        for name in node_names:
+            key = f"{tenant_id}::{name.lower()}"
+            node_info = self._memory_nodes.get(key, {})
+            nodes_data.append(
+                {
+                    "id": name,
+                    "label": name,
+                    "type": node_info.get("type", "CONCEPT"),
+                }
+            )
+
+        links_data = [
+            {
+                "source": e["source"],
+                "target": e["target"],
+                "label": e["predicate"],
+                "confidence": e.get("confidence", 0.9),
+            }
+            for e in edges
+        ]
+
+        return {
+            "tenant_id": tenant_id,
+            "seed_entity": entity,
+            "total_nodes": len(nodes_data),
+            "total_links": len(links_data),
+            "nodes": nodes_data,
+            "links": links_data,
+        }
 
     def clear_tenant(self, tenant_id: str) -> None:
         """Deletes all graph nodes and edges belonging to tenant_id."""

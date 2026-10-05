@@ -36,7 +36,7 @@ async function sendChatMessage(query, strategy = 'AUTO', maxContextTokens = 2048
   }
 }
 
-async function uploadDocumentFile(file, strategy, chunkSize, chunkOverlap, embeddingProvider = 'bge-m3') {
+async function uploadDocumentFile(file, strategy, chunkSize, chunkOverlap, embeddingProvider = 'bge-m3', enableGraphExtraction = true) {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('chunk_strategy', strategy);
@@ -44,6 +44,7 @@ async function uploadDocumentFile(file, strategy, chunkSize, chunkOverlap, embed
   formData.append('chunk_overlap', chunkOverlap);
   formData.append('embedding_provider', embeddingProvider || 'bge-m3');
   formData.append('tenant_id', 'default_tenant');
+  formData.append('enable_graph_extraction', enableGraphExtraction ? 'true' : 'false');
 
   const response = await fetch(`${API_BASE_URL}/documents`, {
     method: 'POST',
@@ -648,12 +649,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const chunkOverlap = document.getElementById('chunk-overlap-input').value;
       const embedProviderElem = document.getElementById('embedding-provider-select');
       const embedProvider = embedProviderElem ? embedProviderElem.value : 'bge-m3';
+      const extractGraph = document.getElementById('extract-graph-toggle')?.checked ?? true;
 
       uploadStatus.innerHTML = `<span style="color:#3b82f6">Parsing, cleaning, redacting PII, embedding (${embedProvider}) & indexing document...</span>`;
 
       try {
-        const res = await uploadDocumentFile(selectedFile, strategy, chunkSize, chunkOverlap, embedProvider);
-        uploadStatus.innerHTML = `<span style="color:#10b981">✓ Document '${res.filename}' successfully ${res.status}! (${res.total_chunks} chunks indexed via ${res.embedding_provider} in ${res.latency_ms.toFixed(1)}ms)</span>`;
+        const res = await uploadDocumentFile(selectedFile, strategy, chunkSize, chunkOverlap, embedProvider, extractGraph);
+        const graphInfo = (res.graph_nodes_count || res.graph_relationships_count)
+          ? ` | 🕸️ ${res.graph_nodes_count || 0} nodes, ${res.graph_relationships_count || 0} rels auto-extracted`
+          : '';
+        uploadStatus.innerHTML = `<span style="color:#10b981">✓ Document '${res.filename}' successfully ${res.status}! (${res.total_chunks} chunks indexed via ${res.embedding_provider}${graphInfo} in ${res.latency_ms.toFixed(1)}ms)</span>`;
         selectedFile = null;
         fileInfo.textContent = 'No file selected';
         loadDocumentTable();
@@ -670,13 +675,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const docs = await fetchDocumentsList();
       if (!docs || docs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="padding:1rem; text-align:center; color:#94a3b8">No documents uploaded yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="padding:1rem; text-align:center; color:#94a3b8">No documents uploaded yet.</td></tr>';
         return;
       }
 
       tbody.innerHTML = docs.map(d => {
         const secBg = d.security_classification === 'Confidential' ? '#dc2626' : (d.security_classification === 'Public' ? '#16a34a' : '#2563eb');
         const piiBadge = d.has_pii ? `<span style="background:#ea580c; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-size:0.7rem">🔒 ${d.redacted_count} PII Redacted</span>` : `<span style="color:#94a3b8; font-size:0.75rem">Clean</span>`;
+        const graphBadge = `<span style="background:#0f172a; border:1px solid #0284c7; color:#38bdf8; padding:0.15rem 0.4rem; border-radius:3px; font-size:0.75rem; white-space:nowrap" title="Auto-extracted Knowledge Graph Entities and Relationships">🕸️ ${d.graph_nodes_count || 0}n / ${d.graph_relationships_count || 0}r</span>`;
 
         return `
           <tr>
@@ -687,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td><span style="background:#1e293b; border:1px solid #334155; padding:0.2rem 0.4rem; border-radius:3px; font-size:0.75rem">${d.chunk_strategy || 'recursive'} (${d.chunk_size || 512}/${d.chunk_overlap || 50})</span></td>
             <td><span style="background:#2563eb; color:#fff; padding:0.2rem 0.4rem; border-radius:3px; font-size:0.75rem; font-weight:600">${d.embedding_provider || 'bge-m3'}</span></td>
             <td><span style="background:${secBg}; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-size:0.7rem; font-weight:bold">${d.security_classification || 'Internal'}</span> <div style="margin-top:0.2rem">${piiBadge}</div></td>
+            <td>${graphBadge}</td>
             <td>${d.total_chunks}</td>
             <td><span style="background:#059669; color:#fff; padding:0.15rem 0.35rem; border-radius:3px; font-weight:bold; font-size:0.75rem">v${d.version}</span></td>
             <td style="white-space:nowrap">
@@ -1800,6 +1807,293 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Phase 42: Autonomous Knowledge Graph Explorer ---
+  const openGraphBtn = document.getElementById('open-graph-explorer-btn');
+  const graphModal = document.getElementById('graph-explorer-modal');
+  const closeGraphBtn = document.getElementById('close-graph-modal-btn');
+  const kgRefreshBtn = document.getElementById('kg-refresh-btn');
+  const kgClearBtn = document.getElementById('kg-clear-btn');
+  const kgSeedInput = document.getElementById('kg-seed-input');
+  const kgDepthSelect = document.getElementById('kg-depth-select');
+  const kgTypeFilter = document.getElementById('kg-type-filter');
+  const kgSvg = document.getElementById('kg-svg');
+  const kgNodeDetailsCard = document.getElementById('kg-node-details-card');
+  const kgEntitiesList = document.getElementById('kg-entities-list');
+
+  const TYPE_COLORS = {
+    TECH: '#38bdf8',
+    ORG: '#818cf8',
+    METRIC: '#34d399',
+    POLICY: '#fbbf24',
+    PERSON: '#f472b6',
+    CONCEPT: '#a78bfa',
+  };
+
+  async function loadKnowledgeGraphStats() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/graph/stats?tenant_id=default_tenant`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const nodesElem = document.getElementById('kg-total-nodes');
+      const edgesElem = document.getElementById('kg-total-edges');
+      const densityElem = document.getElementById('kg-density');
+
+      if (nodesElem) nodesElem.innerText = data.total_nodes;
+      if (edgesElem) edgesElem.innerText = data.total_relationships;
+      if (densityElem) densityElem.innerText = data.density.toFixed(4);
+    } catch (e) {
+      console.warn('Failed to load graph stats:', e);
+    }
+  }
+
+  async function loadKnowledgeGraphEntities() {
+    if (!kgEntitiesList) return;
+    try {
+      const filterType = kgTypeFilter ? kgTypeFilter.value : '';
+      const url = filterType
+        ? `${API_BASE_URL}/graph/entities?tenant_id=default_tenant&limit=60&entity_type=${filterType}`
+        : `${API_BASE_URL}/graph/entities?tenant_id=default_tenant&limit=60`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
+      const countElem = document.getElementById('kg-entities-count');
+      if (countElem) countElem.innerText = `${data.total_entities} items`;
+
+      if (!data.entities || data.entities.length === 0) {
+        kgEntitiesList.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center; padding:1rem">No entities extracted yet. Upload a document with graph extraction enabled.</div>';
+        return;
+      }
+
+      kgEntitiesList.innerHTML = data.entities.map(ent => {
+        const color = TYPE_COLORS[ent.type] || '#a78bfa';
+        return `
+          <div class="kg-entity-card" data-entity-name="${ent.name.replace(/"/g, '&quot;')}" style="background:#0f172a; border:1px solid #334155; border-radius:5px; padding:0.4rem 0.6rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:border-color 0.2s" onmouseover="this.style.borderColor='${color}'" onmouseout="this.style.borderColor='#334155'">
+            <div style="font-size:0.8rem; color:#f8fafc; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px">${ent.name}</div>
+            <div style="display:flex; gap:0.3rem; align-items:center">
+              <span style="background:${color}22; border:1px solid ${color}; color:${color}; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:3px; font-weight:bold">${ent.type}</span>
+              <span style="background:#1e293b; color:#94a3b8; font-size:0.65rem; padding:0.1rem 0.35rem; border-radius:3px" title="Degree connectivity">${ent.degree}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      kgEntitiesList.querySelectorAll('.kg-entity-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const name = card.getAttribute('data-entity-name');
+          if (kgSeedInput) kgSeedInput.value = name;
+          loadKnowledgeGraphSubgraph();
+        });
+      });
+    } catch (e) {
+      console.warn('Failed to load graph entities:', e);
+    }
+  }
+
+  async function loadKnowledgeGraphSubgraph() {
+    if (!kgSvg) return;
+    const seed = kgSeedInput ? kgSeedInput.value.trim() : '';
+    const depth = kgDepthSelect ? parseInt(kgDepthSelect.value, 10) : 2;
+    const url = seed
+      ? `${API_BASE_URL}/graph/subgraph?tenant_id=default_tenant&entity=${encodeURIComponent(seed)}&depth=${depth}&limit=45`
+      : `${API_BASE_URL}/graph/subgraph?tenant_id=default_tenant&depth=${depth}&limit=45`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
+      renderKnowledgeGraphSvg(data);
+    } catch (e) {
+      console.warn('Failed to load graph subgraph:', e);
+    }
+  }
+
+  function renderKnowledgeGraphSvg(data) {
+    if (!kgSvg) return;
+    const nodes = data.nodes || [];
+    const links = data.links || [];
+
+    const width = kgSvg.clientWidth || 620;
+    const height = kgSvg.clientHeight || 360;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    if (nodes.length === 0) {
+      kgSvg.innerHTML = `
+        <text x="${centerX}" y="${centerY}" fill="#64748b" font-size="13" text-anchor="middle">
+          No knowledge graph entities found. Upload documents to auto-extract triples.
+        </text>
+      `;
+      if (kgNodeDetailsCard) kgNodeDetailsCard.style.display = 'none';
+      return;
+    }
+
+    // Position layout
+    const nodePositions = {};
+    if (nodes.length === 1) {
+      nodePositions[nodes[0].id] = { x: centerX, y: centerY };
+    } else {
+      const seed = data.seed_entity ? data.seed_entity.toLowerCase() : '';
+      let outerNodes = [...nodes];
+      let centerNode = null;
+
+      if (seed) {
+        const foundIdx = nodes.findIndex(n => n.id.toLowerCase() === seed || n.label.toLowerCase() === seed);
+        if (foundIdx >= 0) {
+          centerNode = nodes[foundIdx];
+          outerNodes.splice(foundIdx, 1);
+        }
+      }
+
+      if (centerNode) {
+        nodePositions[centerNode.id] = { x: centerX, y: centerY };
+      }
+
+      const totalOuter = outerNodes.length;
+      const rx = Math.min(centerX - 50, 220);
+      const ry = Math.min(centerY - 50, 130);
+
+      outerNodes.forEach((node, i) => {
+        const angle = (2 * Math.PI * i) / totalOuter - (Math.PI / 2);
+        // Stagger radii slightly for organic appearance
+        const radiusFactor = (i % 2 === 0) ? 1.0 : 0.78;
+        const x = centerX + rx * radiusFactor * Math.cos(angle);
+        const y = centerY + ry * radiusFactor * Math.sin(angle);
+        nodePositions[node.id] = { x, y };
+      });
+    }
+
+    let svgHtml = `
+      <defs>
+        <marker id="kg-arrow" viewBox="0 -5 10 10" refX="24" refY="0" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,-4L8,0L0,4" fill="#64748b" />
+        </marker>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+    `;
+
+    // Render relationship links
+    links.forEach(link => {
+      const srcPos = nodePositions[link.source];
+      const tgtPos = nodePositions[link.target];
+      if (!srcPos || !tgtPos) return;
+
+      const midX = (srcPos.x + tgtPos.x) / 2;
+      const midY = (srcPos.y + tgtPos.y) / 2;
+
+      svgHtml += `
+        <line x1="${srcPos.x}" y1="${srcPos.y}" x2="${tgtPos.x}" y2="${tgtPos.y}" stroke="#334155" stroke-width="1.6" marker-end="url(#kg-arrow)" stroke-dasharray="solid" />
+        <rect x="${midX - 28}" y="${midY - 8}" width="56" height="15" rx="3" fill="#0f172a" fill-opacity="0.85" stroke="#1e293b" />
+        <text x="${midX}" y="${midY + 3}" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="'JetBrains Mono', monospace">${link.label}</text>
+      `;
+    });
+
+    // Render nodes
+    nodes.forEach(node => {
+      const pos = nodePositions[node.id] || { x: centerX, y: centerY };
+      const color = TYPE_COLORS[node.type] || '#a78bfa';
+      const labelText = node.label.length > 15 ? `${node.label.substring(0, 13)}…` : node.label;
+
+      svgHtml += `
+        <g class="kg-node-group" data-node-id="${node.id.replace(/"/g, '&quot;')}" data-node-type="${node.type}" style="cursor:pointer">
+          <circle cx="${pos.x}" cy="${pos.y}" r="20" fill="${color}" fill-opacity="0.18" stroke="${color}" stroke-width="1.8" filter="url(#glow)" />
+          <circle cx="${pos.x}" cy="${pos.y}" r="11" fill="${color}" />
+          <rect x="${pos.x - 38}" y="${pos.y + 16}" width="76" height="15" rx="3" fill="#030712" fill-opacity="0.8" />
+          <text x="${pos.x}" y="${pos.y + 27}" fill="#f8fafc" font-size="10" font-weight="600" text-anchor="middle">${labelText}</text>
+        </g>
+      `;
+    });
+
+    kgSvg.innerHTML = svgHtml;
+
+    // Attach node interactions
+    kgSvg.querySelectorAll('.kg-node-group').forEach(group => {
+      group.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const nodeId = group.getAttribute('data-node-id');
+        const nodeType = group.getAttribute('data-node-type');
+        showNodeDetails(nodeId, nodeType, links);
+      });
+    });
+  }
+
+  function showNodeDetails(nodeId, nodeType, links) {
+    if (!kgNodeDetailsCard) return;
+    const titleElem = document.getElementById('kg-selected-node-title');
+    const typeElem = document.getElementById('kg-selected-node-type');
+    const edgesElem = document.getElementById('kg-selected-node-edges');
+
+    if (titleElem) titleElem.innerText = nodeId;
+    if (typeElem) {
+      typeElem.innerText = nodeType;
+      typeElem.style.background = TYPE_COLORS[nodeType] || '#0284c7';
+    }
+
+    const connected = links.filter(l => l.source.toLowerCase() === nodeId.toLowerCase() || l.target.toLowerCase() === nodeId.toLowerCase());
+    if (edgesElem) {
+      if (connected.length === 0) {
+        edgesElem.innerHTML = '<span style="color:#94a3b8">Isolated entity (no adjacent links in current view).</span>';
+      } else {
+        edgesElem.innerHTML = connected.map(l => {
+          const isOut = l.source.toLowerCase() === nodeId.toLowerCase();
+          const target = isOut ? l.target : l.source;
+          const arrow = isOut ? '→' : '←';
+          return `<div style="font-size:0.75rem; color:#cbd5e1; margin-bottom:0.15rem"><code>${nodeId}</code> <strong>${arrow} [${l.label}] ${arrow}</strong> <code>${target}</code></div>`;
+        }).join('');
+      }
+    }
+
+    kgNodeDetailsCard.style.display = 'block';
+  }
+
+  if (openGraphBtn) {
+    openGraphBtn.addEventListener('click', async () => {
+      if (graphModal) graphModal.style.display = 'flex';
+      await loadKnowledgeGraphStats();
+      await loadKnowledgeGraphEntities();
+      await loadKnowledgeGraphSubgraph();
+    });
+  }
+
+  if (closeGraphBtn) {
+    closeGraphBtn.addEventListener('click', () => {
+      if (graphModal) graphModal.style.display = 'none';
+    });
+  }
+
+  if (kgRefreshBtn) {
+    kgRefreshBtn.addEventListener('click', async () => {
+      await loadKnowledgeGraphEntities();
+      await loadKnowledgeGraphSubgraph();
+    });
+  }
+
+  if (kgTypeFilter) {
+    kgTypeFilter.addEventListener('change', async () => {
+      await loadKnowledgeGraphEntities();
+    });
+  }
+
+  if (kgClearBtn) {
+    kgClearBtn.addEventListener('click', async () => {
+      if (confirm('Clear knowledge graph for default_tenant? This will wipe all extracted entities and triples.')) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/graph?tenant_id=default_tenant`, { method: 'DELETE' });
+          if (res.ok) {
+            await loadKnowledgeGraphStats();
+            await loadKnowledgeGraphEntities();
+            if (kgSvg) kgSvg.innerHTML = '<text x="50%" y="50%" fill="#64748b" font-size="13" text-anchor="middle">Knowledge graph cleared.</text>';
+            if (kgNodeDetailsCard) kgNodeDetailsCard.style.display = 'none';
+          }
+        } catch (e) {
+          alert(`Failed to clear graph: ${e.message}`);
+        }
+      }
+    });
+  }
+
   // Initial loads
   loadUsersTable();
   loadRolesTable();
@@ -1808,4 +2102,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAuditTable();
   updateTenantQuotaBar();
 });
+
 

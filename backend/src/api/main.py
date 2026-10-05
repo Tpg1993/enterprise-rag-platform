@@ -27,6 +27,7 @@ from src.api.routes.comparisons import router as comparisons_router
 from src.api.routes.documents import router as documents_router
 from src.api.routes.evaluations import router as evaluations_router
 from src.api.routes.feedback import router as feedback_router
+from src.api.routes.graph import router as graph_router
 from src.api.routes.health import router as health_router
 from src.api.routes.metrics import router as metrics_router
 from src.api.routes.quotas import router as quotas_router
@@ -79,6 +80,7 @@ app.include_router(metrics_router)
 app.include_router(metrics_router, prefix="/api/v1")
 app.include_router(quotas_router, prefix="/api/v1")
 app.include_router(feedback_router, prefix="/api/v1")
+app.include_router(graph_router, prefix="/api/v1")
 
 frontend_dir = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend")
