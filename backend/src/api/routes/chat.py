@@ -363,6 +363,9 @@ async def execute_chat(payload: ChatRequest, request: Request) -> ChatResponse:
         drift_score=rag_res.metadata.get("drift_score")
         if hasattr(rag_res, "metadata")
         else None,
+        tool_executions=rag_res.metadata.get("tool_executions", [])
+        if hasattr(rag_res, "metadata")
+        else [],
     )
 
 
@@ -762,6 +765,11 @@ async def execute_chat_stream(payload: ChatRequest, request: Request):
                 rag_res.metadata.get("drift_score")
                 if hasattr(rag_res, "metadata")
                 else None
+            ),
+            "tool_executions": (
+                rag_res.metadata.get("tool_executions", [])
+                if hasattr(rag_res, "metadata")
+                else []
             ),
             "done": True,
         }

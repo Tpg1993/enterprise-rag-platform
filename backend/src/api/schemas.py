@@ -69,6 +69,7 @@ class ChatResponse(BaseModel):
     fact_check_claims_count: int | None = None
     speculative_speedup_ratio: float | None = None
     drift_score: float | None = None
+    tool_executions: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class FactCheckRequest(BaseModel):

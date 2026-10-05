@@ -310,6 +310,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   ? `<span style="background:#451a03; border:1px solid #f59e0b; color:#fde68a; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Dual-path speculative acceleration with cross-encoder verification">⚡ Speculative (${eventData.speculative_speedup_ratio || 2.4}x Speedup)</span>`
                   : '';
 
+                const toolsList = eventData.tool_executions || [];
+                const toolsBadge = (toolsList.length > 0 || eventData.rag_strategy === 'Tool-Calling-Agentic')
+                  ? `<span style="background:#0c4a6e; border:1px solid #0284c7; color:#38bdf8; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="${toolsList.map(t => t.tool_name).join(', ') || 'Live Tools'}">🛠️ ${toolsList.length || 1} Tools Executed</span>`
+                  : '';
+
                 metaElem.innerHTML = `
                   <span>Strategy: <strong>${eventData.rag_strategy}</strong>${topScore} | Latency: <strong>${eventData.latency_ms.toFixed(1)}ms</strong> | TTFT: <strong>${(eventData.ttft_ms || 0).toFixed(1)}ms</strong> | Cost: <strong>$${(eventData.estimated_cost_usd || 0).toFixed(4)}</strong></span>
                   ${cacheBadge}
@@ -319,7 +324,24 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${webBadge}
                   ${factCheckBadge}
                   ${speculativeBadge}
+                  ${toolsBadge}
                 `;
+
+                if (toolsList.length > 0) {
+                  const toolsDiv = document.createElement('div');
+                  toolsDiv.className = 'tool-executions-card';
+                  toolsDiv.style = 'margin-top:0.5rem; background:#030712; border:1px solid #0284c7; border-radius:5px; padding:0.4rem 0.6rem; font-size:0.75rem';
+                  toolsDiv.innerHTML = `
+                    <div style="font-weight:600; color:#38bdf8; margin-bottom:0.25rem">🛠️ Executed Agentic Tools (${toolsList.length}):</div>
+                    ${toolsList.map(t => `
+                      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1e293b; padding:0.2rem 0">
+                        <div><code style="color:#f8fafc; font-weight:bold">${t.tool_name}</code> <span style="color:#94a3b8">(${t.latency_ms || 0}ms)</span>: <span style="color:#a7f3d0">${typeof t.output === 'object' ? JSON.stringify(t.output) : t.output}</span></div>
+                        <span style="color:${t.success ? '#10b981' : '#ef4444'}; font-weight:bold; font-size:0.7rem">${t.success ? '✓' : '✗'}</span>
+                      </div>
+                    `).join('')}
+                  `;
+                  streamDiv.querySelector('.bubble').appendChild(toolsDiv);
+                }
 
                 const fbDiv = document.createElement('div');
                 fbDiv.className = 'feedback-actions';
@@ -414,6 +436,23 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<span style="background:#451a03; border:1px solid #f59e0b; color:#fde68a; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="Dual-path speculative acceleration with cross-encoder verification">⚡ Speculative (${res.speculative_speedup_ratio || 2.4}x Speedup)</span>`
             : '';
 
+          const toolsList = res.tool_executions || [];
+          const toolsBadge = (toolsList.length > 0 || res.rag_strategy === 'Tool-Calling-Agentic')
+            ? `<span style="background:#0c4a6e; border:1px solid #0284c7; color:#38bdf8; padding:0.15rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:0.4rem" title="${toolsList.map(t => t.tool_name).join(', ') || 'Live Tools'}">🛠️ ${toolsList.length || 1} Tools Executed</span>`
+            : '';
+
+          const toolsHtml = (toolsList.length > 0)
+            ? `<div class="tool-executions-card" style="margin-top:0.5rem; background:#030712; border:1px solid #0284c7; border-radius:5px; padding:0.4rem 0.6rem; font-size:0.75rem">
+                <div style="font-weight:600; color:#38bdf8; margin-bottom:0.25rem">🛠️ Executed Agentic Tools (${toolsList.length}):</div>
+                ${toolsList.map(t => `
+                  <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1e293b; padding:0.2rem 0">
+                    <div><code style="color:#f8fafc; font-weight:bold">${t.tool_name}</code> <span style="color:#94a3b8">(${t.latency_ms || 0}ms)</span>: <span style="color:#a7f3d0">${typeof t.output === 'object' ? JSON.stringify(t.output) : t.output}</span></div>
+                    <span style="color:${t.success ? '#10b981' : '#ef4444'}; font-weight:bold; font-size:0.7rem">${t.success ? '✓' : '✗'}</span>
+                  </div>
+                `).join('')}
+              </div>`
+            : '';
+
           const aiDiv = document.createElement('div');
           aiDiv.className = 'message assistant';
           aiDiv.innerHTML = `
@@ -421,6 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="bubble">
               <p>${res.answer.replace(/\n/g, '<br/>')}</p>
               ${citationsHtml}
+              ${toolsHtml}
               <div style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem; display:flex; align-items:center; flex-wrap:wrap; gap:0.3rem">
                 <span>Strategy: <strong>${res.rag_strategy}</strong>${topScore} | Latency: <strong>${res.latency_ms.toFixed(1)}ms</strong> | Cost: <strong>$${res.estimated_cost_usd.toFixed(4)}</strong></span>
                 ${cacheBadge}
@@ -430,6 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${webBadge}
                 ${factCheckBadge}
                 ${speculativeBadge}
+                ${toolsBadge}
               </div>
               <div class="feedback-actions" style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; padding-top:0.35rem; border-top:1px solid #1e293b">
                 <button class="feedback-btn thumbs-up" title="Helpful & accurate response (Boost retrieval chunks)" style="background:transparent; border:1px solid #334155; border-radius:4px; padding:0.15rem 0.5rem; cursor:pointer; color:#94a3b8; font-size:0.75rem; transition:all 0.2s">👍 Helpful</button>
@@ -1619,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const docs = await fetchDocumentsList();
-      if (!docs || docs.length === 0) {
+      if (!docs || docs.length < 2) {
         compareChecklist.innerHTML = `
           <div style="padding:0.4rem; color:#94a3b8; font-size:0.8rem">
             No uploaded documents found. Using synthetic benchmarks:

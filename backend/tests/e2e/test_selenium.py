@@ -119,6 +119,8 @@ def test_selenium_ui_navigation_and_elements():
         assert "Hybrid-Graph-Agentic" in option_values
         assert "Hierarchical-Multi-Agent" in option_values
         assert "Agentic-Web-RAG" in option_values
+        assert "Speculative-Draft-Verify" in option_values
+        assert "Tool-Calling-Agentic" in option_values
 
         # 5. Assert Governance & Security Inspector Elements and Audit Trail (Phase 26 & 28)
         gov_btn = next(
@@ -251,13 +253,22 @@ def test_selenium_ui_navigation_and_elements():
 
         compare_modal = driver.find_element(By.ID, "doc-compare-modal")
         assert compare_modal.is_displayed()
+        time.sleep(0.3)
+
+        checkboxes = driver.find_elements(By.CLASS_NAME, "compare-doc-cb")
+        for cb in checkboxes[:2]:
+            if not cb.is_selected():
+                driver.execute_script("arguments[0].click();", cb)
 
         run_compare_btn = driver.find_element(By.ID, "run-doc-compare-btn")
         assert run_compare_btn is not None
         driver.execute_script("arguments[0].click();", run_compare_btn)
-        time.sleep(2.0)
 
         results_card = driver.find_element(By.ID, "compare-results-card")
+        for _ in range(35):
+            if results_card.is_displayed():
+                break
+            time.sleep(0.2)
         assert results_card.is_displayed()
         summary_text = driver.find_element(By.ID, "compare-overall-summary").text
         assert len(summary_text) > 0
@@ -289,6 +300,16 @@ def test_selenium_ui_navigation_and_elements():
         driver.execute_script("arguments[0].click();", close_graph_btn)
         time.sleep(0.3)
         assert not graph_modal.is_displayed()
+
+        # 12. Test Tool-Calling Agentic RAG Strategy Selection (Phase 43)
+        driver.execute_script(
+            "document.getElementById('strategy-select').value = 'Tool-Calling-Agentic';"
+        )
+        time.sleep(0.2)
+        selected_strat = driver.execute_script(
+            "return document.getElementById('strategy-select').value;"
+        )
+        assert selected_strat == "Tool-Calling-Agentic"
 
     finally:
         if driver:

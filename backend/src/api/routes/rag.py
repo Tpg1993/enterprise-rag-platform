@@ -249,6 +249,24 @@ STRATEGIES_CATALOG: list[RAGStrategyMetadata] = [
             "Semantic Drift Detection",
         ],
     ),
+    RAGStrategyMetadata(
+        id="Tool-Calling-Agentic",
+        name="Tool-Calling Agentic RAG",
+        description=(
+            "Autonomous function-calling agent in LangGraph with dynamic OpenAPI/tool "
+            "execution, parameter validation, and grounded vector retrieval."
+        ),
+        framework="langgraph",
+        category="Tool-Calling Agentic",
+        version="1.0.0",
+        features=[
+            "Dynamic Tool Registry",
+            "OpenAPI Spec Ingestion",
+            "Sandboxed Execution",
+            "Mathematical AST",
+            "Grounded Synthesis",
+        ],
+    ),
 ]
 
 

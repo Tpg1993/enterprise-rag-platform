@@ -72,6 +72,9 @@ rag:
   speculative_draft_verify:
     version: "1.0.0"
     framework: "langgraph"
+  tool_calling_agentic:
+    version: "1.0.0"
+    framework: "langgraph"
 
 security:
   opa_guardrails:

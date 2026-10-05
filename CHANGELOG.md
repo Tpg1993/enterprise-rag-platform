@@ -5,6 +5,36 @@ All notable changes to the Enterprise Multi-Architecture RAG & Agentic AI Platfo
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.12.0] - 2026-10-05
+
+### Added
+- **Phase 43 Complete (Agentic Dynamic Tool-Use Orchestrator & OpenAPI Function Calling Engine — Strategy 19: `Tool-Calling-Agentic-RAG`)**:
+  - **Dynamic Tool Schema & Builtin Models (`backend/src/agents/tools/models.py`, `backend/src/agents/tools/builtin.py`)**:
+    - Declarative schemas: `ToolDefinition`, `ToolParameter`, `ToolCall`, `ToolExecutionResult`, `ToolExecutionRequest`, `OpenAPISpecImportRequest`, `OpenAPISpecImportResponse`.
+    - Safe deterministic built-in tools: AST arithmetic evaluator (`calculate`), financial SLA outage liability calculator (`calculate_sla_penalty`), UTC date & quarter oracle (`get_system_time`), platform architecture service directory (`query_service_catalog`), and unit converter (`unit_converter`).
+  - **Dynamic Tool Registry & OpenAPI Ingestion (`backend/src/agents/tools/registry.py`)**:
+    - `DynamicToolRegistry`: thread-safe tool registration, parameter bounds checking, default filling, and async/sync execution runtime.
+    - Dynamic OpenAPI 3.0 / Swagger spec parser: ingests YAML/JSON specs and dynamically binds endpoints into callable tools with synthetic handlers and parameter reflection.
+  - **Strategy 19: Tool-Calling Agentic RAG (`backend/src/rag/tool_calling/strategy.py`)**:
+    - Dual-plane execution: dynamic query intent tool detection and execution + dense semantic vector retrieval + BGE cross-encoder reranking.
+    - Grounded LLM synthesis: formats structured `[Tool Observation]` blocks into prompt context while preserving document citations.
+  - **Platform Strategy Registration & Schemas (`backend/src/rag/router.py`, `backend/src/api/routes/rag.py`, `backend/config/version.yaml`, `backend/src/api/schemas.py`, `backend/src/api/routes/chat.py`)**:
+    - Registered Strategy 19 in factory router, OpenAPI catalog (**19 total production strategies**), and version manifest.
+    - Extended `ChatResponse` and streaming SSE `done` event with `tool_executions` list.
+  - **REST API Endpoints (`backend/src/api/routes/tools.py`, `backend/src/api/main.py`)**:
+    - `GET /api/v1/tools`: List all registered tools with parameter specifications.
+    - `POST /api/v1/tools/execute`: Synchronous tool invocation with validation, timing, and audit logging.
+    - `POST /api/v1/tools/import-openapi`: Ingestion of OpenAPI/Swagger specs with audit trail.
+  - **Interactive Frontend UI (`frontend/index.html`, `frontend/services/api.js`)**:
+    - Added Option 19 in `#strategy-select`: `🛠️ Tool-Calling Agentic RAG (Live APIs & Functions)`.
+    - Added `🛠️ Tools Executed` badges and collapsible tool observation cards in chat message renderers for streaming and non-streaming responses.
+  - **Automated Verification**:
+    - Unit Tests: `backend/tests/unit/test_tool_calling_rag.py` (8/8 passing).
+    - Integration Tests: `backend/tests/integration/test_tools_api.py` (4/4 passing).
+    - Catalog Regression Tests: `backend/tests/unit/test_rag_catalog_versions.py` and `backend/tests/integration/test_rag_catalog_integration.py` updated to 19 strategies (4/4 passing).
+    - Selenium E2E Tests: `backend/tests/e2e/test_selenium.py` Step 12 asserting Option 19 in dropdown and execution readiness.
+    - Full Platform Test Suite: **261 / 261 tests passing (100%)**.
+
 ## [4.11.0] - 2026-10-05
 
 ### Added

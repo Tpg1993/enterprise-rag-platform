@@ -115,6 +115,19 @@ def get_rag_strategy(strategy_name: str = "AUTO") -> BaseRAGStrategy:
             from src.rag.speculative.strategy import SpeculativeDraftVerifyRAGStrategy
 
             _strategies[s_clean] = SpeculativeDraftVerifyRAGStrategy()
+        elif s_upper in (
+            "TOOL-CALLING-AGENTIC",
+            "TOOL_CALLING_AGENTIC",
+            "TOOL-CALLING-AGENTIC-RAG",
+            "TOOL_CALLING_AGENTIC_RAG",
+            "TOOL-CALLING",
+            "TOOL_CALLING",
+            "FUNCTION-CALLING",
+            "FUNCTION_CALLING",
+        ):
+            from src.rag.tool_calling.strategy import ToolCallingAgenticRAGStrategy
+
+            _strategies[s_clean] = ToolCallingAgenticRAGStrategy()
         else:
             from src.rag.basic.strategy import BasicRAGStrategy
 
