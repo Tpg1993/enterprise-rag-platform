@@ -19,14 +19,14 @@ Implement runtime **Zero Trust Open Policy Agent (OPA) Guardrails** and **Micros
 
 | File | Purpose |
 |------|---------|
-| [`docker/opa/policies/prompt_policy.rego`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/docker/opa/policies/prompt_policy.rego) | Production Rego security policy definition for injection and role bounds |
-| [`backend/src/security/opa_engine.py`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/backend/src/security/opa_engine.py) | `OPAPolicyEngine` providing high-performance embedded and remote daemon evaluation |
-| [`backend/src/security/pii.py`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/backend/src/security/pii.py) | `PresidioPIIRedactor` with structured `PIIDetectionReport`, regex fallbacks, and entity maps |
-| [`backend/src/api/routes/security.py`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/backend/src/api/routes/security.py) | REST API endpoints (`POST /api/v1/security/inspect`, `GET /api/v1/security/status`) |
-| [`backend/src/api/routes/chat.py`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/backend/src/api/routes/chat.py) | Integrated OPA inspection & PII sanitization in chat execution pipeline |
-| [`docker-compose.yml`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/docker-compose.yml) | Added `rag_opa` service under `security` profile (`openpolicyagent/opa:0.62.0`) |
-| [`frontend/index.html`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/frontend/index.html) | Added OPA card and Live Security & PII Guardrails Inspector |
-| [`frontend/services/api.js`](file:///c:/Users/Tejas/Downloads/APPS/RAG%20Types/frontend/services/api.js) | Dynamic PII and OPA badges in chat messages and inspector event handlers |
+| [`docker/opa/policies/prompt_policy.rego`](../../../docker/opa/policies/prompt_policy.rego) | Production Rego security policy definition for injection and role bounds |
+| [`backend/src/security/opa_engine.py`](../../../backend/src/security/opa_engine.py) | `OPAPolicyEngine` providing high-performance embedded and remote daemon evaluation |
+| [`backend/src/security/pii.py`](../../../backend/src/security/pii.py) | `PresidioPIIRedactor` with structured `PIIDetectionReport`, regex fallbacks, and entity maps |
+| [`backend/src/api/routes/security.py`](../../../backend/src/api/routes/security.py) | REST API endpoints (`POST /api/v1/security/inspect`, `GET /api/v1/security/status`) |
+| [`backend/src/api/routes/chat.py`](../../../backend/src/api/routes/chat.py) | Integrated OPA inspection & PII sanitization in chat execution pipeline |
+| [`docker-compose.yml`](../../../docker-compose.yml) | Added `rag_opa` service under `security` profile (`openpolicyagent/opa:0.62.0`) |
+| [`frontend/index.html`](../../../frontend/index.html) | Added OPA card and Live Security & PII Guardrails Inspector |
+| [`frontend/services/api.js`](../../../frontend/services/api.js) | Dynamic PII and OPA badges in chat messages and inspector event handlers |
 
 ---
 

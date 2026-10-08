@@ -12,7 +12,7 @@ The platform provides a complete web workspace (chat, document ingestion, strate
 
 ---
 
-## 2. 15 Supported Production RAG Strategies
+## 2. 20 Supported Production RAG Strategies
 
 | # | Strategy Name | Core Architecture | Primary Use Case |
 | :---: | :--- | :--- | :--- |
@@ -31,18 +31,24 @@ The platform provides a complete web workspace (chat, document ingestion, strate
 | **13** | **SQL RAG** | Schema-grounded Text-to-SQL with AST read-only validation (`sqlglot`) | Tabular relational business metrics |
 | **14** | **Multimodal RAG** | Extracts vector tables and image figures (PyMuPDF) with token intent reranking | Complex PDFs, financials & charts |
 | **15** | **Hybrid-Graph-Agentic RAG** | Unified pinnacle fusing Dense Qdrant + BM25 Lexical + Neo4j Graph traversal via BGE Reranker into a LangGraph ReAct agent | Holistic enterprise reasoning across unstructured text and relational knowledge |
+| **16** | **Hierarchical Multi-Agent RAG** | Supervisor LangGraph orchestrator delegating to specialized Research, Legal & Synthesis sub-agents | Multi-perspective enterprise intelligence |
+| **17** | **Agentic Web-Grounded RAG** | Live search engine routing with real-time web grounding and verified URL citations | Real-time external news, competitor & market intel |
+| **18** | **Speculative Draft-and-Verify RAG** | Dual-path speculative draft synthesis + asynchronous verification against vector chunks | Sub-200ms executive response latency |
+| **19** | **Dynamic Tool-Calling Agentic RAG** | Autonomous OpenAPI tool dispatch (Financial Calculator, SQL, APIs) with schema validation | Workflows demanding deterministic calculation |
+| **20** | **Self-Query RAG** | Disentangles natural language query into semantic search text + native Qdrant filter expressions | Complex multi-attribute contractual & date filtering |
 
 ---
 
 ## 3. Platform Architecture & Documentation
 
-For in-depth architectural specifications and operational runbooks, refer to the documentation suite in [`docs/`](docs/):
+For in-depth architectural specifications, executive business briefings, and operational runbooks, refer to the documentation suite in [`docs/`](docs/):
 
+- 📄 **[Executive Business Brief (PDF)](docs/Enterprise_RAG_Platform_Executive_Brief.pdf)**: Complete 3-page publication-ready executive summary featuring all 20 RAG architectures, verified benchmarks, and deployment options.
 - 📘 **[High-Level Design (HLD)](docs/HLD.md)**: System architecture, subsystem interaction flows, and Mermaid diagrams.
 - 📐 **[Low-Level Design (LLD)](docs/LLD.md)**: UML class hierarchy, sequence flows, LangGraph state machines, math formulas, and ER diagrams.
 - 🔌 **[REST API Reference](docs/api_reference.md)**: Full endpoint specifications, JSON schemas, headers, and `curl` examples.
 - 🛡️ **[Security & Governance Guide](docs/security.md)**: Zero Trust model, PBKDF2 password hashing, JWT tokens, RBAC/ABAC matrix, Presidio PII redaction, and SQL AST sandboxing.
-- 🧪 **[Phase-Wise Testing Matrix](docs/rag_phase_test_matrix.md)**: Step-by-step test procedures across all 25 implementation phases.
+- 🧪 **[Phase-Wise Testing Matrix](docs/rag_phase_test_matrix.md)**: Step-by-step test procedures across all implementation phases.
 - 📸 **[Phase-by-Phase Proof Directory](docs/proofs/README.md)**: Master proof index with verified UI screenshots and recordings.
 
 ---
